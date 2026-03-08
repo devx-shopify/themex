@@ -111,28 +111,58 @@ document.addEventListener('DOMContentLoaded', () => {
     const colorIndex = getColorOptionIndex();
     if (colorIndex === -1) return;
 
-    const selectedColor = variant.options[colorIndex];
+    const allMediaItems = [...document.querySelectorAll('[data-media-id]')];
+    if (allMediaItems.length === 0) return;
 
-    // Collect featured_media_ids from all variants with the same color
-    const mediaIds = new Set(
+    // Build ordered list of media IDs from the DOM (matches product.media order)
+    const mediaOrder = allMediaItems.map((el) => Number(el.dataset.mediaId));
+
+    // Collect all unique featured_media_ids that mark the start of each variant's image set
+    const allFeaturedIds = new Set(
       productData.variants
-        .filter((v) => v.options[colorIndex] === selectedColor)
         .map((v) => v.featured_media_id)
         .filter((id) => id != null)
     );
 
-    const allMediaItems = document.querySelectorAll('[data-media-id]');
-
-    // If no media IDs found for this color, show all media
-    if (mediaIds.size === 0) {
-      allMediaItems.forEach((item) => item.classList.remove('hidden'));
+    // Find the selected variant's featured image position in the media order
+    const startIndex = mediaOrder.indexOf(variant.featured_media_id);
+    if (startIndex === -1) {
+      // Fallback: show all media, featured image gets col-span-2
+      allMediaItems.forEach((item) => {
+        item.classList.remove('hidden');
+        const mediaId = Number(item.dataset.mediaId);
+        if (mediaId === variant.featured_media_id) {
+          item.classList.add('col-span-2');
+          item.classList.remove('col-span-1');
+        } else {
+          item.classList.add('col-span-1');
+          item.classList.remove('col-span-2');
+        }
+      });
       return;
+    }
+
+    // From startIndex, show all media until the next variant's featured image
+    const visibleIds = new Set();
+    visibleIds.add(mediaOrder[startIndex]);
+
+    for (let i = startIndex + 1; i < mediaOrder.length; i++) {
+      if (allFeaturedIds.has(mediaOrder[i])) break;
+      visibleIds.add(mediaOrder[i]);
     }
 
     allMediaItems.forEach((item) => {
       const mediaId = Number(item.dataset.mediaId);
-      if (mediaIds.has(mediaId)) {
+      if (visibleIds.has(mediaId)) {
         item.classList.remove('hidden');
+        // Desktop grid: variant's featured image spans 2 columns, rest span 1
+        if (mediaId === variant.featured_media_id) {
+          item.classList.add('col-span-2');
+          item.classList.remove('col-span-1');
+        } else {
+          item.classList.add('col-span-1');
+          item.classList.remove('col-span-2');
+        }
       } else {
         item.classList.add('hidden');
       }

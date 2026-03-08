@@ -39,7 +39,7 @@
             <button
               type="submit"
               name="checkout"
-              class="block w-full rounded bg-primary py-3 text-center text-sm font-medium text-primary-foreground transition-colors hover:opacity-90"
+              class="block w-full rounded bg-primary py-3 text-center text-sm font-medium text-primary-foreground transition-all duration-200 hover:shadow-md"
             >
               {{ 'cart.checkout' | t }}
             </button>
@@ -65,7 +65,7 @@
       <p class="mb-6 text-muted">{{ 'cart.empty_cart' | t }}</p>
       <a
         href="{{ routes.all_products_collection_url }}"
-        class="rounded bg-primary px-8 py-3 text-sm font-medium text-primary-foreground transition-colors hover:opacity-90"
+        class="rounded bg-primary px-8 py-3 text-sm font-medium text-primary-foreground transition-all duration-200 hover:shadow-md"
       >
         {{ 'general.continue_shopping' | t }}
       </a>

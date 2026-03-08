@@ -2,6 +2,7 @@
   Product Card
 
   Renders a product card with image, title, price, and optional color swatches.
+  Entire card is clickable via stretched-link pattern on the title.
 
   @param {product} card_product - Product object (required)
   @param {boolean} show_vendor - Display vendor name (default: false)
@@ -24,7 +25,7 @@
   assign card_class = card_class | default: ''
 
   assign color_display = settings.product_color_display | default: 'swatch'
-  assign color_option = nil
+  assign color_option = null
   if card_product.options_with_values.size > 0
     assign color_option = card_product.options_with_values | where: 'name', 'Color' | first
     if color_option == blank
@@ -42,16 +43,14 @@
 -%}
 
 <div
-  class="product-card group/card flex h-full w-full flex-col overflow-hidden rounded-lg border border-border {{ card_class }}"
+  class="product-card group/card relative flex h-full w-full flex-col overflow-hidden rounded-lg border border-border transition-all duration-300 hover:shadow-lg hover:border-transparent {{ card_class }}"
   data-product-card
 >
-  <a
-    href="{{ card_product.url | within: collection }}"
-    class="product-card__image relative aspect-[4/5] overflow-hidden bg-gray-50"
-    aria-label="{{ card_product.title }}"
+  <div
+    class="product-card__image relative aspect-[4/5] overflow-hidden bg-muted/5"
     data-product-card-link
   >
-    {% render 'product-badge', product: card_product %}
+    {%- render 'product-badge', product: card_product -%}
 
     {%- if card_image -%}
       <img
@@ -60,15 +59,15 @@
         width="500"
         height="625"
         loading="{% if lazy_load %}lazy{% else %}eager{% endif %}"
-        class="h-full w-full object-cover transition-transform duration-300 group-hover/card:scale-105"
+        class="h-full w-full object-cover transition-transform duration-500 ease-out group-hover/card:scale-105"
         data-product-card-image
       >
     {%- else -%}
       <div class="flex h-full w-full items-center justify-center text-muted">
-        {% render 'icon-cart', size: 48 %}
+        {%- render 'icon-cart', size: 48 -%}
       </div>
     {%- endif -%}
-  </a>
+  </div>
 
   <div class="flex flex-1 flex-col justify-between gap-2 p-3 md:p-4">
     {%- if show_vendor and card_product.vendor != blank -%}
@@ -77,7 +76,7 @@
 
     <a
       href="{{ card_product.url | within: collection }}"
-      class="product-card__title text-sm font-medium md:text-base"
+      class="product-card__title text-sm font-medium after:absolute after:inset-0 md:text-base"
       data-product-card-title-link
     >
       {{ card_product.title }}
@@ -99,9 +98,9 @@
         {{ 'products.colors_available' | t: count: color_count }}
       </p>
     {%- elsif color_display == 'swatch' and color_count > 0 -%}
-      <div class="flex items-center gap-1.5" aria-label="Available colors">
+      <div class="relative z-10 flex items-center gap-1.5" aria-label="Available colors">
         {%- for color_value in color_option.values limit: 5 -%}
-          {%- assign swatch_variant = nil -%}
+          {%- assign swatch_variant = null -%}
           {%- for variant in card_product.variants -%}
             {%- if variant.options contains color_value -%}
               {%- assign swatch_variant = variant -%}
@@ -122,7 +121,11 @@
             {%- if swatch_variant.compare_at_price > swatch_variant.price %}
               data-swatch-compare-price="{{ swatch_variant.compare_at_price | money }}"
             {%- endif %}
-            {%- if forloop.first %} aria-pressed="true"{% else %} aria-pressed="false"{% endif %}
+            {%- if forloop.first %}
+              aria-pressed="true"
+            {% else %}
+              aria-pressed="false"
+            {% endif %}
           ></button>
         {%- endfor -%}
         {%- if color_count > 5 -%}

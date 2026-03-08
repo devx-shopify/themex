@@ -43,9 +43,9 @@
 
       {%- comment -%} Search results container (server-rendered via section rendering) {%- endcomment -%}
       <div id="predictive-search-results" class="hidden max-h-[60vh] overflow-y-auto"></div>
-      <div id="predictive-search-loading" class="hidden py-8 text-center text-sm text-muted">
-        {% render 'icon-spinner', size: 24 %}
-        <p class="mt-2">{{ 'general.loading' | t }}</p>
+      <div id="predictive-search-loading" class="hidden flex-col items-center justify-center gap-3 py-12 text-sm text-muted">
+        {%- render 'icon-spinner', size: 28 -%}
+        <p>{{ 'general.loading' | t }}</p>
       </div>
 
       {%- comment -%} Default content (shown when no search query) {%- endcomment -%}

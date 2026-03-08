@@ -37,15 +37,18 @@
   data-section-id="{{ section.id }}"
 >
   {%- comment -%} Collection header {%- endcomment -%}
-  <div class="mb-10 border-b border-border pb-6">
-    <h1 class="text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl">{{ collection.title }}</h1>
+  <div class="mb-8 pb-6">
+    <h1 class="text-2xl font-semibold tracking-tight md:text-3xl lg:text-4xl">{{ collection.title }}</h1>
     {%- if collection.description != blank -%}
-      <div class="mt-3 max-w-2xl text-base leading-relaxed text-muted">{{ collection.description }}</div>
+      <div class="mt-2 max-w-2xl text-sm leading-relaxed text-muted md:text-base">{{ collection.description }}</div>
     {%- endif -%}
   </div>
 
   {%- comment -%} Toolbar: sort, filter toggle, product count {%- endcomment -%}
-  <div class="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-border pb-4" data-collection-toolbar>
+  <div
+    class="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-border pb-4"
+    data-collection-toolbar
+  >
     <div class="flex items-center gap-4">
       {%- if has_filters -%}
         <button
@@ -73,8 +76,13 @@
         data-collection-sort
       >
         {%- for option in sort_options -%}
-          <option value="{{ option }}" {% if option == current_sort %}selected{% endif %}>
-            {{ 'collections.sort_options.' | append: option | t }}
+          <option
+            value="{{ option }}"
+            {% if option == current_sort %}
+              selected
+            {% endif %}
+          >
+            {{ option }}
           </option>
         {%- endfor -%}
       </select>
@@ -86,7 +94,6 @@
     {% render 'active-filters', collection: collection %}
   </div>
 
-  {%- comment -%} Main layout: sidebar filters + product grid {%- endcomment -%}
   <div class="flex gap-8">
     {%- if has_filters -%}
       {%- comment -%} Desktop sidebar filters {%- endcomment -%}
@@ -99,9 +106,17 @@
     <div class="flex-1" data-collection-products>
       {% paginate collection.products by products_per_page %}
         {%- if collection.products.size > 0 -%}
-          <div class="grid {{ grid_class_mobile }} {{ grid_class_desktop }} gap-x-4 gap-y-6 md:gap-x-5 md:gap-y-8" data-product-grid>
+          <div
+            class="grid {{ grid_class_mobile }} {{ grid_class_desktop }} gap-x-3 gap-y-8 md:gap-x-4 md:gap-y-10"
+            data-product-grid
+          >
             {%- for product in collection.products -%}
-              {% render 'product-card', card_product: product %}
+              {% render 'product-card',
+                card_product: product,
+                show_vendor: false,
+                lazy_load: false,
+                card_class: 'w-full'
+              %}
             {%- endfor -%}
           </div>
 
@@ -150,7 +165,7 @@
       <div class="flex items-center justify-between border-b border-border px-4 py-4">
         <h2 class="text-lg font-bold">{{ 'collections.filter' | t }}</h2>
         <button type="button" class="transition-colors hover:text-muted" data-filter-close>
-          {% render 'icon-close', size: 20 %}
+          {% render 'icon-close', size: 20, class: 'w-5 h-5' %}
         </button>
       </div>
 
@@ -201,7 +216,7 @@
       "id": "columns_mobile",
       "label": "Mobile columns",
       "min": 1,
-      "max": 2,
+      "max": 3,
       "step": 1,
       "default": 2
     }

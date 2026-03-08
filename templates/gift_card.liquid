@@ -12,8 +12,8 @@
     <title>{{ 'gift_card.card' | t }} - {{ shop.name }}</title>
   </head>
 
-  <body class="flex min-h-screen items-center justify-center bg-gray-50 p-4">
-    <div class="w-full max-w-md rounded-lg bg-white p-8 text-center shadow-lg">
+  <body class="flex min-h-screen items-center justify-center bg-muted/5 p-4">
+    <div class="w-full max-w-md rounded-lg bg-background p-8 text-center shadow-lg">
       <h1 class="mb-2 text-2xl font-bold">{{ shop.name }}</h1>
       <p class="mb-6 text-muted">{{ 'gift_card.card' | t }}</p>
 
@@ -40,7 +40,7 @@
         {%- endif -%}
       </div>
 
-      <div class="mb-6 rounded bg-gray-100 p-4">
+      <div class="mb-6 rounded bg-muted/10 p-4">
         <p class="mb-1 text-sm text-muted">{{ 'gift_card.use_at_checkout' | t }}</p>
         <p class="select-all font-mono text-lg font-bold tracking-wider">{{ gift_card.code }}</p>
       </div>
@@ -59,7 +59,7 @@
 
       <a
         href="{{ shop.url }}"
-        class="mt-6 inline-block rounded bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-colors hover:opacity-90"
+        class="mt-6 inline-block rounded bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-all duration-200 hover:shadow-md"
       >
         {{ 'general.continue_shopping' | t }}
       </a>

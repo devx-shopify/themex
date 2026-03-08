@@ -36,7 +36,7 @@
                 class="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-muted/10"
               >
                 {%- if product.featured_image -%}
-                  <div class="h-14 w-14 flex-shrink-0 overflow-hidden rounded border border-border bg-gray-50">
+                  <div class="h-14 w-14 flex-shrink-0 overflow-hidden rounded border border-border bg-muted/5">
                     <img
                       src="{{ product.featured_image | image_url: width: 112 }}"
                       alt="{{ product.title | escape }}"
@@ -47,7 +47,7 @@
                     >
                   </div>
                 {%- else -%}
-                  <div class="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded border border-border bg-gray-50 text-muted">
+                  <div class="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded border border-border bg-muted/5 text-muted">
                     {% render 'icon-cart', size: 20 %}
                   </div>
                 {%- endif -%}
@@ -79,7 +79,7 @@
                 class="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-muted/10"
               >
                 {%- if article.image -%}
-                  <div class="h-14 w-14 flex-shrink-0 overflow-hidden rounded border border-border bg-gray-50">
+                  <div class="h-14 w-14 flex-shrink-0 overflow-hidden rounded border border-border bg-muted/5">
                     <img
                       src="{{ article.image | image_url: width: 112 }}"
                       alt="{{ article.title | escape }}"

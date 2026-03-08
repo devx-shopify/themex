@@ -18,18 +18,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function showLoading() {
     resultsContainer.classList.add('hidden');
-    if (loadingIndicator) loadingIndicator.classList.remove('hidden');
+    if (loadingIndicator) {
+      loadingIndicator.classList.remove('hidden');
+      loadingIndicator.classList.add('flex');
+    }
     if (defaultContent) defaultContent.classList.add('hidden');
   }
 
   function showResults() {
     resultsContainer.classList.remove('hidden');
-    if (loadingIndicator) loadingIndicator.classList.add('hidden');
+    if (loadingIndicator) {
+      loadingIndicator.classList.add('hidden');
+      loadingIndicator.classList.remove('flex');
+    }
   }
 
   function hideAll() {
     resultsContainer.classList.add('hidden');
-    if (loadingIndicator) loadingIndicator.classList.add('hidden');
+    if (loadingIndicator) {
+      loadingIndicator.classList.add('hidden');
+      loadingIndicator.classList.remove('flex');
+    }
   }
 
   async function performSearch(query) {

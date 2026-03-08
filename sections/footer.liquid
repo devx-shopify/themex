@@ -32,7 +32,7 @@
         {%- endif -%}
 
         {%- if section.settings.description != blank -%}
-          <div class="mt-4 text-sm opacity-80">
+          <div class="mt-4 text-sm leading-relaxed opacity-70">
             {{ section.settings.description }}
           </div>
         {%- endif -%}
@@ -57,7 +57,7 @@
                   href="{{ settings[setting_id] }}"
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="text-sm opacity-80 transition-opacity hover:opacity-100"
+                  class="text-sm opacity-70 transition-all duration-200 hover:opacity-100"
                   aria-label="{{ platform | capitalize }}"
                 >
                   {{ platform | capitalize }}
@@ -74,7 +74,7 @@
           <ul class="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-4">
             {%- for link in linklists[section.settings.menu].links -%}
               <li>
-                <span class="mb-3 block text-sm font-semibold uppercase tracking-wide">
+                <span class="mb-3 block text-xs font-semibold uppercase tracking-[0.15em]">
                   {{ link.title }}
                 </span>
                 {%- if link.links.size > 0 -%}
@@ -83,7 +83,7 @@
                       <li>
                         <a
                           href="{{ child_link.url }}"
-                          class="text-sm opacity-80 transition-opacity hover:opacity-100"
+                          class="text-sm opacity-70 transition-all duration-200 hover:opacity-100"
                         >
                           {{ child_link.title }}
                         </a>

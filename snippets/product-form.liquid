@@ -78,7 +78,7 @@
     {%- comment -%} Add to cart button {%- endcomment -%}
     <button
       type="submit"
-      class="product-form__submit flex w-full items-center justify-center gap-2 rounded bg-foreground px-6 py-3.5 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+      class="product-form__submit flex w-full items-center justify-center gap-2 rounded bg-foreground px-6 py-3.5 text-sm font-medium text-background transition-all duration-200 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
       {%- unless selected_variant.available %} disabled{% endunless -%}
     >
       <span data-button-text>

@@ -30,7 +30,10 @@
     {%- comment -%} Product media {%- endcomment -%}
     <div class="product-media">
       {%- comment -%} Mobile: horizontal scroll {%- endcomment -%}
-      <div class="flex snap-x snap-mandatory gap-2 overflow-x-auto scrollbar-hide lg:hidden" data-product-gallery-scroll>
+      <div
+        class="flex snap-x snap-mandatory gap-2 overflow-x-auto scrollbar-hide lg:hidden"
+        data-product-gallery-scroll
+      >
         {%- for media in product.media -%}
           <div
             class="w-full flex-none snap-start"
@@ -58,7 +61,7 @@
       <div class="hidden gap-2 lg:grid lg:grid-cols-2">
         {%- for media in product.media -%}
           <div
-            class="{% cycle 'col-span-2', 'col-span-1', 'col-span-1' %}"
+            class="{% if media.id == current_variant.featured_media.id %}col-span-2{% else %}col-span-1{% endif %}"
             data-media-id="{{ media.id }}"
           >
             {%- if media.media_type == 'image' -%}
@@ -84,7 +87,6 @@
     <div class="product-info lg:sticky lg:top-24 lg:self-start">
       {%- for block in section.blocks -%}
         {%- case block.type -%}
-
           {%- when 'title' -%}
             <h1 class="mb-2 text-3xl font-bold lg:text-4xl" {{ block.shopify_attributes }}>
               {{ product.title }}
@@ -105,7 +107,12 @@
                   {{ current_variant.compare_at_price | money }}
                 </s>
 
-                {%- assign discount = current_variant.compare_at_price | minus: current_variant.price | times: 100.0 | divided_by: current_variant.compare_at_price | round -%}
+                {%- assign discount = current_variant.compare_at_price
+                  | minus: current_variant.price
+                  | times: 100.0
+                  | divided_by: current_variant.compare_at_price
+                  | round
+                -%}
                 <span class="rounded bg-error/10 px-2 py-0.5 text-xs font-medium text-error" data-product-discount>
                   {{ discount }}% off
                 </span>
@@ -135,7 +142,7 @@
                       {%- for value in option.values -%}
                         {%- if is_color -%}
                           {%- liquid
-                            assign color_variant = nil
+                            assign color_variant = null
                             for v in product.variants
                               case option_index
                                 when 0
@@ -153,7 +160,7 @@
                           -%}
                           <button
                             type="button"
-                            class="variant-option variant-option--color relative h-12 w-12 overflow-hidden rounded-full border-2 transition-all{% if value == option.selected_value %} border-foreground ring-2 ring-foreground/20{% else %} border-border hover:border-foreground{% endif %}"
+                            class="variant-option variant-option--color relative h-12 w-12 overflow-hidden rounded-lg border-2 transition-all{% if value == option.selected_value %} border-foreground ring-2 ring-foreground/20{% else %} border-border hover:border-foreground{% endif %}"
                             data-option-value="{{ value }}"
                             data-option-index="{{ option_index }}"
                             aria-label="{{ value }}"
@@ -170,7 +177,10 @@
                                 class="h-full w-full object-cover"
                               >
                             {%- else -%}
-                              <span class="absolute inset-0 rounded-full" style="background-color: {{ value | handleize | replace: '-', '' }};"></span>
+                              <span
+                                class="absolute inset-0 rounded-full"
+                                style="background-color: {{ value | handleize | replace: '-', '' }};"
+                              ></span>
                             {%- endif -%}
                           </button>
                         {%- else -%}
@@ -217,7 +227,6 @@
                 </div>
               </details>
             {%- endif -%}
-
         {%- endcase -%}
       {%- endfor -%}
     </div>
