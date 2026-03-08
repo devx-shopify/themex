@@ -179,7 +179,7 @@
                             {%- else -%}
                               <span
                                 class="absolute inset-0 rounded-full"
-                                style="background-color: {{ value | handleize | replace: '-', '' }};"
+                                style="background-color: rgb(var(--color-muted) / 0.3); background-color: {{ value | handleize | replace: '-', '' }};"
                               ></span>
                             {%- endif -%}
                           </button>

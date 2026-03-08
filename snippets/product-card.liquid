@@ -110,10 +110,10 @@
 
           <button
             type="button"
-            class="product-card__swatch h-5 w-5 rounded-full border-2 transition-all{% if forloop.first %} border-foreground{% else %} border-border hover:border-foreground{% endif %}{% unless swatch_variant.available %} opacity-40{% endunless %}"
+            class="product-card__swatch h-5 w-5 rounded-full border-2 transition-all{% if forloop.first %} border-foreground ring-2 ring-foreground/20{% else %} border-border hover:border-foreground{% endif %}{% unless swatch_variant.available %} opacity-40{% endunless %}"
             title="{{ color_value }}"
             aria-label="{{ color_value }}"
-            style="background-color: {{ color_value | handleize | replace: '-', '' }};"
+            style="background-color: rgb(var(--color-muted) / 0.3); background-color: {{ color_value | handleize | replace: '-', '' }};"
             data-swatch-variant-id="{{ swatch_variant.id }}"
             data-swatch-image="{% if swatch_variant.featured_image %}{{ swatch_variant.featured_image | image_url: width: 500 }}{% endif %}"
             data-swatch-url="{{ card_product.url }}?variant={{ swatch_variant.id }}"

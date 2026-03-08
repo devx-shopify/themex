@@ -14,12 +14,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const allSwatches = card.querySelectorAll('.product-card__swatch');
     allSwatches.forEach((s) => {
-      s.classList.remove('border-foreground');
+      s.classList.remove('border-foreground', 'ring-2', 'ring-foreground/20');
       s.classList.add('border-border');
       s.setAttribute('aria-pressed', 'false');
     });
     swatch.classList.remove('border-border');
-    swatch.classList.add('border-foreground');
+    swatch.classList.add('border-foreground', 'ring-2', 'ring-foreground/20');
     swatch.setAttribute('aria-pressed', 'true');
 
     const newImage = swatch.dataset.swatchImage;
