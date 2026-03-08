@@ -17,13 +17,13 @@
 
     {% form 'customer', class: 'flex gap-2' %}
       {%- if form.errors -%}
-        <div class="mb-4 w-full rounded border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+        <div class="mb-4 w-full rounded border border-error/20 bg-error/5 p-3 text-sm text-error">
           {{ form.errors | default_errors }}
         </div>
       {%- endif -%}
 
       {%- if form.posted_successfully? -%}
-        <div class="mb-4 w-full rounded border border-green-200 bg-green-50 p-3 text-sm text-green-800">
+        <div class="mb-4 w-full rounded border border-success/20 bg-success/5 p-3 text-sm text-success">
           {{ 'newsletter.success' | t }}
         </div>
       {%- else -%}

@@ -9,7 +9,7 @@ class CartDrawer extends HTMLElement {
   connectedCallback() {
     this.overlay = this.querySelector('[data-cart-overlay]');
     this.panel = this.querySelector('[data-cart-panel]');
-    this.closeButton = this.querySelector('.cart-drawer-close');
+    this.closeButton = this.querySelector('[data-cart-close]');
     this.notification = this.querySelector('[data-cart-notification]');
     this.notificationTimeout = null;
 
@@ -22,7 +22,7 @@ class CartDrawer extends HTMLElement {
 
     // Cart trigger buttons (in header)
     document.addEventListener('click', (e) => {
-      if (e.target.closest('.cart-trigger')) {
+      if (e.target.closest('[data-cart-trigger]')) {
         e.preventDefault();
         this.openDrawer();
       }
@@ -87,13 +87,7 @@ class CartDrawer extends HTMLElement {
     this.notification.textContent = message;
     this.notification.classList.remove('hidden');
 
-    if (type === 'error') {
-      this.notification.classList.remove('bg-primary');
-      this.notification.classList.add('bg-red-600');
-    } else {
-      this.notification.classList.remove('bg-red-600');
-      this.notification.classList.add('bg-primary');
-    }
+    this.notification.dataset.notificationType = type;
 
     this.notificationTimeout = setTimeout(() => {
       this.notification.classList.add('hidden');
@@ -184,7 +178,7 @@ class CartDrawer extends HTMLElement {
       this.updateCartCount(data.item_count);
 
       if (quantity === 0) {
-        this.showNotification('Item removed from cart');
+        this.showNotification(window.theme?.strings?.itemRemoved || 'Item removed from cart');
       }
     } catch (error) {
       if (itemEl) {

@@ -88,13 +88,13 @@
           <h3 class="text-lg font-bold">{{ 'blog.comment_form_title' | t }}</h3>
 
           {%- if form.errors -%}
-            <div class="rounded border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+            <div class="rounded border border-error/20 bg-error/5 p-4 text-sm text-error">
               {{ form.errors | default_errors }}
             </div>
           {%- endif -%}
 
           {%- if form.posted_successfully? -%}
-            <div class="rounded border border-green-200 bg-green-50 p-4 text-sm text-green-800">
+            <div class="rounded border border-success/20 bg-success/5 p-4 text-sm text-success">
               {{ 'blog.comment_posted' | t }}
             </div>
           {%- endif -%}

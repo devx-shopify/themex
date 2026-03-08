@@ -15,7 +15,8 @@
       <h2 class="text-lg font-bold">{{ 'cart.shopping_cart' | t }}</h2>
       <button
         type="button"
-        class="cart-drawer-close transition-colors hover:text-muted"
+        class="transition-colors hover:text-muted"
+        data-cart-close
         aria-label="{{ 'cart.close' | t }}"
       >
         {% render 'icon-close', size: 20 %}
@@ -33,7 +34,7 @@
           <p class="mb-4 text-muted">{{ 'cart.empty_cart' | t }}</p>
           <a
             href="{{ routes.all_products_collection_url }}"
-            class="rounded bg-primary px-6 py-2 text-sm font-medium text-white transition-colors hover:opacity-90"
+            class="rounded bg-primary px-6 py-2 text-sm font-medium text-primary-foreground transition-colors hover:opacity-90"
           >
             {{ 'general.continue_shopping' | t }}
           </a>
@@ -48,19 +49,22 @@
           <span class="text-sm font-medium">{{ 'cart.subtotal' | t }}</span>
           <span class="text-lg font-bold" data-cart-subtotal>{{ cart.total_price | money }}</span>
         </div>
-        <a
-          href="/checkout"
-          class="block w-full rounded bg-primary py-3 text-center text-sm font-medium text-white transition-colors hover:opacity-90"
-        >
-          {{ 'cart.checkout' | t }}
-        </a>
+        <form action="{{ routes.cart_url }}" method="post">
+          <button
+            type="submit"
+            name="checkout"
+            class="block w-full rounded bg-primary py-3 text-center text-sm font-medium text-primary-foreground transition-colors hover:opacity-90"
+          >
+            {{ 'cart.checkout' | t }}
+          </button>
+        </form>
       </div>
     {%- endif -%}
   </div>
 
   {%- comment -%} Notification toast {%- endcomment -%}
   <div
-    class="cart-notification fixed bottom-4 left-1/2 z-[90] hidden -translate-x-1/2 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-white shadow-lg transition-all duration-300"
+    class="cart-notification fixed bottom-4 left-1/2 z-[90] hidden -translate-x-1/2 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground shadow-lg transition-all duration-300 data-[notification-type=error]:bg-error"
     data-cart-notification
     role="status"
     aria-live="polite"

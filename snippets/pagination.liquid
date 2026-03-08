@@ -24,10 +24,10 @@
     {%- if paginate.previous -%}
       <a
         href="{{ paginate.previous.url }}"
-        class="rounded border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 hover:bg-gray-50"
+        class="rounded border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 hover:bg-muted/10"
         aria-label="Previous page"
       >
-        Previous
+        {{ 'general.pagination.previous' | t }}
       </a>
     {%- endif -%}
 
@@ -35,12 +35,12 @@
       {%- if part.is_link -%}
         <a
           href="{{ part.url }}"
-          class="rounded border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 hover:bg-gray-50"
+          class="rounded border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 hover:bg-muted/10"
         >
           {{ part.title }}
         </a>
       {%- else -%}
-        <span class="rounded border border-primary bg-primary px-4 py-2 text-sm font-medium text-white">
+        <span class="rounded border border-primary bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
           {{ part.title }}
         </span>
       {%- endif -%}
@@ -49,10 +49,10 @@
     {%- if paginate.next -%}
       <a
         href="{{ paginate.next.url }}"
-        class="rounded border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 hover:bg-gray-50"
+        class="rounded border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 hover:bg-muted/10"
         aria-label="Next page"
       >
-        Next
+        {{ 'general.pagination.next' | t }}
       </a>
     {%- endif -%}
   </nav>

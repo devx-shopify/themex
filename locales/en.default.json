@@ -11,7 +11,11 @@
     "menu": "Menu",
     "loading": "Loading...",
     "continue_shopping": "Continue shopping",
-    "view_all": "View all"
+    "view_all": "View all",
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next"
+    }
   },
   "404": {
     "title": "Page not found",
@@ -45,6 +49,7 @@
     "added_to_cart": "Product added to cart!",
     "add_to_cart_error": "Failed to add product. Please try again.",
     "update_cart_error": "Failed to update cart. Please try again.",
+    "item_removed": "Item removed from cart.",
     "taxes_and_shipping_at_checkout": "Taxes and shipping calculated at checkout.",
     "loading": "Loading..."
   },

@@ -33,8 +33,9 @@
         {%- if gift_card.expired -%}
           <p class="mt-2 text-error">{{ 'gift_card.expired' | t }}</p>
         {%- elsif gift_card.expires_on -%}
+          {%- assign formatted_expires_on = gift_card.expires_on | date: '%B %d, %Y' -%}
           <p class="mt-2 text-sm text-muted">
-            {{ 'gift_card.expires_on' | t: expires_on: gift_card.expires_on | date: '%B %d, %Y' }}
+            {{ 'gift_card.expires_on' | t: expires_on: formatted_expires_on }}
           </p>
         {%- endif -%}
       </div>
@@ -58,7 +59,7 @@
 
       <a
         href="{{ shop.url }}"
-        class="mt-6 inline-block rounded bg-primary px-6 py-3 text-sm font-medium text-white transition-colors hover:opacity-90"
+        class="mt-6 inline-block rounded bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-colors hover:opacity-90"
       >
         {{ 'general.continue_shopping' | t }}
       </a>

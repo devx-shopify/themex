@@ -10,7 +10,7 @@
 
     {% form 'customer_register', class: 'space-y-5' %}
       {%- if form.errors -%}
-        <div class="rounded border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+        <div class="rounded border border-error/20 bg-error/5 p-4 text-sm text-error">
           {{ form.errors | default_errors }}
         </div>
       {%- endif -%}

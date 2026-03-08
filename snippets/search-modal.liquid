@@ -84,7 +84,7 @@
 
         {%- comment -%} Best sellers {%- endcomment -%}
         {%- if settings.best_sellers_products != blank -%}
-          {%- assign best_sellers = collections[settings.best_sellers_products] -%}
+          {%- assign best_sellers = settings.best_sellers_products -%}
           {%- if best_sellers != blank and best_sellers.products.size > 0 -%}
             <div>
               {%- if settings.best_sellers_products_heading != blank -%}

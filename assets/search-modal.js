@@ -91,14 +91,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     recentContainer.classList.remove('hidden');
-    recentList.innerHTML = searches
-      .map(
-        (term) =>
-          `<li>
-            <button type="button" class="recent-search-item w-full text-left text-sm py-1 transition-colors hover:text-primary" data-search-term="${term}">${term}</button>
-          </li>`
-      )
-      .join('');
+    recentList.innerHTML = '';
+    searches.forEach((term) => {
+      const li = document.createElement('li');
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'recent-search-item w-full text-left text-sm py-1 transition-colors hover:text-primary';
+      btn.dataset.searchTerm = term;
+      btn.textContent = term;
+      li.appendChild(btn);
+      recentList.appendChild(li);
+    });
   }
 
   recentList?.addEventListener('click', (e) => {

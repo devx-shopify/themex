@@ -176,12 +176,13 @@
     {%- if template.name != 'cart' -%}
       <button
         type="button"
-        class="cart-trigger relative flex items-center justify-center transition-colors hover:text-accent"
+        class="relative flex items-center justify-center transition-colors hover:text-accent"
+        data-cart-trigger
         aria-label="{{ 'accessibility.cart' | t }}"
       >
         {% render 'icon-cart', size: 20 %}
         <span
-          class="cart-item-count absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white{% if cart.item_count == 0 %} hidden{% endif %}"
+          class="cart-item-count absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground{% if cart.item_count == 0 %} hidden{% endif %}"
           data-cart-count="{{ cart.item_count }}"
         >
           {%- if cart.item_count > 0 -%}{{ cart.item_count }}{%- endif -%}

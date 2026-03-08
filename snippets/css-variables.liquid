@@ -15,15 +15,15 @@
     --font-primary--family: {{ settings.type_primary_font.family }}, {{ settings.type_primary_font.fallback_families }};
     --font-secondary--family: {{ settings.type_secondary_font.family }}, {{ settings.type_secondary_font.fallback_families }};
 
-    --color-primary: {{ settings.color_primary }};
-    --color-secondary: {{ settings.color_secondary }};
-    --color-accent: {{ settings.color_accent }};
-    --color-foreground: {{ settings.color_foreground }};
-    --color-background: {{ settings.color_background }};
-    --color-border: {{ settings.color_border }};
-    --color-muted: {{ settings.color_muted }};
-    --color-error: {{ settings.color_error }};
-    --color-success: {{ settings.color_success }};
-    --color-primary-foreground: {{ settings.color_primary_foreground }};
+    --color-primary: {{ settings.color_primary | color_extract: 'red' }} {{ settings.color_primary | color_extract: 'green' }} {{ settings.color_primary | color_extract: 'blue' }};
+    --color-secondary: {{ settings.color_secondary | color_extract: 'red' }} {{ settings.color_secondary | color_extract: 'green' }} {{ settings.color_secondary | color_extract: 'blue' }};
+    --color-accent: {{ settings.color_accent | color_extract: 'red' }} {{ settings.color_accent | color_extract: 'green' }} {{ settings.color_accent | color_extract: 'blue' }};
+    --color-foreground: {{ settings.color_foreground | color_extract: 'red' }} {{ settings.color_foreground | color_extract: 'green' }} {{ settings.color_foreground | color_extract: 'blue' }};
+    --color-background: {{ settings.color_background | color_extract: 'red' }} {{ settings.color_background | color_extract: 'green' }} {{ settings.color_background | color_extract: 'blue' }};
+    --color-border: {{ settings.color_border | color_extract: 'red' }} {{ settings.color_border | color_extract: 'green' }} {{ settings.color_border | color_extract: 'blue' }};
+    --color-muted: {{ settings.color_muted | color_extract: 'red' }} {{ settings.color_muted | color_extract: 'green' }} {{ settings.color_muted | color_extract: 'blue' }};
+    --color-error: {{ settings.color_error | color_extract: 'red' }} {{ settings.color_error | color_extract: 'green' }} {{ settings.color_error | color_extract: 'blue' }};
+    --color-success: {{ settings.color_success | color_extract: 'red' }} {{ settings.color_success | color_extract: 'green' }} {{ settings.color_success | color_extract: 'blue' }};
+    --color-primary-foreground: {{ settings.color_primary_foreground | color_extract: 'red' }} {{ settings.color_primary_foreground | color_extract: 'green' }} {{ settings.color_primary_foreground | color_extract: 'blue' }};
   }
 {% endstyle %}

@@ -1,7 +1,7 @@
 {% doc %}
   Global Variables
 
-  Exposes shop data as JSON for JavaScript consumption.
+  Exposes shop data and translatable strings as JSON for JavaScript consumption.
   Placed at end of body in layout/theme.liquid.
 {% enddoc %}
 
@@ -10,4 +10,19 @@
     "money_format": {{ shop.money_format | json }},
     "money_with_currency_format": {{ shop.money_with_currency_format | json }}
   }
+</script>
+
+<script type="application/json" id="theme-strings">
+  {
+    "addToCart": {{ 'products.add_to_cart' | t | json }},
+    "soldOut": {{ 'products.sold_out' | t | json }},
+    "addedToCart": {{ 'cart.added_to_cart' | t | json }},
+    "updateCartError": {{ 'cart.update_cart_error' | t | json }},
+    "itemRemoved": {{ 'cart.item_removed' | t | json }}
+  }
+</script>
+
+<script>
+  window.theme = window.theme || {};
+  window.theme.strings = JSON.parse(document.getElementById('theme-strings').textContent);
 </script>
