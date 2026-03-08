@@ -1,0 +1,106 @@
+{% doc %}
+  Cart Item
+
+  Renders a single cart item in the cart drawer or cart page.
+
+  @param {line_item} item - Cart line item (required)
+
+  @example
+  {% render 'cart-item', item: item %}
+{% enddoc %}
+
+{%- liquid
+  assign item = item | default: blank
+
+  unless item != blank
+    break
+  endunless
+-%}
+
+<cart-actions class="cart-item relative flex gap-3 border-b border-border py-4" data-line-key="{{ item.key }}">
+  {%- comment -%} Image {%- endcomment -%}
+  <a href="{{ item.url }}" class="block h-20 w-20 flex-shrink-0 overflow-hidden rounded border border-border">
+    {%- if item.image -%}
+      <img
+        src="{{ item.image | image_url: width: 160 }}"
+        alt="{{ item.title | escape }}"
+        width="80"
+        height="80"
+        loading="lazy"
+        class="h-full w-full object-cover"
+      >
+    {%- endif -%}
+  </a>
+
+  {%- comment -%} Details {%- endcomment -%}
+  <div class="flex flex-1 flex-col justify-between">
+    <div>
+      <a href="{{ item.url }}" class="text-sm font-medium leading-tight">
+        {{ item.product.title }}
+      </a>
+      {%- if item.variant.title != 'Default Title' -%}
+        <p class="mt-0.5 text-xs text-muted">{{ item.variant.title }}</p>
+      {%- endif -%}
+      {%- for property in item.properties -%}
+        {%- if property.last != blank -%}
+          <p class="mt-0.5 text-xs text-muted">{{ property.first }}: {{ property.last }}</p>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+
+    <div class="mt-2 flex items-center justify-between">
+      {%- comment -%} Quantity controls {%- endcomment -%}
+      <div class="flex items-center gap-2 rounded border border-border">
+        <button
+          type="button"
+          class="flex h-8 w-8 items-center justify-center text-muted transition-colors hover:text-foreground"
+          data-cart-change
+          data-line-key="{{ item.key }}"
+          data-quantity="{{ item.quantity | minus: 1 }}"
+          aria-label="{{ 'cart.decrease' | t: product: item.product.title }}"
+        >
+          {% render 'icon-minus', size: 14 %}
+        </button>
+        <span class="min-w-[1.5rem] text-center text-sm" data-quantity-value>
+          {{ item.quantity }}
+        </span>
+        <button
+          type="button"
+          class="flex h-8 w-8 items-center justify-center text-muted transition-colors hover:text-foreground"
+          data-cart-change
+          data-line-key="{{ item.key }}"
+          data-quantity="{{ item.quantity | plus: 1 }}"
+          aria-label="{{ 'cart.increase' | t: product: item.product.title }}"
+        >
+          {% render 'icon-plus', size: 14 %}
+        </button>
+      </div>
+
+      {%- comment -%} Price & remove {%- endcomment -%}
+      <div class="flex items-center gap-3">
+        <span class="text-sm font-medium">{{ item.final_line_price | money }}</span>
+        <button
+          type="button"
+          class="text-muted transition-colors hover:text-error"
+          data-cart-change
+          data-line-key="{{ item.key }}"
+          data-quantity="0"
+          aria-label="{{ 'cart.remove' | t }}"
+        >
+          {% render 'icon-delete', size: 16 %}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  {%- comment -%} Loading overlay {%- endcomment -%}
+  <div
+    class="pointer-events-none absolute inset-0 hidden items-center justify-center bg-background/80"
+    data-cart-item-loader
+  >
+    <svg class="h-5 w-5 animate-spin text-muted" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    </svg>
+  </div>
+</cart-actions>

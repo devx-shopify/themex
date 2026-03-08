@@ -1,0 +1,190 @@
+{%- comment -%}
+  Search Results Section
+
+  Renders the /search page with search form and results
+  grouped by type: products, articles, and pages.
+  Improved layout with type tabs and better visual design.
+{%- endcomment -%}
+
+<div class="search-page page-width py-10 md:py-16">
+  {%- comment -%} Search header {%- endcomment -%}
+  <div class="mb-10 text-center">
+    <h1 class="mb-6 text-3xl font-bold md:text-4xl lg:text-5xl">{{ 'search.title' | t }}</h1>
+    <form action="{{ routes.search_url }}" method="get" role="search" class="mx-auto max-w-xl">
+      <div class="relative">
+        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+          {% render 'icon-search', size: 20, class: 'text-muted' %}
+        </div>
+        <input
+          type="search"
+          name="q"
+          value="{{ search.terms | escape }}"
+          placeholder="{{ 'search.placeholder' | t }}"
+          class="w-full rounded-lg border border-border py-3.5 pl-12 pr-28 text-base focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground"
+          aria-label="{{ 'search.title' | t }}"
+        >
+        <button
+          type="submit"
+          class="absolute inset-y-1.5 right-1.5 rounded-md bg-foreground px-5 text-sm font-medium text-background transition-opacity hover:opacity-90"
+        >
+          {{ 'search.submit' | t }}
+        </button>
+      </div>
+    </form>
+  </div>
+
+  {%- if search.performed -%}
+    {%- if search.results_count == 0 -%}
+      {%- comment -%} No results {%- endcomment -%}
+      <div class="py-16 text-center">
+        <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted/10 text-muted">
+          {% render 'icon-search', size: 32 %}
+        </div>
+        <p class="mb-2 text-lg font-medium">
+          {{ 'search.no_results_html' | t: terms: search.terms }}
+        </p>
+        <p class="mb-6 text-sm text-muted">{{ 'search.try_different' | t }}</p>
+        <a
+          href="{{ routes.all_products_collection_url }}"
+          class="inline-block rounded-lg border border-border px-6 py-2.5 text-sm font-medium transition-colors hover:border-foreground"
+        >
+          {{ 'general.continue_shopping' | t }}
+        </a>
+      </div>
+
+    {%- else -%}
+      {%- comment -%} Count results by type {%- endcomment -%}
+      {%- liquid
+        assign product_count = 0
+        assign article_count = 0
+        assign page_count = 0
+        for result in search.results
+          if result.object_type == 'product'
+            assign product_count = product_count | plus: 1
+          elsif result.object_type == 'article'
+            assign article_count = article_count | plus: 1
+          elsif result.object_type == 'page'
+            assign page_count = page_count | plus: 1
+          endif
+        endfor
+      -%}
+
+      <p class="mb-6 text-center text-sm text-muted">
+        {{ 'search.results_for_html' | t: terms: search.terms, count: search.results_count }}
+      </p>
+
+      {% paginate search.results by 20 %}
+        {%- comment -%} Product results {%- endcomment -%}
+        {%- if product_count > 0 -%}
+          <div class="mb-12">
+            <div class="mb-4 flex items-center justify-between border-b border-border pb-3">
+              <h2 class="text-lg font-bold">{{ 'search.products' | t }}</h2>
+              <span class="rounded-full bg-muted/10 px-3 py-0.5 text-xs font-medium text-muted">
+                {{ product_count }}
+              </span>
+            </div>
+            <div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+              {%- for result in search.results -%}
+                {%- if result.object_type == 'product' -%}
+                  {% render 'product-card', card_product: result %}
+                {%- endif -%}
+              {%- endfor -%}
+            </div>
+          </div>
+        {%- endif -%}
+
+        {%- comment -%} Article results {%- endcomment -%}
+        {%- if article_count > 0 -%}
+          <div class="mb-12">
+            <div class="mb-4 flex items-center justify-between border-b border-border pb-3">
+              <h2 class="text-lg font-bold">{{ 'search.articles' | t }}</h2>
+              <span class="rounded-full bg-muted/10 px-3 py-0.5 text-xs font-medium text-muted">
+                {{ article_count }}
+              </span>
+            </div>
+            <div class="grid gap-4 md:grid-cols-2">
+              {%- for result in search.results -%}
+                {%- if result.object_type == 'article' -%}
+                  <a
+                    href="{{ result.url }}"
+                    class="group flex items-center gap-4 rounded-lg border border-border p-4 transition-colors hover:border-foreground"
+                  >
+                    {%- if result.image -%}
+                      <div class="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg">
+                        <img
+                          src="{{ result.image | image_url: width: 160 }}"
+                          alt="{{ result.title | escape }}"
+                          width="80"
+                          height="80"
+                          loading="lazy"
+                          class="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
+                        >
+                      </div>
+                    {%- endif -%}
+                    <div class="min-w-0 flex-1">
+                      <span class="mb-1 inline-block rounded bg-muted/10 px-2 py-0.5 text-xs font-medium text-muted">
+                        {{ 'search.article' | t }}
+                      </span>
+                      <p class="text-sm font-medium group-hover:underline">{{ result.title }}</p>
+                      {%- if result.content != blank -%}
+                        <p class="mt-1 line-clamp-2 text-xs text-muted">
+                          {{ result.content | strip_html | truncatewords: 20 }}
+                        </p>
+                      {%- endif -%}
+                    </div>
+                  </a>
+                {%- endif -%}
+              {%- endfor -%}
+            </div>
+          </div>
+        {%- endif -%}
+
+        {%- comment -%} Page results {%- endcomment -%}
+        {%- if page_count > 0 -%}
+          <div class="mb-12">
+            <div class="mb-4 flex items-center justify-between border-b border-border pb-3">
+              <h2 class="text-lg font-bold">{{ 'search.pages' | t }}</h2>
+              <span class="rounded-full bg-muted/10 px-3 py-0.5 text-xs font-medium text-muted">
+                {{ page_count }}
+              </span>
+            </div>
+            <div class="grid gap-3 md:grid-cols-2">
+              {%- for result in search.results -%}
+                {%- if result.object_type == 'page' -%}
+                  <a
+                    href="{{ result.url }}"
+                    class="group flex items-center justify-between rounded-lg border border-border p-4 transition-colors hover:border-foreground"
+                  >
+                    <div>
+                      <span class="mb-1 inline-block rounded bg-muted/10 px-2 py-0.5 text-xs font-medium text-muted">
+                        {{ 'search.page' | t }}
+                      </span>
+                      <p class="text-sm font-medium group-hover:underline">{{ result.title }}</p>
+                    </div>
+                    <span class="text-muted transition-transform group-hover:translate-x-1">
+                      {% render 'icon-arrow-right', size: 16 %}
+                    </span>
+                  </a>
+                {%- endif -%}
+              {%- endfor -%}
+            </div>
+          </div>
+        {%- endif -%}
+
+        {%- if paginate.pages > 1 -%}
+          <div class="mt-8">
+            {% render 'pagination', paginate: paginate %}
+          </div>
+        {%- endif -%}
+      {% endpaginate %}
+    {%- endif -%}
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "Search",
+  "class": "search-section",
+  "settings": []
+}
+{% endschema %}

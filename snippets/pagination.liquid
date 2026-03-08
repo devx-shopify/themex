@@ -1,0 +1,59 @@
+{% doc %}
+  Pagination Component
+
+  Renders pagination controls for paginated content.
+
+  @param {paginate} paginate - Shopify paginate object (required)
+
+  @example
+  {% paginate collection.products by 12 %}
+    {% render 'pagination', paginate: paginate %}
+  {% endpaginate %}
+{% enddoc %}
+
+{%- liquid
+  assign paginate = paginate | default: empty
+
+  unless paginate != empty
+    break
+  endunless
+-%}
+
+{%- if paginate.pages > 1 -%}
+  <nav class="mt-10 flex items-center justify-center gap-2 border-t border-border pt-8 lg:mt-12" aria-label="Pagination">
+    {%- if paginate.previous -%}
+      <a
+        href="{{ paginate.previous.url }}"
+        class="rounded border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 hover:bg-gray-50"
+        aria-label="Previous page"
+      >
+        Previous
+      </a>
+    {%- endif -%}
+
+    {%- for part in paginate.parts -%}
+      {%- if part.is_link -%}
+        <a
+          href="{{ part.url }}"
+          class="rounded border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 hover:bg-gray-50"
+        >
+          {{ part.title }}
+        </a>
+      {%- else -%}
+        <span class="rounded border border-primary bg-primary px-4 py-2 text-sm font-medium text-white">
+          {{ part.title }}
+        </span>
+      {%- endif -%}
+    {%- endfor -%}
+
+    {%- if paginate.next -%}
+      <a
+        href="{{ paginate.next.url }}"
+        class="rounded border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 hover:bg-gray-50"
+        aria-label="Next page"
+      >
+        Next
+      </a>
+    {%- endif -%}
+  </nav>
+{%- endif -%}

@@ -1,0 +1,17 @@
+<section class="page-width py-20 text-center lg:py-32">
+  <h1 class="mb-4 text-6xl font-bold text-primary">{{ '404.title' | t }}</h1>
+  <p class="mb-8 text-lg text-muted">{{ '404.not_found' | t }}</p>
+  <a
+    href="{{ routes.root_url }}"
+    class="inline-block rounded bg-primary px-6 py-3 text-sm font-medium text-white transition-colors hover:opacity-90"
+  >
+    {{ '404.back_to_shopping' | t }}
+  </a>
+</section>
+
+{% schema %}
+{
+  "name": "404",
+  "tag": "section"
+}
+{% endschema %}

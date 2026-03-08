@@ -1,0 +1,75 @@
+{%- comment -%}
+  Customer Login
+
+  Displays the customer login form with email/password fields.
+{%- endcomment -%}
+
+<div class="page-width py-10 md:py-16">
+  <div class="mx-auto max-w-md">
+    <h1 class="mb-8 text-center text-3xl font-bold md:text-4xl">{{ 'customers.login.title' | t }}</h1>
+
+    {% form 'customer_login', class: 'space-y-5' %}
+      {%- if form.errors -%}
+        <div class="rounded border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+          {{ form.errors | default_errors }}
+        </div>
+      {%- endif -%}
+
+      <div>
+        <label for="customer_email" class="mb-1.5 block text-sm font-medium">
+          {{ 'customers.login.email' | t }}
+        </label>
+        <input
+          type="email"
+          name="customer[email]"
+          id="customer_email"
+          autocomplete="email"
+          required
+          class="w-full rounded border border-border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+        >
+      </div>
+
+      <div>
+        <label for="customer_password" class="mb-1.5 block text-sm font-medium">
+          {{ 'customers.login.password' | t }}
+        </label>
+        <input
+          type="password"
+          name="customer[password]"
+          id="customer_password"
+          autocomplete="current-password"
+          required
+          class="w-full rounded border border-border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+        >
+      </div>
+
+      <div class="flex items-center justify-end">
+        <a href="{{ routes.account_recover_url }}" class="text-sm text-muted underline hover:text-foreground">
+          {{ 'customers.login.forgot_password' | t }}
+        </a>
+      </div>
+
+      <button
+        type="submit"
+        class="w-full rounded bg-primary py-3 text-sm font-medium text-primary-foreground transition-colors hover:opacity-90"
+      >
+        {{ 'customers.login.submit' | t }}
+      </button>
+    {% endform %}
+
+    <div class="mt-8 text-center">
+      <p class="mb-2 text-sm text-muted">{{ 'customers.login.no_account' | t }}</p>
+      <a href="{{ routes.account_register_url }}" class="text-sm font-medium underline hover:text-muted">
+        {{ 'customers.login.create_account' | t }}
+      </a>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Customer Login",
+  "class": "customer-login-section",
+  "settings": []
+}
+{% endschema %}

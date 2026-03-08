@@ -1,0 +1,25 @@
+{
+  "current": {
+    "type_primary_font": "work_sans_n4",
+    "type_secondary_font": "work_sans_n4",
+    "color_primary": "#111827",
+    "color_secondary": "#6B7280",
+    "color_accent": "#2563EB",
+    "color_foreground": "#111827",
+    "color_primary_foreground": "#FFFFFF",
+    "color_background": "#FFFFFF",
+    "color_border": "#E5E7EB",
+    "color_muted": "#9CA3AF",
+    "color_error": "#DC2626",
+    "color_success": "#16A34A",
+    "show_discount_badge": true,
+    "show_sold_out_badge": true,
+    "sections": {
+      "cart-drawer": {
+        "type": "cart-drawer",
+        "settings": {}
+      }
+    },
+    "content_for_index": []
+  }
+}

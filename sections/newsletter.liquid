@@ -1,0 +1,74 @@
+{%- comment -%}
+  Newsletter Section
+
+  Renders a newsletter signup form using Shopify's customer form.
+  Can be added to any page via the theme editor.
+{%- endcomment -%}
+
+<section class="newsletter-section page-width py-12 md:py-20">
+  <div class="mx-auto max-w-xl text-center">
+    {%- if section.settings.heading != blank -%}
+      <h2 class="mb-3 text-2xl font-bold md:text-3xl lg:text-4xl">{{ section.settings.heading }}</h2>
+    {%- endif -%}
+
+    {%- if section.settings.description != blank -%}
+      <p class="mb-8 text-base text-muted">{{ section.settings.description }}</p>
+    {%- endif -%}
+
+    {% form 'customer', class: 'flex gap-2' %}
+      {%- if form.errors -%}
+        <div class="mb-4 w-full rounded border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+          {{ form.errors | default_errors }}
+        </div>
+      {%- endif -%}
+
+      {%- if form.posted_successfully? -%}
+        <div class="mb-4 w-full rounded border border-green-200 bg-green-50 p-3 text-sm text-green-800">
+          {{ 'newsletter.success' | t }}
+        </div>
+      {%- else -%}
+        <input type="hidden" name="contact[tags]" value="newsletter">
+        <input
+          type="email"
+          name="contact[email]"
+          placeholder="{{ 'newsletter.placeholder' | t }}"
+          required
+          class="flex-1 rounded border border-border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          aria-label="{{ 'newsletter.placeholder' | t }}"
+        >
+        <button
+          type="submit"
+          class="rounded bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-colors hover:opacity-90"
+        >
+          {{ 'newsletter.submit' | t }}
+        </button>
+      {%- endif -%}
+    {% endform %}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Newsletter",
+  "class": "newsletter-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Subscribe to our newsletter"
+    },
+    {
+      "type": "text",
+      "id": "description",
+      "label": "Description",
+      "default": "Be the first to know about new arrivals and exclusive offers."
+    }
+  ],
+  "presets": [
+    {
+      "name": "Newsletter"
+    }
+  ]
+}
+{% endschema %}

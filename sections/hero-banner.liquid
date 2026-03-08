@@ -1,0 +1,161 @@
+<section
+  class="hero-banner relative flex min-h-[60vh] items-center overflow-hidden lg:min-h-[80vh]"
+  style="
+    --section-padding-top: {{ section.settings.padding_top }}px;
+    --section-padding-bottom: {{ section.settings.padding_bottom }}px;
+    background-color: {{ section.settings.background_color }};
+    color: {{ section.settings.text_color }};
+  "
+>
+  {%- comment -%} Background image {%- endcomment -%}
+  {%- if section.settings.image != blank -%}
+    <div class="absolute inset-0">
+      {% render 'image',
+        image: section.settings.image,
+        mobile_image: section.settings.mobile_image,
+        class_name: 'h-full w-full object-cover',
+        lazy: false
+      %}
+      {%- if section.settings.overlay_opacity > 0 -%}
+        <div class="absolute inset-0" style="background-color: rgba(0,0,0,{{ section.settings.overlay_opacity | divided_by: 100.0 }});"></div>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+
+  {%- comment -%} Content {%- endcomment -%}
+  <div
+    class="page-width relative z-10 w-full text-{{ section.settings.text_alignment }}"
+    style="padding-top: var(--section-padding-top); padding-bottom: var(--section-padding-bottom);"
+  >
+    <div class="mx-auto max-w-2xl {% if section.settings.text_alignment == 'left' %}mr-auto ml-0{% elsif section.settings.text_alignment == 'right' %}ml-auto mr-0{% endif %}">
+      {%- if section.settings.subheading != blank -%}
+        <p class="mb-3 text-sm font-semibold uppercase tracking-widest opacity-80">
+          {{ section.settings.subheading }}
+        </p>
+      {%- endif -%}
+
+      {%- if section.settings.heading != blank -%}
+        <h1 class="mb-4 text-4xl font-bold leading-tight lg:text-6xl">
+          {{ section.settings.heading }}
+        </h1>
+      {%- endif -%}
+
+      {%- if section.settings.description != blank -%}
+        <div class="mb-8 text-base opacity-90 lg:text-lg">
+          {{ section.settings.description }}
+        </div>
+      {%- endif -%}
+
+      {%- if section.settings.button_text != blank -%}
+        <a
+          href="{{ section.settings.button_link }}"
+          class="inline-block rounded bg-white px-8 py-3 text-sm font-semibold text-black transition-opacity hover:opacity-90"
+        >
+          {{ section.settings.button_text }}
+        </a>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Hero Banner",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Desktop image"
+    },
+    {
+      "type": "image_picker",
+      "id": "mobile_image",
+      "label": "Mobile image"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "Overlay opacity",
+      "min": 0,
+      "max": 80,
+      "step": 5,
+      "default": 30,
+      "unit": "%"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Subheading"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Welcome to our store"
+    },
+    {
+      "type": "richtext",
+      "id": "description",
+      "label": "Description"
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button text",
+      "default": "Shop now"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button link"
+    },
+    {
+      "type": "select",
+      "id": "text_alignment",
+      "label": "Text alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background color",
+      "default": "#111827"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0,
+      "max": 100,
+      "default": 40,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 100,
+      "default": 40,
+      "unit": "px"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Hero Banner"
+    }
+  ]
+}
+{% endschema %}

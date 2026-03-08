@@ -1,0 +1,71 @@
+{%- comment -%}
+  Featured Collection Section
+
+  Renders a configurable section that displays products from a selected collection.
+  Can be used on the homepage or any page via the theme editor.
+{%- endcomment -%}
+
+{%- liquid
+  assign collection = section.settings.collection
+  assign heading = section.settings.heading
+  assign products_to_show = section.settings.products_to_show | default: 4
+-%}
+
+<section class="featured-collection-section page-width py-10 md:py-16">
+  {%- if heading != blank -%}
+    <div class="mb-8 flex items-center justify-between">
+      <h2 class="text-2xl font-bold md:text-3xl lg:text-4xl">{{ heading }}</h2>
+      {%- if collection -%}
+        <a href="{{ collection.url }}" class="text-sm font-medium underline hover:text-muted">
+          {{ 'general.view_all' | t }}
+        </a>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+
+  {%- if collection != blank -%}
+    <div class="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-5 lg:grid-cols-4 lg:gap-6">
+      {%- for product in collection.products limit: products_to_show -%}
+        {% render 'product-card', card_product: product %}
+      {%- endfor -%}
+    </div>
+  {%- else -%}
+    <div class="py-12 text-center">
+      <p class="text-muted">Select a collection in the theme editor.</p>
+    </div>
+  {%- endif -%}
+</section>
+
+{% schema %}
+{
+  "name": "Featured Collection",
+  "class": "featured-collection-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Featured Collection"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection"
+    },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "label": "Products to show",
+      "min": 2,
+      "max": 12,
+      "step": 1,
+      "default": 4
+    }
+  ],
+  "presets": [
+    {
+      "name": "Featured Collection"
+    }
+  ]
+}
+{% endschema %}

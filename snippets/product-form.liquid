@@ -1,0 +1,96 @@
+{% doc %}
+  Product Form
+
+  Renders the add-to-cart form with quantity selector and submit button.
+  Uses traditional AJAX cart with section rendering (not optimistic).
+
+  @param {product} product - Product object (required)
+
+  @example
+  {% render 'product-form', product: product %}
+{% enddoc %}
+
+{%- liquid
+  assign product = product | default: blank
+
+  unless product != blank
+    break
+  endunless
+
+  assign selected_variant = product.selected_or_first_available_variant
+  assign current_variant_id = selected_variant.id
+-%}
+
+<product-form
+  class="product-form block"
+  data-product-id="{{ product.id }}"
+  data-section-id="{{ section.id }}"
+>
+  <form
+    id="product-form-{{ product.id }}"
+    action="{{ routes.cart_add_url }}"
+    method="post"
+  >
+    <input type="hidden" name="id" value="{{ current_variant_id }}">
+
+    {%- comment -%} Error message container {%- endcomment -%}
+    <div
+      class="product-form__error mb-3 hidden rounded border border-error/20 bg-error/5 px-4 py-2 text-sm text-error"
+      data-form-error
+      role="alert"
+    ></div>
+
+    {%- comment -%} Quantity selector {%- endcomment -%}
+    <div class="mb-4">
+      <label class="mb-2 block text-sm font-medium" for="quantity-{{ product.id }}">
+        {{ 'products.quantity' | t }}
+      </label>
+      <div class="inline-flex items-center rounded border border-border">
+        <button
+          type="button"
+          class="flex h-10 w-10 items-center justify-center text-muted transition-colors hover:text-foreground disabled:opacity-30"
+          data-quantity-minus
+          aria-label="{{ 'cart.decrease' | t: product: product.title }}"
+        >
+          {% render 'icon-minus', size: 16 %}
+        </button>
+        <input
+          type="number"
+          id="quantity-{{ product.id }}"
+          name="quantity"
+          value="1"
+          min="1"
+          max="99"
+          class="h-10 w-12 border-x border-border bg-transparent text-center text-sm [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+          aria-label="{{ 'cart.quantity_input_label' | t: product: product.title }}"
+        >
+        <button
+          type="button"
+          class="flex h-10 w-10 items-center justify-center text-muted transition-colors hover:text-foreground"
+          data-quantity-plus
+          aria-label="{{ 'cart.increase' | t: product: product.title }}"
+        >
+          {% render 'icon-plus', size: 16 %}
+        </button>
+      </div>
+    </div>
+
+    {%- comment -%} Add to cart button {%- endcomment -%}
+    <button
+      type="submit"
+      class="product-form__submit flex w-full items-center justify-center gap-2 rounded bg-foreground px-6 py-3.5 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+      {%- unless selected_variant.available %} disabled{% endunless -%}
+    >
+      <span data-button-text>
+        {%- if selected_variant.available == false -%}
+          {{ 'products.sold_out' | t }}
+        {%- else -%}
+          {{ 'products.add_to_cart' | t }}
+        {%- endif -%}
+      </span>
+      <span class="hidden" data-button-loading>
+        {% render 'icon-spinner', size: 20 %}
+      </span>
+    </button>
+  </form>
+</product-form>

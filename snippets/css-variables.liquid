@@ -1,0 +1,29 @@
+{% doc %}
+  CSS Variables
+
+  Loads Shopify font picker fonts and sets CSS custom properties
+  for colors and typography used throughout the theme.
+{% enddoc %}
+
+{% style %}
+  {{ settings.type_primary_font | font_face: font_display: 'swap' }}
+  {{ settings.type_primary_font | font_modify: 'weight', 'bold' | font_face: font_display: 'swap' }}
+  {{ settings.type_secondary_font | font_face: font_display: 'swap' }}
+  {{ settings.type_secondary_font | font_modify: 'weight', 'bold' | font_face: font_display: 'swap' }}
+
+  :root {
+    --font-primary--family: {{ settings.type_primary_font.family }}, {{ settings.type_primary_font.fallback_families }};
+    --font-secondary--family: {{ settings.type_secondary_font.family }}, {{ settings.type_secondary_font.fallback_families }};
+
+    --color-primary: {{ settings.color_primary }};
+    --color-secondary: {{ settings.color_secondary }};
+    --color-accent: {{ settings.color_accent }};
+    --color-foreground: {{ settings.color_foreground }};
+    --color-background: {{ settings.color_background }};
+    --color-border: {{ settings.color_border }};
+    --color-muted: {{ settings.color_muted }};
+    --color-error: {{ settings.color_error }};
+    --color-success: {{ settings.color_success }};
+    --color-primary-foreground: {{ settings.color_primary_foreground }};
+  }
+{% endstyle %}

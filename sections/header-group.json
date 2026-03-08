@@ -1,0 +1,28 @@
+{
+  "type": "header",
+  "name": "t:general.header",
+  "sections": {
+    "announcement_bar": {
+      "type": "announcement-bar",
+      "blocks": {
+        "announcement_1": {
+          "type": "announcement-bar-item",
+          "settings": {
+            "announcement_bar_text": "<p>Free shipping on orders over $50</p>"
+          }
+        }
+      },
+      "block_order": ["announcement_1"],
+      "settings": {
+        "scroll_speed": 50
+      }
+    },
+    "header": {
+      "type": "header",
+      "settings": {
+        "menu": "main-menu"
+      }
+    }
+  },
+  "order": ["announcement_bar", "header"]
+}

@@ -1,0 +1,153 @@
+{% doc %}
+  Mobile Header
+
+  Renders the mobile header with hamburger menu, logo, and action icons.
+  Visible on mobile only (lg:hidden).
+{% enddoc %}
+
+<div class="menu-mobile lg:hidden" id="mobile-header">
+  {%- comment -%} Top bar {%- endcomment -%}
+  <div class="flex items-center justify-between px-4 py-3">
+    <div class="flex items-center gap-3">
+      <button
+        type="button"
+        class="menu-hamburger"
+        id="mobile-menu-trigger"
+        aria-label="{{ 'accessibility.menu' | t }}"
+        aria-expanded="false"
+      >
+        <div class="flex flex-col justify-center gap-[5px]" data-mobile-hamburger>
+          <span class="hamburger-line block h-0.5 w-5 bg-foreground transition-all duration-300"></span>
+          <span class="hamburger-line block h-0.5 w-5 bg-foreground transition-all duration-300"></span>
+        </div>
+      </button>
+
+      <a
+        href="{{ routes.root_url }}"
+        aria-label="{{ shop.name }} - Home"
+      >
+        {%- if settings.logo != blank -%}
+          <img
+            src="{{ settings.logo | image_url: width: 200 }}"
+            alt="{{ shop.name }}"
+            width="{{ settings.logo_width | default: 100 }}"
+            height="auto"
+            loading="eager"
+          >
+        {%- else -%}
+          <span class="text-lg font-bold">{{ shop.name }}</span>
+        {%- endif -%}
+      </a>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button
+        type="button"
+        class="search-trigger"
+        aria-label="{{ 'accessibility.search' | t }}"
+      >
+        {% render 'icon-search', size: 20 %}
+      </button>
+
+      {%- if template.name != 'cart' -%}
+        <button
+          type="button"
+          class="cart-trigger relative"
+          aria-label="{{ 'accessibility.cart' | t }}"
+        >
+          {% render 'icon-cart', size: 20 %}
+          <span
+            class="cart-item-count absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white{% if cart.item_count == 0 %} hidden{% endif %}"
+            data-cart-count="{{ cart.item_count }}"
+          >
+            {%- if cart.item_count > 0 -%}{{ cart.item_count }}{%- endif -%}
+          </span>
+        </button>
+      {%- endif -%}
+    </div>
+  </div>
+
+  {%- comment -%} Mobile menu drawer {%- endcomment -%}
+  <div
+    class="mobile-menu-drawer fixed inset-0 z-50 hidden"
+    id="mobile-menu-drawer"
+    aria-hidden="true"
+  >
+    {%- comment -%} Backdrop {%- endcomment -%}
+    <div class="mobile-menu-backdrop absolute inset-0 bg-black/50 opacity-0 transition-opacity duration-300" data-mobile-menu-close></div>
+
+    {%- comment -%} Drawer panel {%- endcomment -%}
+    <div class="mobile-menu-panel absolute inset-y-0 left-0 w-full max-w-sm -translate-x-full transform bg-background transition-transform duration-300">
+      {%- comment -%} Drawer header {%- endcomment -%}
+      <div class="flex items-center justify-between border-b border-border px-4 py-3">
+        <span class="text-lg font-bold">{{ 'accessibility.menu' | t }}</span>
+        <button
+          type="button"
+          class="mobile-menu-close"
+          aria-label="{{ 'accessibility.close' | t }}"
+          data-mobile-menu-close
+        >
+          {% render 'icon-close', size: 20 %}
+        </button>
+      </div>
+
+      {%- comment -%} Menu items {%- endcomment -%}
+      <nav class="overflow-y-auto" style="max-height: calc(100vh - 60px);" aria-label="Mobile navigation">
+        <ul class="divide-y divide-border">
+          {%- for link in linklists[section.settings.menu].links -%}
+            <li>
+              {%- if link.links.size > 0 -%}
+                <details class="group/details">
+                  <summary class="flex cursor-pointer items-center justify-between px-4 py-3 text-sm font-medium">
+                    <span>{{ link.title }}</span>
+                    <span class="transition-transform duration-200 group-open/details:rotate-180">
+                      {% render 'icon-chevron-down', size: 16 %}
+                    </span>
+                  </summary>
+                  <ul class="border-t border-border bg-gray-50 py-2">
+                    {%- for child_link in link.links -%}
+                      {%- if child_link.links.size > 0 -%}
+                        <li class="px-4 py-2">
+                          <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-muted">
+                            {{ child_link.title }}
+                          </span>
+                          <ul class="space-y-1">
+                            {%- for grandchild_link in child_link.links -%}
+                              <li>
+                                <a href="{{ grandchild_link.url }}" class="block py-1 text-sm transition-colors hover:text-accent">
+                                  {{ grandchild_link.title }}
+                                </a>
+                              </li>
+                            {%- endfor -%}
+                          </ul>
+                        </li>
+                      {%- else -%}
+                        <li>
+                          <a href="{{ child_link.url }}" class="block px-6 py-2 text-sm transition-colors hover:text-accent">
+                            {{ child_link.title }}
+                          </a>
+                        </li>
+                      {%- endif -%}
+                    {%- endfor -%}
+                  </ul>
+                </details>
+              {%- else -%}
+                <a href="{{ link.url }}" class="block px-4 py-3 text-sm font-medium transition-colors hover:text-accent">
+                  {{ link.title }}
+                </a>
+              {%- endif -%}
+            </li>
+          {%- endfor -%}
+        </ul>
+
+        {%- comment -%} Account link {%- endcomment -%}
+        <div class="border-t border-border px-4 py-3">
+          <a href="{{ routes.account_url }}" class="flex items-center gap-2 text-sm">
+            {% render 'icon-account', size: 18 %}
+            {{ 'accessibility.account' | t }}
+          </a>
+        </div>
+      </nav>
+    </div>
+  </div>
+</div>

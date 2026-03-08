@@ -1,0 +1,44 @@
+{%- comment -%}
+  Blog Section
+
+  Renders the blog listing page with article cards and pagination.
+{%- endcomment -%}
+
+<div class="blog-section page-width py-10 md:py-16">
+  <h1 class="mb-10 text-3xl font-bold md:text-4xl lg:text-5xl">{{ blog.title }}</h1>
+
+  {% paginate blog.articles by 12 %}
+    {%- if blog.articles.size > 0 -%}
+      <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {%- for article in blog.articles -%}
+          {% render 'article-card', article: article, show_author: section.settings.show_author %}
+        {%- endfor -%}
+      </div>
+
+      {%- if paginate.pages > 1 -%}
+        <div class="mt-8">
+          {% render 'pagination', paginate: paginate %}
+        </div>
+      {%- endif -%}
+    {%- else -%}
+      <div class="py-12 text-center">
+        <p class="text-muted">{{ 'blog.no_articles' | t }}</p>
+      </div>
+    {%- endif -%}
+  {% endpaginate %}
+</div>
+
+{% schema %}
+{
+  "name": "Blog",
+  "class": "blog-section",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_author",
+      "label": "Show author",
+      "default": false
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,43 @@
+{% doc %}
+  Collection Card
+
+  Renders a collection card with image, title, and product count.
+
+  @param {collection} collection - Collection object (required)
+
+  @example
+  {% render 'collection-card', collection: collection %}
+{% enddoc %}
+
+{%- liquid
+  assign collection = collection | default: blank
+
+  unless collection != blank
+    break
+  endunless
+-%}
+
+<a href="{{ collection.url }}" class="collection-card group block overflow-hidden rounded-lg border border-border">
+  <div class="aspect-square overflow-hidden bg-gray-50">
+    {%- if collection.featured_image -%}
+      <img
+        src="{{ collection.featured_image | image_url: width: 600 }}"
+        alt="{{ collection.title | escape }}"
+        width="600"
+        height="600"
+        loading="lazy"
+        class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+      >
+    {%- else -%}
+      <div class="flex h-full w-full items-center justify-center text-muted">
+        {% render 'icon-cart', size: 48 %}
+      </div>
+    {%- endif -%}
+  </div>
+  <div class="p-3 md:p-4">
+    <h3 class="text-sm font-medium md:text-base">{{ collection.title }}</h3>
+    <p class="mt-0.5 text-xs text-muted">
+      {{ 'collections.products_count' | t: count: collection.products_count }}
+    </p>
+  </div>
+</a>

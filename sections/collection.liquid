@@ -1,0 +1,210 @@
+{%- liquid
+  assign products_per_page = section.settings.products_per_page | default: 16
+  assign columns_desktop = section.settings.columns_desktop | default: 4
+  assign columns_mobile = section.settings.columns_mobile | default: 2
+
+  case columns_desktop
+    when 3
+      assign grid_class_desktop = 'lg:grid-cols-3'
+    when 4
+      assign grid_class_desktop = 'lg:grid-cols-4'
+    when 5
+      assign grid_class_desktop = 'lg:grid-cols-5'
+    else
+      assign grid_class_desktop = 'lg:grid-cols-4'
+  endcase
+
+  case columns_mobile
+    when 1
+      assign grid_class_mobile = 'grid-cols-1'
+    when 2
+      assign grid_class_mobile = 'grid-cols-2'
+    else
+      assign grid_class_mobile = 'grid-cols-2'
+  endcase
+
+  assign sort_options = 'manual,best-selling,title-ascending,title-descending,price-ascending,price-descending,created-ascending,created-descending' | split: ','
+  assign current_sort = collection.sort_by | default: collection.default_sort_by | default: 'manual'
+  assign has_filters = false
+  if collection.filters.size > 0
+    assign has_filters = true
+  endif
+-%}
+
+<section
+  class="collection-section page-width py-10 md:py-16"
+  data-collection-section
+  data-section-id="{{ section.id }}"
+>
+  {%- comment -%} Collection header {%- endcomment -%}
+  <div class="mb-10 border-b border-border pb-6">
+    <h1 class="text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl">{{ collection.title }}</h1>
+    {%- if collection.description != blank -%}
+      <div class="mt-3 max-w-2xl text-base leading-relaxed text-muted">{{ collection.description }}</div>
+    {%- endif -%}
+  </div>
+
+  {%- comment -%} Toolbar: sort, filter toggle, product count {%- endcomment -%}
+  <div class="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-border pb-4" data-collection-toolbar>
+    <div class="flex items-center gap-4">
+      {%- if has_filters -%}
+        <button
+          type="button"
+          class="inline-flex items-center gap-2 text-sm font-medium lg:hidden"
+          data-filter-toggle
+          aria-expanded="false"
+          aria-controls="filter-drawer"
+        >
+          {% render 'icon-filter', size: 16 %}
+          {{ 'collections.filter' | t }}
+        </button>
+      {%- endif -%}
+
+      <p class="text-sm text-muted">
+        {{ 'collections.products_count' | t: count: collection.products_count }}
+      </p>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <label for="collection-sort" class="text-sm text-muted">{{ 'collections.sort_by' | t }}:</label>
+      <select
+        id="collection-sort"
+        class="rounded border border-border bg-transparent px-3 py-1.5 text-sm"
+        data-collection-sort
+      >
+        {%- for option in sort_options -%}
+          <option value="{{ option }}" {% if option == current_sort %}selected{% endif %}>
+            {{ 'collections.sort_options.' | append: option | t }}
+          </option>
+        {%- endfor -%}
+      </select>
+    </div>
+  </div>
+
+  {%- comment -%} Active filters {%- endcomment -%}
+  <div class="mb-4" data-active-filters-container>
+    {% render 'active-filters', collection: collection %}
+  </div>
+
+  {%- comment -%} Main layout: sidebar filters + product grid {%- endcomment -%}
+  <div class="flex gap-8">
+    {%- if has_filters -%}
+      {%- comment -%} Desktop sidebar filters {%- endcomment -%}
+      <aside class="hidden w-60 flex-shrink-0 lg:block" data-filters-sidebar>
+        {% render 'collection-filters', collection: collection %}
+      </aside>
+    {%- endif -%}
+
+    {%- comment -%} Product grid + pagination {%- endcomment -%}
+    <div class="flex-1" data-collection-products>
+      {% paginate collection.products by products_per_page %}
+        {%- if collection.products.size > 0 -%}
+          <div class="grid {{ grid_class_mobile }} {{ grid_class_desktop }} gap-x-4 gap-y-6 md:gap-x-5 md:gap-y-8" data-product-grid>
+            {%- for product in collection.products -%}
+              {% render 'product-card', card_product: product %}
+            {%- endfor -%}
+          </div>
+
+          {%- if paginate.pages > 1 -%}
+            <div class="mt-8">
+              {% render 'pagination', paginate: paginate %}
+            </div>
+          {%- endif -%}
+        {%- else -%}
+          <div class="flex min-h-[300px] flex-col items-center justify-center text-center">
+            <p class="mb-4 text-muted">{{ 'collections.no_products' | t }}</p>
+            {%- if collection.filters.size > 0 -%}
+              <a
+                href="{{ collection.url }}"
+                class="text-sm underline transition-colors hover:text-foreground"
+                data-clear-filters
+              >
+                {{ 'collections.clear_all' | t }}
+              </a>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+      {% endpaginate %}
+    </div>
+  </div>
+</section>
+
+{%- comment -%} Mobile filter drawer {%- endcomment -%}
+{%- if has_filters -%}
+  <div
+    class="fixed inset-0 z-[70] hidden"
+    id="filter-drawer"
+    data-filter-drawer
+  >
+    {%- comment -%} Overlay {%- endcomment -%}
+    <div
+      class="absolute inset-0 bg-black/50 opacity-0 transition-opacity duration-300"
+      data-filter-overlay
+    ></div>
+
+    {%- comment -%} Panel {%- endcomment -%}
+    <div
+      class="absolute inset-y-0 left-0 flex w-full max-w-sm -translate-x-full flex-col bg-background shadow-xl transition-transform duration-300"
+      data-filter-panel
+    >
+      <div class="flex items-center justify-between border-b border-border px-4 py-4">
+        <h2 class="text-lg font-bold">{{ 'collections.filter' | t }}</h2>
+        <button type="button" class="transition-colors hover:text-muted" data-filter-close>
+          {% render 'icon-close', size: 20 %}
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto px-4 py-4">
+        {% render 'collection-filters', collection: collection %}
+      </div>
+
+      <div class="border-t border-border px-4 py-4">
+        <a
+          href="{{ collection.url }}"
+          class="mb-2 block w-full rounded border border-border py-2.5 text-center text-sm font-medium transition-colors hover:bg-muted/10"
+          data-clear-filters
+        >
+          {{ 'collections.clear_all' | t }}
+        </a>
+      </div>
+    </div>
+  </div>
+{%- endif -%}
+
+<script src="{{ 'collection.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "Collection",
+  "class": "collection-section",
+  "settings": [
+    {
+      "type": "range",
+      "id": "products_per_page",
+      "label": "Products per page",
+      "min": 8,
+      "max": 48,
+      "step": 4,
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "label": "Desktop columns",
+      "min": 3,
+      "max": 5,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "columns_mobile",
+      "label": "Mobile columns",
+      "min": 1,
+      "max": 2,
+      "step": 1,
+      "default": 2
+    }
+  ]
+}
+{% endschema %}

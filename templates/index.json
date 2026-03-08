@@ -1,0 +1,32 @@
+{
+  "sections": {
+    "hero": {
+      "type": "hero-banner",
+      "settings": {
+        "heading": "Welcome to our store",
+        "button_text": "Shop now",
+        "text_alignment": "center",
+        "background_color": "#111827",
+        "text_color": "#FFFFFF",
+        "overlay_opacity": 30,
+        "padding_top": 80,
+        "padding_bottom": 80
+      }
+    },
+    "featured_collection": {
+      "type": "featured-collection",
+      "settings": {
+        "heading": "Featured Collection",
+        "products_to_show": 4
+      }
+    },
+    "newsletter": {
+      "type": "newsletter",
+      "settings": {
+        "heading": "Subscribe to our newsletter",
+        "description": "Be the first to know about new arrivals and exclusive offers."
+      }
+    }
+  },
+  "order": ["hero", "featured_collection", "newsletter"]
+}

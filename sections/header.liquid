@@ -1,0 +1,87 @@
+<header
+  class="header sticky top-0 z-50 w-full border-b border-border bg-background transition-all duration-300"
+  id="main-header"
+>
+  {%- comment -%} Desktop header {%- endcomment -%}
+  {% render 'header-desktop' %}
+
+  {%- comment -%} Mobile header {%- endcomment -%}
+  {% render 'header-mobile' %}
+</header>
+
+{% render 'search-modal' %}
+
+<script src="{{ 'header-javascript.js' | asset_url }}" defer></script>
+<script src="{{ 'search-modal.js' | asset_url }}" defer></script>
+<script src="{{ 'predictive-search.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "Header",
+  "settings": [
+    {
+      "type": "link_list",
+      "id": "menu",
+      "label": "Menu",
+      "default": "main-menu"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "mega_menu",
+      "name": "Mega menu",
+      "settings": [
+        {
+          "type": "text",
+          "id": "menu_item",
+          "label": "Menu item",
+          "info": "Enter the exact title of the menu item to apply a mega menu."
+        },
+        {
+          "type": "header",
+          "content": "Image 1"
+        },
+        {
+          "type": "image_picker",
+          "id": "image_1",
+          "label": "Image"
+        },
+        {
+          "type": "text",
+          "id": "image_heading_1",
+          "label": "Heading"
+        },
+        {
+          "type": "url",
+          "id": "image_link_1",
+          "label": "Link"
+        },
+        {
+          "type": "header",
+          "content": "Image 2"
+        },
+        {
+          "type": "image_picker",
+          "id": "image_2",
+          "label": "Image"
+        },
+        {
+          "type": "text",
+          "id": "image_heading_2",
+          "label": "Heading"
+        },
+        {
+          "type": "url",
+          "id": "image_link_2",
+          "label": "Link"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Header"
+    }
+  ]
+}
+{% endschema %}

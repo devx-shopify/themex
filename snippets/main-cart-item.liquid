@@ -1,0 +1,120 @@
+{% doc %}
+  Main Cart Item
+
+  Renders a single cart line item for the full cart page.
+  Includes quantity controls, loading overlay, and remove button.
+
+  @param {line_item} item - Cart line item (required)
+
+  @example
+  {% render 'main-cart-item', item: item %}
+{% enddoc %}
+
+{%- liquid
+  assign item = item | default: blank
+
+  unless item != blank
+    break
+  endunless
+-%}
+
+<div
+  class="cart-item relative flex gap-4 py-6 first:pt-0 transition-opacity duration-300"
+  data-cart-item
+  data-key="{{ item.key }}"
+>
+  {%- comment -%} Loading overlay {%- endcomment -%}
+  <div
+    class="absolute inset-0 z-10 flex items-center justify-center bg-background/75 opacity-0 pointer-events-none transition-opacity duration-300"
+    data-cart-item-loader
+  >
+    {% render 'icon-spinner', size: 24 %}
+  </div>
+
+  {%- comment -%} Image {%- endcomment -%}
+  {%- if item.image -%}
+    <a href="{{ item.url }}" class="block w-24 flex-shrink-0 overflow-hidden rounded border border-border md:w-32">
+      <img
+        src="{{ item.image | image_url: width: 320 }}"
+        alt="{{ item.title | escape }}"
+        width="160"
+        height="160"
+        loading="lazy"
+        class="h-full w-full object-cover"
+      >
+    </a>
+  {%- endif -%}
+
+  {%- comment -%} Details {%- endcomment -%}
+  <div class="flex flex-1 flex-col justify-between gap-4 min-w-0">
+    <div>
+      <a href="{{ item.url }}" class="text-sm font-medium md:text-base">
+        {{ item.product.title }}
+      </a>
+
+      {%- if item.variant.title != 'Default Title' -%}
+        <p class="mt-1 text-sm text-muted">{{ item.variant.title }}</p>
+      {%- endif -%}
+
+      {%- for property in item.properties -%}
+        {%- if property.last != blank -%}
+          <p class="mt-0.5 text-xs text-muted">{{ property.first }}: {{ property.last }}</p>
+        {%- endif -%}
+      {%- endfor -%}
+
+      <p class="mt-2 text-sm font-medium" data-line-price>
+        {{ item.final_line_price | money }}
+      </p>
+
+      {%- if item.original_line_price != item.final_line_price -%}
+        <s class="text-xs text-muted">{{ item.original_line_price | money }}</s>
+      {%- endif -%}
+    </div>
+
+    {%- comment -%} Quantity controls & remove {%- endcomment -%}
+    <div class="flex items-center justify-between">
+      <div class="flex items-center rounded border border-border">
+        <button
+          type="button"
+          class="flex h-10 w-10 items-center justify-center text-muted transition-colors hover:text-foreground"
+          data-cart-change
+          data-key="{{ item.key }}"
+          data-quantity="{{ item.quantity | minus: 1 }}"
+          aria-label="{{ 'cart.decrease' | t: product: item.product.title }}"
+        >
+          {%- if item.quantity == 1 -%}
+            {% render 'icon-delete', size: 16 %}
+          {%- else -%}
+            {% render 'icon-minus', size: 16 %}
+          {%- endif -%}
+        </button>
+
+        <span class="min-w-[2.5rem] text-center text-sm font-medium" data-quantity-value>
+          {{ item.quantity }}
+        </span>
+
+        <button
+          type="button"
+          class="flex h-10 w-10 items-center justify-center text-muted transition-colors hover:text-foreground"
+          data-cart-change
+          data-key="{{ item.key }}"
+          data-quantity="{{ item.quantity | plus: 1 }}"
+          aria-label="{{ 'cart.increase' | t: product: item.product.title }}"
+        >
+          {% render 'icon-plus', size: 16 %}
+        </button>
+      </div>
+
+      <button
+        type="button"
+        class="text-sm text-muted underline transition-colors hover:text-foreground"
+        data-cart-change
+        data-key="{{ item.key }}"
+        data-quantity="0"
+        aria-label="{{ 'cart.remove' | t }}"
+      >
+        {{ 'cart.remove' | t }}
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,23 @@
+{%- comment -%}
+  List Collections Section
+
+  Renders all collections in a grid for the /collections page.
+{%- endcomment -%}
+
+<div class="collections-section page-width py-10 md:py-16">
+  <h1 class="mb-10 text-3xl font-bold md:text-4xl lg:text-5xl">{{ 'collections.title' | t }}</h1>
+
+  <div class="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-5 lg:grid-cols-4 lg:gap-6">
+    {%- for collection in collections -%}
+      {% render 'collection-card', collection: collection %}
+    {%- endfor -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Collections List",
+  "class": "collections-section",
+  "settings": []
+}
+{% endschema %}

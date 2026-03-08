@@ -1,0 +1,192 @@
+{% doc %}
+  Desktop Header
+
+  Renders the desktop header with logo, navigation, mega menu, and action icons.
+  Hidden on mobile (lg:flex).
+{% enddoc %}
+
+<div class="menu-desktop hidden lg:flex items-center justify-between gap-8 page-width py-4">
+  {%- comment -%} Logo {%- endcomment -%}
+  <a
+    href="{{ routes.root_url }}"
+    class="flex-shrink-0"
+    aria-label="{{ shop.name }} - Home"
+  >
+    {%- if settings.logo != blank -%}
+      <img
+        src="{{ settings.logo | image_url: width: 300 }}"
+        alt="{{ shop.name }}"
+        width="{{ settings.logo_width | default: 120 }}"
+        height="auto"
+        loading="eager"
+      >
+    {%- else -%}
+      <span class="text-xl font-bold">{{ shop.name }}</span>
+    {%- endif -%}
+  </a>
+
+  {%- comment -%} Navigation {%- endcomment -%}
+  <nav class="flex-1" aria-label="Main navigation">
+    <ul class="flex items-center justify-center gap-6">
+      {%- for link in linklists[section.settings.menu].links -%}
+        {%- liquid
+          assign mega_menu_block = null
+          for block in section.blocks
+            if block.type == 'mega_menu' and block.settings.menu_item == link.title
+              assign mega_menu_block = block
+              break
+            endif
+          endfor
+        -%}
+
+        <li class="group/nav relative">
+          <a
+            href="{{ link.url }}"
+            class="flex items-center gap-1 py-2 text-sm font-medium transition-colors hover:text-accent"
+            {%- if link.links.size > 0 %} aria-expanded="false" aria-haspopup="true"{% endif -%}
+          >
+            {{ link.title }}
+            {%- if link.links.size > 0 -%}
+              {% render 'icon-chevron-down', size: 14 %}
+            {%- endif -%}
+          </a>
+
+          {%- if mega_menu_block != null -%}
+            {%- comment -%} Mega menu dropdown {%- endcomment -%}
+            <div class="invisible absolute left-1/2 top-full z-50 w-[80vw] max-w-5xl -translate-x-1/2 rounded-lg border border-border bg-background p-6 opacity-0 shadow-lg transition-all duration-200 group-hover/nav:visible group-hover/nav:opacity-100">
+              <div class="flex gap-8">
+                {%- if link.links.size > 0 -%}
+                  <div class="flex-1">
+                    <ul class="grid grid-cols-2 gap-x-8 gap-y-3">
+                      {%- for child_link in link.links -%}
+                        {%- if child_link.links.size > 0 -%}
+                          <li>
+                            <span class="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted">
+                              {{ child_link.title }}
+                            </span>
+                            <ul class="space-y-2">
+                              {%- for grandchild_link in child_link.links -%}
+                                <li>
+                                  <a
+                                    href="{{ grandchild_link.url }}"
+                                    class="text-sm transition-colors hover:text-accent"
+                                  >
+                                    {{ grandchild_link.title }}
+                                  </a>
+                                </li>
+                              {%- endfor -%}
+                            </ul>
+                          </li>
+                        {%- else -%}
+                          <li>
+                            <a
+                              href="{{ child_link.url }}"
+                              class="text-sm transition-colors hover:text-accent"
+                            >
+                              {{ child_link.title }}
+                            </a>
+                          </li>
+                        {%- endif -%}
+                      {%- endfor -%}
+                    </ul>
+                  </div>
+                {%- endif -%}
+
+                {%- comment -%} Mega menu images {%- endcomment -%}
+                {%- if mega_menu_block.settings.image_1 != blank or mega_menu_block.settings.image_2 != blank -%}
+                  <div class="flex gap-4">
+                    {%- if mega_menu_block.settings.image_1 != blank -%}
+                      <a
+                        href="{{ mega_menu_block.settings.image_link_1 | default: '#' }}"
+                        class="group/img relative w-52 overflow-hidden rounded-lg"
+                      >
+                        {% render 'image',
+                          image: mega_menu_block.settings.image_1,
+                          class_name: 'h-full w-full object-cover transition-transform duration-300 group-hover/img:scale-105'
+                        %}
+                        {%- if mega_menu_block.settings.image_heading_1 != blank -%}
+                          <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-3">
+                            <span class="text-sm font-medium text-white">{{ mega_menu_block.settings.image_heading_1 }}</span>
+                          </div>
+                        {%- endif -%}
+                      </a>
+                    {%- endif -%}
+
+                    {%- if mega_menu_block.settings.image_2 != blank -%}
+                      <a
+                        href="{{ mega_menu_block.settings.image_link_2 | default: '#' }}"
+                        class="group/img relative w-52 overflow-hidden rounded-lg"
+                      >
+                        {% render 'image',
+                          image: mega_menu_block.settings.image_2,
+                          class_name: 'h-full w-full object-cover transition-transform duration-300 group-hover/img:scale-105'
+                        %}
+                        {%- if mega_menu_block.settings.image_heading_2 != blank -%}
+                          <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-3">
+                            <span class="text-sm font-medium text-white">{{ mega_menu_block.settings.image_heading_2 }}</span>
+                          </div>
+                        {%- endif -%}
+                      </a>
+                    {%- endif -%}
+                  </div>
+                {%- endif -%}
+              </div>
+            </div>
+
+          {%- elsif link.links.size > 0 -%}
+            {%- comment -%} Standard dropdown {%- endcomment -%}
+            <div class="invisible absolute left-0 top-full z-50 min-w-[200px] rounded-lg border border-border bg-background py-2 opacity-0 shadow-lg transition-all duration-200 group-hover/nav:visible group-hover/nav:opacity-100">
+              <ul>
+                {%- for child_link in link.links -%}
+                  <li>
+                    <a
+                      href="{{ child_link.url }}"
+                      class="block px-4 py-2 text-sm transition-colors hover:bg-gray-50"
+                    >
+                      {{ child_link.title }}
+                    </a>
+                  </li>
+                {%- endfor -%}
+              </ul>
+            </div>
+          {%- endif -%}
+        </li>
+      {%- endfor -%}
+    </ul>
+  </nav>
+
+  {%- comment -%} Action icons {%- endcomment -%}
+  <div class="flex items-center gap-4">
+    <button
+      type="button"
+      class="search-trigger flex items-center justify-center transition-colors hover:text-accent"
+      aria-label="{{ 'accessibility.search' | t }}"
+    >
+      {% render 'icon-search', size: 20 %}
+    </button>
+
+    <a
+      href="{{ routes.account_url }}"
+      class="flex items-center justify-center transition-colors hover:text-accent"
+      aria-label="{{ 'accessibility.account' | t }}"
+    >
+      {% render 'icon-account', size: 20 %}
+    </a>
+
+    {%- if template.name != 'cart' -%}
+      <button
+        type="button"
+        class="cart-trigger relative flex items-center justify-center transition-colors hover:text-accent"
+        aria-label="{{ 'accessibility.cart' | t }}"
+      >
+        {% render 'icon-cart', size: 20 %}
+        <span
+          class="cart-item-count absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white{% if cart.item_count == 0 %} hidden{% endif %}"
+          data-cart-count="{{ cart.item_count }}"
+        >
+          {%- if cart.item_count > 0 -%}{{ cart.item_count }}{%- endif -%}
+        </span>
+      </button>
+    {%- endif -%}
+  </div>
+</div>

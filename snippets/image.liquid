@@ -1,0 +1,131 @@
+{% doc %}
+  Responsive Image Component
+
+  Renders a <picture> element with WebP format, responsive breakpoints,
+  lazy loading, and optional mobile image.
+
+  @param {image} image - Desktop image object (required)
+  @param {image} mobile_image - Mobile image, falls back to image (optional)
+  @param {string} class_name - CSS classes (default: 'w-full h-auto')
+  @param {string} alt - Alt text, falls back to image.alt (optional)
+  @param {string} height - Image height attribute (optional)
+  @param {boolean} lazy - Set to false for eager loading (default: true)
+  @param {number} multiplier - Width multiplier for auto-calculations (default: 1.5)
+  @param {number} quality - Compression quality 0-100 (default: 80)
+  @param {string} responsive_widths - Comma-separated breakpoints e.g. "768:800,1024:1200" (optional)
+  @param {number} base_width - Desktop width for legacy mode (default: 1440)
+  @param {number} mobile_width - Mobile width for legacy mode (default: 768)
+  @param {number} breakpoint - Mobile/desktop switch point (default: 768)
+
+  @example
+  {% render 'image', image: section.settings.image, lazy: false %}
+{% enddoc %}
+
+{%- liquid
+  assign desktop_img = image
+  assign mobile_img = mobile_image | default: image
+  assign classes = class_name | default: 'w-full h-auto'
+  assign alt = alt | default: image.alt
+  assign loading = 'lazy'
+  if lazy == false
+    assign loading = 'eager'
+    assign fetchpriority = 'high'
+  else
+    assign fetchpriority = 'low'
+  endif
+
+  assign width_multiplier = multiplier | default: 1.5
+  assign img_quality = quality | default: 80
+
+  assign has_responsive = false
+  if responsive_widths and responsive_widths != blank
+    assign has_responsive = true
+    assign breakpoints_array = responsive_widths | split: ','
+  endif
+-%}
+
+{%- if desktop_img -%}
+  <picture class="{{ class_name }}">
+    {%- if has_responsive -%}
+      {%- assign first_config = breakpoints_array | first | strip -%}
+      {%- if first_config contains ':' -%}
+        {%- assign parts = first_config | split: ':' -%}
+        {%- assign first_bp = parts[0] | strip | times: 1 -%}
+        {%- assign first_width = parts[1] | strip | times: 1 -%}
+      {%- else -%}
+        {%- assign first_bp = first_config | times: 1 -%}
+        {%- assign first_width = first_bp | times: width_multiplier | round -%}
+      {%- endif -%}
+
+      {%- if mobile_img and mobile_img != desktop_img -%}
+        <source
+          srcset="{{ mobile_img | image_url: width: first_width, format: 'webp', quality: img_quality }}"
+          media="(max-width: {{ first_bp | minus: 1 }}px)"
+        >
+      {%- endif -%}
+
+      {%- for breakpoint_config in breakpoints_array reversed -%}
+        {%- assign breakpoint_config = breakpoint_config | strip -%}
+
+        {%- if breakpoint_config contains ':' -%}
+          {%- assign parts = breakpoint_config | split: ':' -%}
+          {%- assign bp_size = parts[0] | strip | times: 1 -%}
+          {%- assign img_width = parts[1] | strip | times: 1 -%}
+        {%- else -%}
+          {%- assign bp_size = breakpoint_config | times: 1 -%}
+          {%- assign img_width = bp_size | times: width_multiplier | round -%}
+        {%- endif -%}
+
+        <source
+          srcset="{{ desktop_img | image_url: width: img_width, format: 'webp', quality: img_quality }}"
+          media="(min-width: {{ bp_size }}px)"
+        >
+      {%- endfor -%}
+
+      {%- assign rendered_width = first_width -%}
+
+      {%- if mobile_img and mobile_img != desktop_img -%}
+        {%- assign fallback_img = mobile_img -%}
+      {%- else -%}
+        {%- assign fallback_img = desktop_img -%}
+      {%- endif -%}
+
+    {%- else -%}
+      {%- assign desktop_w = base_width | default: 1440 -%}
+      {%- assign mobile_w = mobile_width | default: 1024 -%}
+      {%- assign bp = breakpoint | default: 1024 -%}
+
+      <source
+        srcset="{{ desktop_img | image_url: width: desktop_w, format: 'webp', quality: img_quality }}"
+        media="(min-width: {{ bp }}px)"
+      >
+      {%- if mobile_img and mobile_img != desktop_img -%}
+        <source
+          srcset="{{ mobile_img | image_url: width: mobile_w, format: 'webp', quality: img_quality }}"
+          media="(max-width: {{ bp | minus: 1 }}px)"
+        >
+      {%- endif -%}
+
+      {%- assign rendered_width = desktop_w -%}
+    {%- endif -%}
+
+    {%- liquid
+      if has_responsive and fallback_img
+        assign img_src = fallback_img | image_url: width: rendered_width, format: 'webp', quality: img_quality
+      elsif mobile_img and mobile_img != desktop_img
+        assign img_src = mobile_img | image_url: width: rendered_width, format: 'webp', quality: img_quality
+      else
+        assign img_src = desktop_img | image_url: width: rendered_width, format: 'webp', quality: img_quality
+      endif
+    -%}
+    <img
+      src="{{ img_src }}"
+      alt="{{ alt }}"
+      width="{{ rendered_width }}"
+      height="{{ height }}"
+      loading="{{ loading }}"
+      fetchpriority="{{ fetchpriority }}"
+      class="{{ classes }}"
+    >
+  </picture>
+{%- endif -%}

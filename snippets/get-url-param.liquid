@@ -1,0 +1,45 @@
+{% doc %}
+  Get URL Parameter
+
+  Extracts a URL query parameter value. Tries request.params first,
+  falls back to content_for_header parsing for Section Rendering API compatibility.
+
+  @param {string} param_name - The parameter name to extract (required)
+
+  @example
+  {% capture city_param %}
+    {% render 'get-url-param', param_name: 'city' %}
+  {% endcapture %}
+  {% assign city_filter = city_param | strip %}
+{% enddoc %}
+
+{%- liquid
+  assign param_name = param_name | default: ''
+  assign param_value = ''
+
+  if param_name == blank or param_name == ''
+    echo ''
+  else
+    assign param_value = request.params[param_name] | default: ''
+
+    if param_value == blank or param_value == ''
+      capture page_url_raw
+        echo content_for_header | split: '"pageurl":"' | last | split: '"' | first
+      endcapture
+
+      if page_url_raw contains '?'
+        assign query_string = page_url_raw | split: '?' | last
+        assign param_search = param_name | append: '='
+
+        if query_string contains param_search
+          assign param_parts = query_string | split: param_search
+          if param_parts.size > 1
+            assign param_value = param_parts[1] | split: '&' | first | split: '#' | first | url_decode
+          endif
+        endif
+      endif
+    endif
+
+    echo param_value
+  endif
+-%}

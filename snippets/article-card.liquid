@@ -1,0 +1,72 @@
+{% doc %}
+  Article Card
+
+  Renders a blog article card with image, title, excerpt, and metadata.
+
+  @param {article} article - Article object (required)
+  @param {boolean} show_excerpt - Show article excerpt (default: true)
+  @param {boolean} show_date - Show published date (default: true)
+  @param {boolean} show_author - Show author name (default: false)
+
+  @example
+  {% render 'article-card', article: article %}
+{% enddoc %}
+
+{%- liquid
+  assign article = article | default: blank
+
+  unless article != blank
+    break
+  endunless
+
+  assign show_excerpt = show_excerpt | default: true
+  assign show_date = show_date | default: true
+  assign show_author = show_author | default: false
+-%}
+
+<article class="article-card flex h-full flex-col overflow-hidden rounded-lg border border-border">
+  {%- if article.image -%}
+    <a href="{{ article.url }}" class="group block aspect-[16/9] overflow-hidden">
+      <img
+        src="{{ article.image | image_url: width: 720 }}"
+        alt="{{ article.image.alt | default: article.title | escape }}"
+        width="720"
+        height="405"
+        loading="lazy"
+        class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+      >
+    </a>
+  {%- endif -%}
+
+  <div class="flex flex-1 flex-col gap-2 p-4">
+    {%- if show_date or show_author -%}
+      <div class="flex items-center gap-2 text-xs text-muted">
+        {%- if show_date -%}
+          <time datetime="{{ article.published_at | date: '%Y-%m-%d' }}">
+            {{ article.published_at | date: '%B %d, %Y' }}
+          </time>
+        {%- endif -%}
+        {%- if show_date and show_author -%}
+          <span aria-hidden="true">&middot;</span>
+        {%- endif -%}
+        {%- if show_author -%}
+          <span>{{ article.author }}</span>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    <h3 class="text-base font-medium md:text-lg">
+      <a href="{{ article.url }}" class="hover:underline">{{ article.title }}</a>
+    </h3>
+
+    {%- if show_excerpt and article.excerpt_or_content != blank -%}
+      <p class="line-clamp-2 text-sm text-muted">
+        {{ article.excerpt_or_content | strip_html | truncate: 150 }}
+      </p>
+    {%- endif -%}
+
+    <a href="{{ article.url }}" class="mt-auto pt-2 text-sm font-medium underline hover:text-muted">
+      {{ 'blog.read_more' | t }}
+    </a>
+  </div>
+</article>

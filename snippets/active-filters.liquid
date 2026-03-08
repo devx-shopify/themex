@@ -1,0 +1,72 @@
+{% doc %}
+  Active Filters
+
+  Renders active filter tags with remove buttons and a clear all link.
+
+  @param {collection} collection - Collection object with filters (required)
+
+  @example
+  {% render 'active-filters', collection: collection %}
+{% enddoc %}
+
+{%- liquid
+  assign collection = collection | default: blank
+
+  unless collection != blank
+    break
+  endunless
+
+  assign active_count = 0
+  for filter in collection.filters
+    for value in filter.active_values
+      assign active_count = active_count | plus: 1
+    endfor
+    if filter.type == 'price_range'
+      if filter.min_value.value or filter.max_value.value
+        assign active_count = active_count | plus: 1
+      endif
+    endif
+  endfor
+-%}
+
+{%- if active_count > 0 -%}
+  <div class="flex flex-wrap items-center gap-2" data-active-filters>
+    {%- for filter in collection.filters -%}
+      {%- for value in filter.active_values -%}
+        <a
+          href="{{ value.url_to_remove }}"
+          class="inline-flex items-center gap-1 rounded-full border border-border px-3 py-1 text-xs transition-colors hover:border-foreground"
+          data-active-filter
+        >
+          <span>{{ filter.label }}: {{ value.label }}</span>
+          {% render 'icon-close', size: 12 %}
+        </a>
+      {%- endfor -%}
+
+      {%- if filter.type == 'price_range' -%}
+        {%- if filter.min_value.value or filter.max_value.value -%}
+          {%- liquid
+            assign min_display = filter.min_value.value | default: 0 | money_without_trailing_zeros
+            assign max_display = filter.max_value.value | default: filter.range_max | money_without_trailing_zeros
+          -%}
+          <a
+            href="{{ filter.url_to_remove }}"
+            class="inline-flex items-center gap-1 rounded-full border border-border px-3 py-1 text-xs transition-colors hover:border-foreground"
+            data-active-filter
+          >
+            <span>{{ min_display }} - {{ max_display }}</span>
+            {% render 'icon-close', size: 12 %}
+          </a>
+        {%- endif -%}
+      {%- endif -%}
+    {%- endfor -%}
+
+    <a
+      href="{{ collection.url }}"
+      class="text-xs text-muted underline transition-colors hover:text-foreground"
+      data-clear-filters
+    >
+      {{ 'collections.clear_all' | t }}
+    </a>
+  </div>
+{%- endif -%}

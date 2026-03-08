@@ -1,0 +1,165 @@
+{% doc %}
+  Address Form Fields
+
+  Renders the shared address form fields used in both
+  new address and edit address forms.
+
+  @param {form} form - Shopify form object (required)
+
+  @example
+  {% render 'address-form-fields', form: form %}
+{% enddoc %}
+
+{%- liquid
+  assign form = form | default: blank
+
+  unless form != blank
+    break
+  endunless
+-%}
+
+<div class="grid grid-cols-2 gap-4">
+  <div>
+    <label for="{{ form.id }}_first_name" class="mb-1.5 block text-sm font-medium">
+      {{ 'customers.addresses.first_name' | t }}
+    </label>
+    <input
+      type="text"
+      name="address[first_name]"
+      id="{{ form.id }}_first_name"
+      value="{{ form.first_name }}"
+      autocomplete="given-name"
+      class="w-full rounded border border-border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+    >
+  </div>
+  <div>
+    <label for="{{ form.id }}_last_name" class="mb-1.5 block text-sm font-medium">
+      {{ 'customers.addresses.last_name' | t }}
+    </label>
+    <input
+      type="text"
+      name="address[last_name]"
+      id="{{ form.id }}_last_name"
+      value="{{ form.last_name }}"
+      autocomplete="family-name"
+      class="w-full rounded border border-border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+    >
+  </div>
+</div>
+
+<div>
+  <label for="{{ form.id }}_company" class="mb-1.5 block text-sm font-medium">
+    {{ 'customers.addresses.company' | t }}
+  </label>
+  <input
+    type="text"
+    name="address[company]"
+    id="{{ form.id }}_company"
+    value="{{ form.company }}"
+    autocomplete="organization"
+    class="w-full rounded border border-border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+  >
+</div>
+
+<div>
+  <label for="{{ form.id }}_address1" class="mb-1.5 block text-sm font-medium">
+    {{ 'customers.addresses.address1' | t }}
+  </label>
+  <input
+    type="text"
+    name="address[address1]"
+    id="{{ form.id }}_address1"
+    value="{{ form.address1 }}"
+    autocomplete="address-line1"
+    class="w-full rounded border border-border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+  >
+</div>
+
+<div>
+  <label for="{{ form.id }}_address2" class="mb-1.5 block text-sm font-medium">
+    {{ 'customers.addresses.address2' | t }}
+  </label>
+  <input
+    type="text"
+    name="address[address2]"
+    id="{{ form.id }}_address2"
+    value="{{ form.address2 }}"
+    autocomplete="address-line2"
+    class="w-full rounded border border-border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+  >
+</div>
+
+<div class="grid grid-cols-2 gap-4">
+  <div>
+    <label for="{{ form.id }}_city" class="mb-1.5 block text-sm font-medium">
+      {{ 'customers.addresses.city' | t }}
+    </label>
+    <input
+      type="text"
+      name="address[city]"
+      id="{{ form.id }}_city"
+      value="{{ form.city }}"
+      autocomplete="address-level2"
+      class="w-full rounded border border-border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+    >
+  </div>
+  <div>
+    <label for="{{ form.id }}_zip" class="mb-1.5 block text-sm font-medium">
+      {{ 'customers.addresses.zip' | t }}
+    </label>
+    <input
+      type="text"
+      name="address[zip]"
+      id="{{ form.id }}_zip"
+      value="{{ form.zip }}"
+      autocomplete="postal-code"
+      class="w-full rounded border border-border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+    >
+  </div>
+</div>
+
+<div class="grid grid-cols-2 gap-4">
+  <div>
+    <label for="{{ form.id }}_country" class="mb-1.5 block text-sm font-medium">
+      {{ 'customers.addresses.country' | t }}
+    </label>
+    <select
+      name="address[country]"
+      id="{{ form.id }}_country"
+      autocomplete="country"
+      class="w-full rounded border border-border bg-transparent px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+      data-address-country-select
+      data-default="{{ form.country }}"
+    >
+      {{ all_country_option_tags }}
+    </select>
+  </div>
+  <div>
+    <label for="{{ form.id }}_province" class="mb-1.5 block text-sm font-medium">
+      {{ 'customers.addresses.province' | t }}
+    </label>
+    <select
+      name="address[province]"
+      id="{{ form.id }}_province"
+      autocomplete="address-level1"
+      class="w-full rounded border border-border bg-transparent px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+      data-address-province-select
+      data-default="{{ form.province }}"
+    >
+    </select>
+  </div>
+</div>
+
+<div>
+  <label for="{{ form.id }}_phone" class="mb-1.5 block text-sm font-medium">
+    {{ 'customers.addresses.phone' | t }}
+  </label>
+  <input
+    type="tel"
+    name="address[phone]"
+    id="{{ form.id }}_phone"
+    value="{{ form.phone }}"
+    autocomplete="tel"
+    class="w-full rounded border border-border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+  >
+</div>

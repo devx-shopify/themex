@@ -1,0 +1,15 @@
+{% doc %}
+  Core Assets
+
+  Loads base CSS, Tailwind CSS, and globally required JavaScript files.
+  Included in layout/theme.liquid <head>.
+{% enddoc %}
+
+{{ 'base.css' | asset_url | stylesheet_tag: preload: true }}
+{{ 'tailwind.css' | asset_url | stylesheet_tag: preload: true }}
+
+{% if template.name != 'cart' %}
+  <script src="{{ 'cart-drawer.js' | asset_url }}" defer></script>
+{% endif %}
+<script src="{{ 'product-form.js' | asset_url }}" defer></script>
+<script src="{{ 'product-card.js' | asset_url }}" defer></script>

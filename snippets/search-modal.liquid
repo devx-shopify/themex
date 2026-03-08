@@ -1,0 +1,124 @@
+{% doc %}
+  Search Modal
+
+  Full-screen search overlay with predictive search results,
+  recent searches, and trending collections.
+
+  @example
+  {% render 'search-modal' %}
+{% enddoc %}
+
+<div
+  class="search-modal fixed inset-0 z-[60] hidden bg-black/50"
+  id="search-modal"
+  aria-hidden="true"
+  role="dialog"
+  aria-label="{{ 'accessibility.search' | t }}"
+>
+  <div class="flex h-full items-start justify-center pt-20 px-4 md:pt-32">
+    <div class="search-modal-content w-full max-w-2xl rounded-lg bg-background p-6 shadow-2xl">
+      {%- comment -%} Search input {%- endcomment -%}
+      <div class="relative mb-6">
+        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+          {% render 'icon-search', size: 20, class: 'text-muted' %}
+        </div>
+        <input
+          type="search"
+          id="predictive-search-input"
+          class="w-full rounded-lg border border-border bg-background py-3 pl-12 pr-12 text-base focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+          placeholder="{{ 'search.placeholder' | t }}"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="false"
+        >
+        <button
+          type="button"
+          class="search-modal-close absolute inset-y-0 right-0 flex items-center pr-4 text-muted transition-colors hover:text-foreground"
+          aria-label="{{ 'accessibility.close' | t }}"
+        >
+          {% render 'icon-close', size: 20 %}
+        </button>
+      </div>
+
+      {%- comment -%} Search results container (server-rendered via section rendering) {%- endcomment -%}
+      <div id="predictive-search-results" class="hidden max-h-[60vh] overflow-y-auto"></div>
+      <div id="predictive-search-loading" class="hidden py-8 text-center text-sm text-muted">
+        {% render 'icon-spinner', size: 24 %}
+        <p class="mt-2">{{ 'general.loading' | t }}</p>
+      </div>
+
+      {%- comment -%} Default content (shown when no search query) {%- endcomment -%}
+      <div id="search-default-content">
+        {%- comment -%} Recent searches {%- endcomment -%}
+        <div id="recent-searches-container" class="mb-6 hidden">
+          <div class="mb-3 flex items-center justify-between">
+            <h3 class="text-sm font-semibold uppercase tracking-wider text-muted">{{ 'search.recent_searches' | t }}</h3>
+            <button
+              type="button"
+              id="clear-recent-searches"
+              class="text-xs text-muted transition-colors hover:text-foreground"
+            >
+              {{ 'search.clear_history' | t }}
+            </button>
+          </div>
+          <ul id="recent-searches-list" class="space-y-2"></ul>
+        </div>
+
+        {%- comment -%} Trending collections {%- endcomment -%}
+        {%- if settings.trending_collections != blank -%}
+          <div class="mb-6">
+            <h3 class="mb-3 text-sm font-semibold uppercase tracking-wider text-muted">{{ 'search.trending' | t }}</h3>
+            <div class="flex flex-wrap gap-2">
+              {%- for collection in settings.trending_collections -%}
+                <a
+                  href="{{ collection.url }}"
+                  class="rounded-full border border-border px-4 py-2 text-sm transition-colors hover:border-primary hover:text-primary"
+                >
+                  {{ collection.title }}
+                </a>
+              {%- endfor -%}
+            </div>
+          </div>
+        {%- endif -%}
+
+        {%- comment -%} Best sellers {%- endcomment -%}
+        {%- if settings.best_sellers_products != blank -%}
+          {%- assign best_sellers = collections[settings.best_sellers_products] -%}
+          {%- if best_sellers != blank and best_sellers.products.size > 0 -%}
+            <div>
+              {%- if settings.best_sellers_products_heading != blank -%}
+                <h3 class="mb-3 text-sm font-semibold uppercase tracking-wider text-muted">
+                  {{ settings.best_sellers_products_heading }}
+                </h3>
+              {%- endif -%}
+              <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {%- assign limit = settings.best_sellers_products_limit | default: 6 -%}
+                {%- for product in best_sellers.products limit: limit -%}
+                  <a href="{{ product.url }}" class="group flex flex-col gap-2 rounded-lg border border-border p-3 transition-colors hover:border-primary">
+                    {%- if product.featured_image -%}
+                      <div class="aspect-square overflow-hidden rounded">
+                        <img
+                          src="{{ product.featured_image | image_url: width: 200 }}"
+                          alt="{{ product.title | escape }}"
+                          width="200"
+                          height="200"
+                          loading="lazy"
+                          class="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
+                        >
+                      </div>
+                    {%- endif -%}
+                    <div>
+                      <p class="text-xs font-medium leading-tight">{{ product.title }}</p>
+                      <p class="mt-1 text-xs text-muted">{{ product.price | money }}</p>
+                    </div>
+                  </a>
+                {%- endfor -%}
+              </div>
+            </div>
+          {%- endif -%}
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,162 @@
+{%- comment -%}
+  Article Section
+
+  Renders a single blog article with content, metadata, and optional comments.
+{%- endcomment -%}
+
+<article class="article-section page-width py-10 md:py-16">
+  <div class="mx-auto max-w-3xl">
+    {%- comment -%} Hero image {%- endcomment -%}
+    {%- if article.image -%}
+      <div class="mb-8 overflow-hidden rounded-lg">
+        <img
+          src="{{ article.image | image_url: width: 1200 }}"
+          alt="{{ article.image.alt | default: article.title | escape }}"
+          width="1200"
+          height="630"
+          loading="eager"
+          class="w-full object-cover"
+        >
+      </div>
+    {%- endif -%}
+
+    {%- comment -%} Header {%- endcomment -%}
+    <header class="mb-8">
+      <h1 class="mb-4 text-3xl font-bold leading-tight md:text-4xl lg:text-5xl">{{ article.title }}</h1>
+      <div class="flex flex-wrap items-center gap-2 text-sm text-muted">
+        {%- assign date = article.published_at | time_tag: format: 'date' -%}
+        <span>{{ 'blog.article_metadata_html' | t: date: date, author: article.author }}</span>
+      </div>
+    </header>
+
+    {%- comment -%} Article content {%- endcomment -%}
+    <div class="article-content prose max-w-none text-sm leading-relaxed md:text-base">
+      {{ article.content }}
+    </div>
+
+    {%- comment -%} Tags {%- endcomment -%}
+    {%- if article.tags.size > 0 -%}
+      <div class="mt-8 flex flex-wrap items-center gap-2 border-t border-border pt-6">
+        {%- for tag in article.tags -%}
+          <a
+            href="{{ blog.url }}/tagged/{{ tag | handle }}"
+            class="rounded-full border border-border px-3 py-1 text-xs transition-colors hover:border-foreground"
+          >
+            {{ tag }}
+          </a>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+
+    {%- comment -%} Back to blog {%- endcomment -%}
+    <div class="mt-8 border-t border-border pt-6">
+      <a href="{{ blog.url }}" class="inline-flex items-center gap-1 text-sm text-muted hover:text-foreground">
+        {% render 'icon-arrow-left', size: 14 %}
+        {{ blog.title }}
+      </a>
+    </div>
+
+    {%- comment -%} Comments {%- endcomment -%}
+    {%- if blog.comments_enabled? -%}
+      <aside class="mt-12 border-t border-border pt-8">
+        <h2 class="mb-6 text-xl font-bold">{{ 'blog.article_comments' | t }}</h2>
+
+        {%- if article.comments_count > 0 -%}
+          <div class="mb-8 space-y-4">
+            {% paginate article.comments by 10 %}
+              {%- for comment in article.comments -%}
+                <div class="rounded border border-border p-4">
+                  <div class="mb-2 flex items-center gap-2">
+                    <span class="text-sm font-medium">{{ comment.author }}</span>
+                    <span class="text-xs text-muted">{{ comment.created_at | date: '%B %d, %Y' }}</span>
+                  </div>
+                  <p class="text-sm">{{ comment.content }}</p>
+                </div>
+              {%- endfor -%}
+
+              {%- if paginate.pages > 1 -%}
+                <div class="mt-4">
+                  {% render 'pagination', paginate: paginate %}
+                </div>
+              {%- endif -%}
+            {% endpaginate %}
+          </div>
+        {%- endif -%}
+
+        {%- comment -%} Comment form {%- endcomment -%}
+        {% form 'new_comment', article, class: 'space-y-4' %}
+          <h3 class="text-lg font-bold">{{ 'blog.comment_form_title' | t }}</h3>
+
+          {%- if form.errors -%}
+            <div class="rounded border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+              {{ form.errors | default_errors }}
+            </div>
+          {%- endif -%}
+
+          {%- if form.posted_successfully? -%}
+            <div class="rounded border border-green-200 bg-green-50 p-4 text-sm text-green-800">
+              {{ 'blog.comment_posted' | t }}
+            </div>
+          {%- endif -%}
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label for="CommentAuthor" class="mb-1.5 block text-sm font-medium">
+                {{ 'blog.comment_form_name' | t }}
+              </label>
+              <input
+                type="text"
+                name="comment[author]"
+                id="CommentAuthor"
+                value="{{ form.author }}"
+                required
+                class="w-full rounded border border-border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+            </div>
+            <div>
+              <label for="CommentEmail" class="mb-1.5 block text-sm font-medium">
+                {{ 'blog.comment_form_email' | t }}
+              </label>
+              <input
+                type="email"
+                name="comment[email]"
+                id="CommentEmail"
+                value="{{ form.email }}"
+                required
+                class="w-full rounded border border-border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+            </div>
+          </div>
+
+          <div>
+            <label for="CommentBody" class="mb-1.5 block text-sm font-medium">
+              {{ 'blog.comment_form_body' | t }}
+            </label>
+            <textarea
+              name="comment[body]"
+              id="CommentBody"
+              required
+              rows="4"
+              class="w-full resize-y rounded border border-border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            >{{ form.body }}</textarea>
+          </div>
+
+          <button
+            type="submit"
+            class="rounded bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:opacity-90"
+          >
+            {{ 'blog.comment_form_submit' | t }}
+          </button>
+        {% endform %}
+      </aside>
+    {%- endif -%}
+  </div>
+</article>
+
+{% schema %}
+{
+  "name": "Article",
+  "class": "article-section",
+  "settings": []
+}
+{% endschema %}

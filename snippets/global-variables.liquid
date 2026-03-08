@@ -1,0 +1,13 @@
+{% doc %}
+  Global Variables
+
+  Exposes shop data as JSON for JavaScript consumption.
+  Placed at end of body in layout/theme.liquid.
+{% enddoc %}
+
+<script type="application/json" id="shop-money-format">
+  {
+    "money_format": {{ shop.money_format | json }},
+    "money_with_currency_format": {{ shop.money_with_currency_format | json }}
+  }
+</script>

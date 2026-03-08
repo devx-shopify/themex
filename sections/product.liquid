@@ -1,0 +1,291 @@
+{%- liquid
+  assign current_variant = product.selected_or_first_available_variant
+-%}
+
+<section class="product-section page-width py-10 lg:py-16">
+  {%- comment -%} Variant data for JS {%- endcomment -%}
+  <script type="application/json" id="product-variant-data">
+    {
+      "productId": {{ product.id | json }},
+      "variants": [
+        {%- for variant in product.variants -%}
+          {
+            "id": {{ variant.id | json }},
+            "title": {{ variant.title | json }},
+            "available": {{ variant.available | json }},
+            "price": {{ variant.price | json }},
+            "compare_at_price": {{ variant.compare_at_price | default: 0 | json }},
+            "price_formatted": {{ variant.price | money | json }},
+            "compare_at_price_formatted": {{ variant.compare_at_price | money | json }},
+            "featured_media_id": {{ variant.featured_media.id | default: 'null' }},
+            "options": {{ variant.options | json }}
+          }{%- unless forloop.last -%},{%- endunless -%}
+        {%- endfor -%}
+      ],
+      "options": {{ product.options_with_values | json }}
+    }
+  </script>
+
+  <div class="grid gap-8 lg:grid-cols-2 lg:gap-12">
+    {%- comment -%} Product media {%- endcomment -%}
+    <div class="product-media">
+      {%- comment -%} Mobile: horizontal scroll {%- endcomment -%}
+      <div class="flex snap-x snap-mandatory gap-2 overflow-x-auto scrollbar-hide lg:hidden" data-product-gallery-scroll>
+        {%- for media in product.media -%}
+          <div
+            class="w-full flex-none snap-start"
+            data-media-id="{{ media.id }}"
+          >
+            {%- if media.media_type == 'image' -%}
+              <img
+                src="{{ media | image_url: width: 800 }}"
+                alt="{{ media.alt | default: product.title | escape }}"
+                width="800"
+                height="{{ 800 | divided_by: media.aspect_ratio | round }}"
+                loading="{% if forloop.first %}eager{% else %}lazy{% endif %}"
+                class="w-full rounded-lg"
+              >
+            {%- elsif media.media_type == 'video' -%}
+              {{ media | video_tag: autoplay: false, controls: true, class: 'w-full rounded-lg' }}
+            {%- elsif media.media_type == 'external_video' -%}
+              {{ media | external_video_tag: class: 'w-full rounded-lg' }}
+            {%- endif -%}
+          </div>
+        {%- endfor -%}
+      </div>
+
+      {%- comment -%} Desktop: grid {%- endcomment -%}
+      <div class="hidden gap-2 lg:grid lg:grid-cols-2">
+        {%- for media in product.media -%}
+          <div
+            class="{% cycle 'col-span-2', 'col-span-1', 'col-span-1' %}"
+            data-media-id="{{ media.id }}"
+          >
+            {%- if media.media_type == 'image' -%}
+              <img
+                src="{{ media | image_url: width: 1000 }}"
+                alt="{{ media.alt | default: product.title | escape }}"
+                width="1000"
+                height="{{ 1000 | divided_by: media.aspect_ratio | round }}"
+                loading="{% if forloop.first %}eager{% else %}lazy{% endif %}"
+                class="w-full rounded-lg"
+              >
+            {%- elsif media.media_type == 'video' -%}
+              {{ media | video_tag: autoplay: false, controls: true, class: 'w-full rounded-lg' }}
+            {%- elsif media.media_type == 'external_video' -%}
+              {{ media | external_video_tag: class: 'w-full rounded-lg' }}
+            {%- endif -%}
+          </div>
+        {%- endfor -%}
+      </div>
+    </div>
+
+    {%- comment -%} Product info {%- endcomment -%}
+    <div class="product-info lg:sticky lg:top-24 lg:self-start">
+      {%- for block in section.blocks -%}
+        {%- case block.type -%}
+
+          {%- when 'title' -%}
+            <h1 class="mb-2 text-3xl font-bold lg:text-4xl" {{ block.shopify_attributes }}>
+              {{ product.title }}
+            </h1>
+
+            {%- if product.vendor != blank -%}
+              <p class="mb-4 text-sm text-muted">{{ product.vendor }}</p>
+            {%- endif -%}
+
+          {%- when 'price' -%}
+            <div class="mb-6 flex items-center gap-3" {{ block.shopify_attributes }}>
+              <span class="text-2xl font-semibold" data-product-price>
+                {{ current_variant.price | money }}
+              </span>
+
+              {%- if current_variant.compare_at_price > current_variant.price -%}
+                <s class="text-base text-muted" data-product-compare-price>
+                  {{ current_variant.compare_at_price | money }}
+                </s>
+
+                {%- assign discount = current_variant.compare_at_price | minus: current_variant.price | times: 100.0 | divided_by: current_variant.compare_at_price | round -%}
+                <span class="rounded bg-error/10 px-2 py-0.5 text-xs font-medium text-error" data-product-discount>
+                  {{ discount }}% off
+                </span>
+              {%- endif -%}
+            </div>
+
+          {%- when 'variant_selector' -%}
+            {%- if product.has_only_default_variant == false -%}
+              <div class="mb-6 space-y-5" {{ block.shopify_attributes }}>
+                {%- for option in product.options_with_values -%}
+                  {%- liquid
+                    assign is_color = false
+                    assign option_name_lower = option.name | downcase
+                    assign option_index = forloop.index0
+                    if option_name_lower == 'color' or option_name_lower == 'colour'
+                      assign is_color = true
+                    endif
+                  -%}
+                  <div data-option-index="{{ option_index }}">
+                    <label class="mb-2.5 block text-sm font-medium">
+                      {{ option.name }}:
+                      <span class="font-normal text-muted" data-selected-option="{{ option_index }}">
+                        {{ option.selected_value }}
+                      </span>
+                    </label>
+                    <div class="flex flex-wrap gap-2">
+                      {%- for value in option.values -%}
+                        {%- if is_color -%}
+                          {%- liquid
+                            assign color_variant = nil
+                            for v in product.variants
+                              case option_index
+                                when 0
+                                  assign v_opt = v.option1
+                                when 1
+                                  assign v_opt = v.option2
+                                when 2
+                                  assign v_opt = v.option3
+                              endcase
+                              if v_opt == value
+                                assign color_variant = v
+                                break
+                              endif
+                            endfor
+                          -%}
+                          <button
+                            type="button"
+                            class="variant-option variant-option--color relative h-12 w-12 overflow-hidden rounded-full border-2 transition-all{% if value == option.selected_value %} border-foreground ring-2 ring-foreground/20{% else %} border-border hover:border-foreground{% endif %}"
+                            data-option-value="{{ value }}"
+                            data-option-index="{{ option_index }}"
+                            aria-label="{{ value }}"
+                            aria-pressed="{% if value == option.selected_value %}true{% else %}false{% endif %}"
+                            title="{{ value }}"
+                          >
+                            {%- if color_variant.featured_image -%}
+                              <img
+                                src="{{ color_variant.featured_image | image_url: width: 96 }}"
+                                alt="{{ value }}"
+                                width="48"
+                                height="48"
+                                loading="lazy"
+                                class="h-full w-full object-cover"
+                              >
+                            {%- else -%}
+                              <span class="absolute inset-0 rounded-full" style="background-color: {{ value | handleize | replace: '-', '' }};"></span>
+                            {%- endif -%}
+                          </button>
+                        {%- else -%}
+                          <button
+                            type="button"
+                            class="variant-option rounded border px-4 py-2 text-sm transition-colors{% if value == option.selected_value %} border-foreground bg-foreground text-background{% else %} border-border hover:border-foreground{% endif %}"
+                            data-option-value="{{ value }}"
+                            data-option-index="{{ option_index }}"
+                            aria-pressed="{% if value == option.selected_value %}true{% else %}false{% endif %}"
+                          >
+                            {{ value }}
+                          </button>
+                        {%- endif -%}
+                      {%- endfor -%}
+                    </div>
+                  </div>
+                {%- endfor -%}
+              </div>
+            {%- endif -%}
+
+          {%- when 'buy_buttons' -%}
+            <div class="mb-6" {{ block.shopify_attributes }}>
+              {% render 'product-form', product: product %}
+            </div>
+
+          {%- when 'description' -%}
+            {%- if product.description != blank -%}
+              <div class="prose max-w-none border-t border-border pt-6 text-sm" {{ block.shopify_attributes }}>
+                {{ product.description }}
+              </div>
+            {%- endif -%}
+
+          {%- when 'collapsible' -%}
+            {%- if block.settings.heading != blank -%}
+              <details class="border-t border-border" {{ block.shopify_attributes }}>
+                <summary class="flex cursor-pointer items-center justify-between py-4 text-sm font-medium">
+                  {{ block.settings.heading }}
+                  <span class="transition-transform duration-200 [[open]>&]:rotate-180">
+                    {% render 'icon-chevron-down', size: 16 %}
+                  </span>
+                </summary>
+                <div class="pb-4 text-sm text-muted">
+                  {{ block.settings.content }}
+                </div>
+              </details>
+            {%- endif -%}
+
+        {%- endcase -%}
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+<script src="{{ 'product.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "Product",
+  "tag": "section",
+  "class": "product-section",
+  "blocks": [
+    {
+      "type": "title",
+      "name": "Title",
+      "limit": 1
+    },
+    {
+      "type": "price",
+      "name": "Price",
+      "limit": 1
+    },
+    {
+      "type": "variant_selector",
+      "name": "Variant selector",
+      "limit": 1
+    },
+    {
+      "type": "buy_buttons",
+      "name": "Buy buttons",
+      "limit": 1
+    },
+    {
+      "type": "description",
+      "name": "Description",
+      "limit": 1
+    },
+    {
+      "type": "collapsible",
+      "name": "Collapsible tab",
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Heading",
+          "default": "Shipping & Returns"
+        },
+        {
+          "type": "richtext",
+          "id": "content",
+          "label": "Content"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Product",
+      "blocks": [
+        { "type": "title" },
+        { "type": "price" },
+        { "type": "variant_selector" },
+        { "type": "buy_buttons" },
+        { "type": "description" }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,75 @@
+{%- liquid
+  assign animation_duration = section.settings.scroll_speed | default: 30
+  assign animation_style = 'animation: scroll ' | append: animation_duration | append: 's linear infinite;'
+  assign bg_color = section.settings.background_color
+  assign text_color = section.settings.text_color
+-%}
+
+<div
+  class="announcement-bar flex items-center justify-center overflow-hidden px-4 py-2"
+  id="announcement-bar"
+  style="background-color: {{ bg_color }}; color: {{ text_color }};"
+>
+  <div
+    class="inline-flex items-center gap-8 whitespace-nowrap hover:[animation-play-state:paused]"
+    style="{{ animation_style }}"
+  >
+    {%- for i in (1..10) -%}
+      {%- for block in section.blocks -%}
+        <span class="inline-flex flex-shrink-0 text-xs font-medium uppercase tracking-wide">
+          {{ block.settings.announcement_bar_text }}
+        </span>
+        <span class="inline-block h-1 w-1 rounded-full" style="background-color: {{ text_color }};"></span>
+      {%- endfor -%}
+    {%- endfor -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Announcement Bar",
+  "class": "announcement-bar-section",
+  "settings": [
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background color",
+      "default": "#111827"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "range",
+      "id": "scroll_speed",
+      "label": "Scroll speed (seconds)",
+      "min": 5,
+      "max": 60,
+      "step": 1,
+      "default": 30,
+      "info": "Lower = faster, Higher = slower"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "announcement-bar-item",
+      "name": "Announcement",
+      "settings": [
+        {
+          "type": "richtext",
+          "id": "announcement_bar_text",
+          "label": "Text"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Announcement Bar"
+    }
+  ]
+}
+{% endschema %}

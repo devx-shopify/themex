@@ -1,0 +1,166 @@
+{%- liquid
+  assign current_year = 'now' | date: '%Y'
+-%}
+
+<footer
+  class="footer border-t border-border"
+  style="
+    background-color: {{ section.settings.background_color }};
+    color: {{ section.settings.text_color }};
+    --footer-padding-top: {{ section.settings.padding_top }}px;
+    --footer-padding-bottom: {{ section.settings.padding_bottom }}px;
+  "
+>
+  <div class="page-width" style="padding-top: var(--footer-padding-top); padding-bottom: var(--footer-padding-bottom);">
+    <div class="grid gap-10 md:grid-cols-12">
+      {%- comment -%} Logo & description {%- endcomment -%}
+      <div class="md:col-span-4">
+        {%- if settings.logo != blank -%}
+          <a href="{{ routes.root_url }}" class="mb-4 inline-block">
+            <img
+              src="{{ settings.logo | image_url: width: 200 }}"
+              alt="{{ shop.name }}"
+              width="{{ settings.logo_width | default: 120 }}"
+              height="auto"
+              loading="lazy"
+            >
+          </a>
+        {%- else -%}
+          <a href="{{ routes.root_url }}" class="mb-4 inline-block text-xl font-bold">
+            {{ shop.name }}
+          </a>
+        {%- endif -%}
+
+        {%- if section.settings.description != blank -%}
+          <div class="mt-4 text-sm opacity-80">
+            {{ section.settings.description }}
+          </div>
+        {%- endif -%}
+
+        {%- comment -%} Social links {%- endcomment -%}
+        {%- assign social_links = 'facebook,twitter,instagram,youtube,tiktok,pinterest,linkedin' | split: ',' -%}
+        {%- assign has_social = false -%}
+        {%- for platform in social_links -%}
+          {%- assign setting_id = 'social_' | append: platform -%}
+          {%- if settings[setting_id] != blank -%}
+            {%- assign has_social = true -%}
+            {%- break -%}
+          {%- endif -%}
+        {%- endfor -%}
+
+        {%- if has_social -%}
+          <div class="mt-6 flex gap-4">
+            {%- for platform in social_links -%}
+              {%- assign setting_id = 'social_' | append: platform -%}
+              {%- if settings[setting_id] != blank -%}
+                <a
+                  href="{{ settings[setting_id] }}"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-sm opacity-80 transition-opacity hover:opacity-100"
+                  aria-label="{{ platform | capitalize }}"
+                >
+                  {{ platform | capitalize }}
+                </a>
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+      </div>
+
+      {%- comment -%} Menu columns {%- endcomment -%}
+      <div class="md:col-span-8">
+        {%- if section.settings.menu != blank -%}
+          <ul class="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-4">
+            {%- for link in section.settings.menu.links -%}
+              <li>
+                <span class="mb-3 block text-sm font-semibold uppercase tracking-wide">
+                  {{ link.title }}
+                </span>
+                {%- if link.links.size > 0 -%}
+                  <ul class="space-y-2">
+                    {%- for child_link in link.links -%}
+                      <li>
+                        <a
+                          href="{{ child_link.url }}"
+                          class="text-sm opacity-80 transition-opacity hover:opacity-100"
+                        >
+                          {{ child_link.title }}
+                        </a>
+                      </li>
+                    {%- endfor -%}
+                  </ul>
+                {%- endif -%}
+              </li>
+            {%- endfor -%}
+          </ul>
+        {%- endif -%}
+      </div>
+    </div>
+
+    {%- comment -%} Copyright {%- endcomment -%}
+    <div class="mt-10 border-t pt-6 text-sm opacity-60" style="border-color: currentColor;">
+      {%- if section.settings.copyright_text != blank -%}
+        {{ section.settings.copyright_text | replace: 'YEAR', current_year }}
+      {%- else -%}
+        &copy; {{ current_year }} {{ shop.name }}. All rights reserved.
+      {%- endif -%}
+    </div>
+  </div>
+</footer>
+
+{% schema %}
+{
+  "name": "Footer",
+  "class": "footer-section",
+  "settings": [
+    {
+      "type": "link_list",
+      "id": "menu",
+      "label": "Menu",
+      "default": "footer"
+    },
+    {
+      "type": "richtext",
+      "id": "description",
+      "label": "Description"
+    },
+    {
+      "type": "richtext",
+      "id": "copyright_text",
+      "label": "Copyright text",
+      "info": "Use YEAR to show the current year"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background color",
+      "default": "#111827"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0,
+      "max": 100,
+      "default": 60,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 100,
+      "default": 40,
+      "unit": "px"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,9 @@
+{% doc %}
+  Favicon
+
+  Renders the favicon link tag from theme settings.
+{% enddoc %}
+
+{%- if settings.favicon != blank -%}
+  <link rel="icon" type="image/png" href="{{ settings.favicon | image_url: width: 32, height: 32 }}">
+{%- endif -%}

@@ -1,0 +1,141 @@
+{%- comment -%}
+  Predictive Search Results Section
+
+  Rendered server-side via the Predictive Search API when
+  fetched with section_id parameter. Uses the predictive_search
+  Liquid object to display product, article, and page results.
+{%- endcomment -%}
+
+<div id="predictive-search-section-results">
+  {%- if predictive_search.performed -%}
+    {%- liquid
+      assign products = predictive_search.resources.products
+      assign articles = predictive_search.resources.articles
+      assign pages = predictive_search.resources.pages
+      assign has_results = false
+      if products.size > 0 or articles.size > 0 or pages.size > 0
+        assign has_results = true
+      endif
+    -%}
+
+    {%- if has_results == false -%}
+      <p class="py-6 text-center text-sm text-muted">
+        {{ 'search.no_results_html' | t: terms: predictive_search.terms }}
+      </p>
+    {%- else -%}
+      {%- comment -%} Product results {%- endcomment -%}
+      {%- if products.size > 0 -%}
+        <div class="mb-4">
+          <h3 class="mb-2 text-xs font-semibold uppercase tracking-wider text-muted">
+            {{ 'search.products' | t }}
+          </h3>
+          <div class="space-y-1">
+            {%- for product in products -%}
+              <a
+                href="{{ product.url }}"
+                class="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-muted/10"
+              >
+                {%- if product.featured_image -%}
+                  <div class="h-14 w-14 flex-shrink-0 overflow-hidden rounded border border-border bg-gray-50">
+                    <img
+                      src="{{ product.featured_image | image_url: width: 112 }}"
+                      alt="{{ product.title | escape }}"
+                      width="56"
+                      height="56"
+                      loading="lazy"
+                      class="h-full w-full object-cover"
+                    >
+                  </div>
+                {%- else -%}
+                  <div class="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded border border-border bg-gray-50 text-muted">
+                    {% render 'icon-cart', size: 20 %}
+                  </div>
+                {%- endif -%}
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-sm font-medium">{{ product.title }}</p>
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm text-muted">{{ product.price | money }}</span>
+                    {%- if product.compare_at_price > product.price -%}
+                      <s class="text-xs text-muted/60">{{ product.compare_at_price | money }}</s>
+                    {%- endif -%}
+                  </div>
+                </div>
+              </a>
+            {%- endfor -%}
+          </div>
+        </div>
+      {%- endif -%}
+
+      {%- comment -%} Article results {%- endcomment -%}
+      {%- if articles.size > 0 -%}
+        <div class="mb-4">
+          <h3 class="mb-2 text-xs font-semibold uppercase tracking-wider text-muted">
+            {{ 'search.articles' | t }}
+          </h3>
+          <div class="space-y-1">
+            {%- for article in articles -%}
+              <a
+                href="{{ article.url }}"
+                class="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-muted/10"
+              >
+                {%- if article.image -%}
+                  <div class="h-14 w-14 flex-shrink-0 overflow-hidden rounded border border-border bg-gray-50">
+                    <img
+                      src="{{ article.image | image_url: width: 112 }}"
+                      alt="{{ article.title | escape }}"
+                      width="56"
+                      height="56"
+                      loading="lazy"
+                      class="h-full w-full object-cover"
+                    >
+                  </div>
+                {%- endif -%}
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-sm font-medium">{{ article.title }}</p>
+                  <p class="text-xs text-muted">{{ 'search.article' | t }}</p>
+                </div>
+              </a>
+            {%- endfor -%}
+          </div>
+        </div>
+      {%- endif -%}
+
+      {%- comment -%} Page results {%- endcomment -%}
+      {%- if pages.size > 0 -%}
+        <div>
+          <h3 class="mb-2 text-xs font-semibold uppercase tracking-wider text-muted">
+            {{ 'search.pages' | t }}
+          </h3>
+          <div class="space-y-1">
+            {%- for page in pages -%}
+              <a
+                href="{{ page.url }}"
+                class="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-muted/10"
+              >
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-sm font-medium">{{ page.title }}</p>
+                  <p class="text-xs text-muted">{{ 'search.page' | t }}</p>
+                </div>
+              </a>
+            {%- endfor -%}
+          </div>
+        </div>
+      {%- endif -%}
+
+      {%- comment -%} View all results link {%- endcomment -%}
+      <a
+        href="{{ routes.search_url }}?q={{ predictive_search.terms | url_encode }}"
+        class="mt-3 block rounded-lg border border-border p-3 text-center text-sm font-medium transition-colors hover:border-foreground hover:bg-muted/10"
+      >
+        {{ 'search.view_all_results' | t: terms: predictive_search.terms }}
+      </a>
+    {%- endif -%}
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "Predictive search",
+  "settings": []
+}
+{% endschema %}

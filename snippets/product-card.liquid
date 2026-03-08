@@ -1,0 +1,134 @@
+{% doc %}
+  Product Card
+
+  Renders a product card with image, title, price, and optional color swatches.
+
+  @param {product} card_product - Product object (required)
+  @param {boolean} show_vendor - Display vendor name (default: false)
+  @param {boolean} lazy_load - Enable lazy loading (default: true)
+  @param {string} card_class - Additional CSS classes (optional)
+
+  @example
+  {% render 'product-card', card_product: product %}
+{% enddoc %}
+
+{%- liquid
+  assign card_product = card_product | default: blank
+
+  unless card_product != blank
+    break
+  endunless
+
+  assign show_vendor = show_vendor | default: false
+  assign lazy_load = lazy_load | default: true
+  assign card_class = card_class | default: ''
+
+  assign color_display = settings.product_color_display | default: 'swatch'
+  assign color_option = nil
+  if card_product.options_with_values.size > 0
+    assign color_option = card_product.options_with_values | where: 'name', 'Color' | first
+    if color_option == blank
+      assign color_option = card_product.options_with_values | where: 'name', 'Colour' | first
+    endif
+  endif
+
+  assign color_count = 0
+  if color_option != blank
+    assign color_count = color_option.values.size
+  endif
+
+  assign selected_variant = card_product.selected_or_first_available_variant
+  assign card_image = selected_variant.featured_image | default: card_product.featured_image
+-%}
+
+<div
+  class="product-card group/card flex h-full w-full flex-col overflow-hidden rounded-lg border border-border {{ card_class }}"
+  data-product-card
+>
+  <a
+    href="{{ card_product.url | within: collection }}"
+    class="product-card__image relative aspect-[4/5] overflow-hidden bg-gray-50"
+    aria-label="{{ card_product.title }}"
+    data-product-card-link
+  >
+    {% render 'product-badge', product: card_product %}
+
+    {%- if card_image -%}
+      <img
+        src="{{ card_image | image_url: width: 500 }}"
+        alt="{{ card_product.title | escape }}"
+        width="500"
+        height="625"
+        loading="{% if lazy_load %}lazy{% else %}eager{% endif %}"
+        class="h-full w-full object-cover transition-transform duration-300 group-hover/card:scale-105"
+        data-product-card-image
+      >
+    {%- else -%}
+      <div class="flex h-full w-full items-center justify-center text-muted">
+        {% render 'icon-cart', size: 48 %}
+      </div>
+    {%- endif -%}
+  </a>
+
+  <div class="flex flex-1 flex-col justify-between gap-2 p-3 md:p-4">
+    {%- if show_vendor and card_product.vendor != blank -%}
+      <p class="text-xs text-muted">{{ card_product.vendor }}</p>
+    {%- endif -%}
+
+    <a
+      href="{{ card_product.url | within: collection }}"
+      class="product-card__title text-sm font-medium md:text-base"
+      data-product-card-title-link
+    >
+      {{ card_product.title }}
+    </a>
+
+    <div class="product-card__price flex items-center gap-2">
+      <span class="text-sm font-medium" data-product-card-price>
+        {{ card_product.price | money }}
+      </span>
+      {%- if card_product.compare_at_price > card_product.price -%}
+        <s class="text-xs text-muted" data-product-card-compare-price>
+          {{ card_product.compare_at_price | money }}
+        </s>
+      {%- endif -%}
+    </div>
+
+    {%- if color_display == 'count' and color_count > 1 -%}
+      <p class="text-xs text-muted">
+        {{ 'products.colors_available' | t: count: color_count }}
+      </p>
+    {%- elsif color_display == 'swatch' and color_count > 0 -%}
+      <div class="flex items-center gap-1.5" aria-label="Available colors">
+        {%- for color_value in color_option.values limit: 5 -%}
+          {%- assign swatch_variant = nil -%}
+          {%- for variant in card_product.variants -%}
+            {%- if variant.options contains color_value -%}
+              {%- assign swatch_variant = variant -%}
+              {%- break -%}
+            {%- endif -%}
+          {%- endfor -%}
+
+          <button
+            type="button"
+            class="product-card__swatch h-5 w-5 rounded-full border-2 transition-all{% if forloop.first %} border-foreground{% else %} border-border hover:border-foreground{% endif %}{% unless swatch_variant.available %} opacity-40{% endunless %}"
+            title="{{ color_value }}"
+            aria-label="{{ color_value }}"
+            style="background-color: {{ color_value | handleize | replace: '-', '' }};"
+            data-swatch-variant-id="{{ swatch_variant.id }}"
+            data-swatch-image="{% if swatch_variant.featured_image %}{{ swatch_variant.featured_image | image_url: width: 500 }}{% endif %}"
+            data-swatch-url="{{ card_product.url }}?variant={{ swatch_variant.id }}"
+            data-swatch-price="{{ swatch_variant.price | money }}"
+            {%- if swatch_variant.compare_at_price > swatch_variant.price %}
+              data-swatch-compare-price="{{ swatch_variant.compare_at_price | money }}"
+            {%- endif %}
+            {%- if forloop.first %} aria-pressed="true"{% else %} aria-pressed="false"{% endif %}
+          ></button>
+        {%- endfor -%}
+        {%- if color_count > 5 -%}
+          <span class="text-xs text-muted">+{{ color_count | minus: 5 }}</span>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+  </div>
+</div>

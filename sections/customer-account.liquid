@@ -1,0 +1,137 @@
+{%- comment -%}
+  Customer Account
+
+  Displays the customer account dashboard with order history and account details.
+{%- endcomment -%}
+
+<div class="page-width py-10 md:py-16">
+  {%- if customer -%}
+    <div class="mb-8 flex flex-wrap items-center justify-between gap-4">
+      <h1 class="text-3xl font-bold md:text-4xl">{{ 'customers.account.title' | t }}</h1>
+      <a href="{{ routes.account_logout_url }}" class="text-sm text-muted underline hover:text-foreground">
+        {{ 'customers.account.logout' | t }}
+      </a>
+    </div>
+
+    <div class="grid gap-8 lg:grid-cols-3 lg:gap-12">
+      {%- comment -%} Order history {%- endcomment -%}
+      <div class="lg:col-span-2">
+        <h2 class="mb-4 text-lg font-bold">{{ 'customers.account.order_history' | t }}</h2>
+
+        {%- if customer.orders.size > 0 -%}
+          {% paginate customer.orders by 10 %}
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="border-b border-border text-left">
+                    <th class="pb-3 pr-4 font-medium">{{ 'customers.order.order_name' | t: name: '' }}</th>
+                    <th class="pb-3 pr-4 font-medium">{{ 'customers.order.date' | t }}</th>
+                    <th class="pb-3 pr-4 font-medium">{{ 'customers.order.payment_status' | t }}</th>
+                    <th class="pb-3 pr-4 font-medium">{{ 'customers.order.fulfillment_status' | t }}</th>
+                    <th class="pb-3 text-right font-medium">{{ 'customers.order.total' | t }}</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-border">
+                  {%- for order in customer.orders -%}
+                    <tr>
+                      <td class="py-4 pr-4">
+                        <a href="{{ order.customer_url }}" class="font-medium underline hover:text-muted">
+                          {{ order.name }}
+                        </a>
+                      </td>
+                      <td class="py-4 pr-4 text-muted">
+                        {{ order.created_at | date: '%B %d, %Y' }}
+                      </td>
+                      <td class="py-4 pr-4">
+                        <span class="inline-block rounded-full px-2 py-0.5 text-xs font-medium
+                          {%- if order.financial_status == 'paid' %} bg-green-100 text-green-800
+                          {%- elsif order.financial_status == 'pending' %} bg-yellow-100 text-yellow-800
+                          {%- else %} bg-gray-100 text-gray-800
+                          {%- endif -%}
+                        ">
+                          {{ order.financial_status_label }}
+                        </span>
+                      </td>
+                      <td class="py-4 pr-4">
+                        <span class="inline-block rounded-full px-2 py-0.5 text-xs font-medium
+                          {%- if order.fulfillment_status == 'fulfilled' %} bg-green-100 text-green-800
+                          {%- elsif order.fulfillment_status == 'partial' %} bg-yellow-100 text-yellow-800
+                          {%- else %} bg-gray-100 text-gray-800
+                          {%- endif -%}
+                        ">
+                          {{ order.fulfillment_status_label | default: 'Unfulfilled' }}
+                        </span>
+                      </td>
+                      <td class="py-4 text-right font-medium">{{ order.total_price | money }}</td>
+                    </tr>
+                  {%- endfor -%}
+                </tbody>
+              </table>
+            </div>
+
+            {%- if paginate.pages > 1 -%}
+              <div class="mt-6">
+                {% render 'pagination', paginate: paginate %}
+              </div>
+            {%- endif -%}
+          {% endpaginate %}
+        {%- else -%}
+          <div class="rounded border border-border py-12 text-center">
+            <p class="mb-4 text-muted">{{ 'customers.account.no_orders' | t }}</p>
+            <a
+              href="{{ routes.all_products_collection_url }}"
+              class="inline-block rounded bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:opacity-90"
+            >
+              {{ 'customers.account.continue_shopping' | t }}
+            </a>
+          </div>
+        {%- endif -%}
+      </div>
+
+      {%- comment -%} Account details {%- endcomment -%}
+      <div class="lg:col-span-1">
+        <h2 class="mb-4 text-lg font-bold">{{ 'customers.account.account_details' | t }}</h2>
+        <div class="rounded border border-border p-6">
+          <p class="font-medium">{{ customer.name }}</p>
+          <p class="mt-1 text-sm text-muted">{{ customer.email }}</p>
+
+          {%- if customer.default_address -%}
+            <div class="mt-4 border-t border-border pt-4 text-sm text-muted">
+              <p>{{ customer.default_address.address1 }}</p>
+              {%- if customer.default_address.address2 != blank -%}
+                <p>{{ customer.default_address.address2 }}</p>
+              {%- endif -%}
+              <p>{{ customer.default_address.city }}, {{ customer.default_address.province }} {{ customer.default_address.zip }}</p>
+              <p>{{ customer.default_address.country }}</p>
+            </div>
+          {%- endif -%}
+
+          <a
+            href="{{ routes.account_addresses_url }}"
+            class="mt-4 inline-block text-sm underline hover:text-muted"
+          >
+            {{ 'customers.account.view_addresses' | t }}
+          </a>
+        </div>
+      </div>
+    </div>
+  {%- else -%}
+    <div class="py-12 text-center">
+      <p class="mb-4 text-muted">{{ 'customers.login.not_logged_in' | t }}</p>
+      <a
+        href="{{ routes.account_login_url }}"
+        class="inline-block rounded bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:opacity-90"
+      >
+        {{ 'customers.login.submit' | t }}
+      </a>
+    </div>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "Customer Account",
+  "class": "customer-account-section",
+  "settings": []
+}
+{% endschema %}

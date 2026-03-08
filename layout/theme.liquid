@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="{{ request.locale.iso_code }}">
+  <head>
+    {% render 'meta-tags' %}
+    {% render 'favicon' %}
+    {% render 'image-preloads' %}
+    {% render 'css-variables' %}
+    {% render 'core-assets' %}
+
+    {{ content_for_header }}
+  </head>
+
+  <body class="{{ template.name }} {{ template.suffix }}">
+    {% sections 'header-group' %}
+
+    <main class="flex-1">
+      {{ content_for_layout }}
+      {% section 'cart-drawer' %}
+    </main>
+
+    {% sections 'footer-group' %}
+
+    {% render 'global-variables' %}
+  </body>
+</html>

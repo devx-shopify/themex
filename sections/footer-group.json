@@ -1,0 +1,13 @@
+{
+  "type": "footer",
+  "name": "t:general.footer",
+  "sections": {
+    "footer": {
+      "type": "footer",
+      "settings": {
+        "menu": "footer"
+      }
+    }
+  },
+  "order": ["footer"]
+}

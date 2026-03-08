@@ -1,0 +1,15 @@
+{% doc %}
+  Loader Spinner
+
+  A simple CSS loading spinner using Tailwind classes.
+
+  @example
+  {% render 'loader-spinner' %}
+{% enddoc %}
+
+<div class="flex items-center justify-center py-8">
+  <div class="relative h-8 w-8">
+    <div class="absolute inset-0 rounded-full border-2 border-gray-200"></div>
+    <div class="absolute inset-0 animate-spin rounded-full border-2 border-transparent border-t-current"></div>
+  </div>
+</div>

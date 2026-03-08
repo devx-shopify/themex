@@ -1,0 +1,18 @@
+{
+  "name": "themex",
+  "version": "1.0.0",
+  "description": "Shopify theme boilerplate with Tailwind CSS",
+  "scripts": {
+    "build": "tailwindcss -i ./src/input.css -o ./assets/tailwind.css",
+    "build:prod": "tailwindcss -i ./src/input.css -o ./assets/tailwind.css --minify",
+    "dev": "tailwindcss -i ./src/input.css -o ./assets/tailwind.css --watch",
+    "shopify": "shopify theme dev"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.32",
+    "prettier": "^3.6.2",
+    "prettier-plugin-tailwindcss": "^0.6.14",
+    "tailwindcss": "^3.4.0"
+  }
+}

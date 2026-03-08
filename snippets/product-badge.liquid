@@ -1,0 +1,47 @@
+{% doc %}
+  Product Badge
+
+  Renders a product badge with priority: Sold Out > Discount.
+  Configurable via theme settings.
+
+  @param {product} product - Product object (required)
+
+  @example
+  {% render 'product-badge', product: product %}
+{% enddoc %}
+
+{%- liquid
+  assign product = product | default: blank
+
+  unless product != blank
+    break
+  endunless
+
+  assign badge_type = 'none'
+  assign badge_text = ''
+  assign badge_bg = ''
+  assign badge_color = ''
+
+  if settings.show_sold_out_badge and product.available == false
+    assign badge_type = 'sold_out'
+    assign badge_text = settings.sold_out_badge_text | default: 'Sold out'
+    assign badge_bg = settings.sold_out_badge_bg_color | default: '#111827'
+    assign badge_color = settings.sold_out_badge_text_color | default: '#FFFFFF'
+  elsif settings.show_discount_badge and product.compare_at_price > product.price
+    assign badge_type = 'discount'
+    assign discount_amount = product.compare_at_price | minus: product.price
+    assign discount_percentage = discount_amount | times: 100.0 | divided_by: product.compare_at_price | round
+    assign badge_text = discount_percentage | append: '% off'
+    assign badge_bg = settings.discount_badge_bg_color | default: '#DC2626'
+    assign badge_color = settings.discount_badge_text_color | default: '#FFFFFF'
+  endif
+-%}
+
+{%- if badge_type != 'none' -%}
+  <span
+    class="product-badge absolute left-3 top-3 z-[1] rounded px-2 py-1 text-xs font-medium"
+    style="background-color: {{ badge_bg }}; color: {{ badge_color }};"
+  >
+    {{ badge_text }}
+  </span>
+{%- endif -%}

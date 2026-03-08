@@ -1,0 +1,139 @@
+{%- comment -%}
+  Customer Order
+
+  Displays detailed order information with line items,
+  order summary, and shipping/billing addresses.
+{%- endcomment -%}
+
+<div class="page-width py-10 md:py-16">
+  {%- if order -%}
+    {%- comment -%} Header {%- endcomment -%}
+    <div class="mb-8">
+      <a href="{{ routes.account_url }}" class="mb-4 inline-flex items-center gap-1 text-sm text-muted hover:text-foreground">
+        {% render 'icon-chevron-left', size: 14 %}
+        {{ 'customers.order.back' | t }}
+      </a>
+      <h1 class="text-3xl font-bold md:text-4xl">
+        {{ 'customers.order.order_name' | t: name: order.name }}
+      </h1>
+      <p class="mt-1 text-sm text-muted">{{ order.created_at | date: '%B %d, %Y' }}</p>
+    </div>
+
+    <div class="grid gap-8 lg:grid-cols-3 lg:gap-12">
+      {%- comment -%} Line items + summary {%- endcomment -%}
+      <div class="lg:col-span-2">
+        <div class="divide-y divide-border">
+          {%- for line_item in order.line_items -%}
+            <div class="flex gap-4 py-4 first:pt-0">
+              {%- if line_item.image -%}
+                <a href="{{ line_item.product.url }}" class="block w-20 flex-shrink-0 overflow-hidden rounded border border-border md:w-24">
+                  <img
+                    src="{{ line_item.image | image_url: width: 200 }}"
+                    alt="{{ line_item.title | escape }}"
+                    width="100"
+                    height="100"
+                    loading="lazy"
+                    class="h-full w-full object-cover"
+                  >
+                </a>
+              {%- endif -%}
+              <div class="flex-1">
+                <a href="{{ line_item.product.url }}" class="text-sm font-medium hover:underline">
+                  {{ line_item.title }}
+                </a>
+                {%- if line_item.variant.title != 'Default Title' -%}
+                  <p class="mt-0.5 text-xs text-muted">{{ line_item.variant.title }}</p>
+                {%- endif -%}
+                <p class="mt-1 text-sm text-muted">{{ 'customers.order.quantity' | t }}: {{ line_item.quantity }}</p>
+              </div>
+              <div class="text-right">
+                <p class="text-sm font-medium">{{ line_item.final_line_price | money }}</p>
+                {%- if line_item.original_line_price != line_item.final_line_price -%}
+                  <s class="text-xs text-muted">{{ line_item.original_line_price | money }}</s>
+                {%- endif -%}
+              </div>
+            </div>
+          {%- endfor -%}
+        </div>
+
+        {%- comment -%} Order summary {%- endcomment -%}
+        <div class="mt-6 space-y-2 border-t border-border pt-6">
+          <div class="flex justify-between text-sm">
+            <span class="text-muted">{{ 'customers.order.subtotal' | t }}</span>
+            <span>{{ order.subtotal_price | money }}</span>
+          </div>
+          {%- for shipping_method in order.shipping_methods -%}
+            <div class="flex justify-between text-sm">
+              <span class="text-muted">{{ 'customers.order.shipping' | t }} ({{ shipping_method.title }})</span>
+              <span>{{ shipping_method.price | money }}</span>
+            </div>
+          {%- endfor -%}
+          {%- if order.tax_price > 0 -%}
+            <div class="flex justify-between text-sm">
+              <span class="text-muted">{{ 'customers.order.taxes' | t }}</span>
+              <span>{{ order.tax_price | money }}</span>
+            </div>
+          {%- endif -%}
+          {%- if order.total_discounts > 0 -%}
+            <div class="flex justify-between text-sm">
+              <span class="text-muted">{{ 'customers.order.discount' | t }}</span>
+              <span>-{{ order.total_discounts | money }}</span>
+            </div>
+          {%- endif -%}
+          <div class="flex justify-between border-t border-border pt-2 text-base font-bold">
+            <span>{{ 'customers.order.total_label' | t }}</span>
+            <span>{{ order.total_price | money }}</span>
+          </div>
+        </div>
+      </div>
+
+      {%- comment -%} Addresses {%- endcomment -%}
+      <div class="space-y-6 lg:col-span-1">
+        {%- if order.shipping_address -%}
+          <div class="rounded border border-border p-5">
+            <h2 class="mb-3 text-sm font-bold">{{ 'customers.order.shipping_address' | t }}</h2>
+            <div class="space-y-0.5 text-sm text-muted">
+              <p class="font-medium text-foreground">{{ order.shipping_address.first_name }} {{ order.shipping_address.last_name }}</p>
+              {%- if order.shipping_address.company != blank -%}<p>{{ order.shipping_address.company }}</p>{%- endif -%}
+              <p>{{ order.shipping_address.address1 }}</p>
+              {%- if order.shipping_address.address2 != blank -%}<p>{{ order.shipping_address.address2 }}</p>{%- endif -%}
+              <p>{{ order.shipping_address.city }}, {{ order.shipping_address.province }} {{ order.shipping_address.zip }}</p>
+              <p>{{ order.shipping_address.country }}</p>
+              {%- if order.shipping_address.phone != blank -%}<p>{{ order.shipping_address.phone }}</p>{%- endif -%}
+            </div>
+          </div>
+        {%- endif -%}
+
+        {%- if order.billing_address -%}
+          <div class="rounded border border-border p-5">
+            <h2 class="mb-3 text-sm font-bold">{{ 'customers.order.billing_address' | t }}</h2>
+            <div class="space-y-0.5 text-sm text-muted">
+              <p class="font-medium text-foreground">{{ order.billing_address.first_name }} {{ order.billing_address.last_name }}</p>
+              {%- if order.billing_address.company != blank -%}<p>{{ order.billing_address.company }}</p>{%- endif -%}
+              <p>{{ order.billing_address.address1 }}</p>
+              {%- if order.billing_address.address2 != blank -%}<p>{{ order.billing_address.address2 }}</p>{%- endif -%}
+              <p>{{ order.billing_address.city }}, {{ order.billing_address.province }} {{ order.billing_address.zip }}</p>
+              <p>{{ order.billing_address.country }}</p>
+              {%- if order.billing_address.phone != blank -%}<p>{{ order.billing_address.phone }}</p>{%- endif -%}
+            </div>
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+  {%- else -%}
+    <div class="py-12 text-center">
+      <p class="mb-4 text-muted">{{ 'customers.order.not_found' | t }}</p>
+      <a href="{{ routes.account_url }}" class="text-sm underline hover:text-muted">
+        {{ 'customers.order.back' | t }}
+      </a>
+    </div>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "Customer Order",
+  "class": "customer-order-section",
+  "settings": []
+}
+{% endschema %}

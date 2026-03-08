@@ -1,0 +1,98 @@
+{% doc %}
+  Collection Filters
+
+  Renders filter groups from Shopify's Storefront Filtering API.
+  Supports list filters and price range filters.
+
+  @param {collection} collection - Collection object with filters (required)
+
+  @example
+  {% render 'collection-filters', collection: collection %}
+{% enddoc %}
+
+{%- liquid
+  assign collection = collection | default: blank
+
+  unless collection != blank
+    break
+  endunless
+-%}
+
+{%- for filter in collection.filters -%}
+  <div class="filter-group border-b border-border py-4 first:pt-0" data-filter-group>
+    <details open>
+      <summary class="flex cursor-pointer items-center justify-between py-2 text-sm font-medium">
+        <span>{{ filter.label }}</span>
+        {% render 'icon-chevron-down', size: 16, class: 'transition-transform duration-200 details-open:rotate-180' %}
+      </summary>
+
+      <div class="pb-2 pt-3">
+        {%- case filter.type -%}
+          {%- when 'list' -%}
+            <ul class="space-y-2">
+              {%- for value in filter.values -%}
+                <li>
+                  <label class="flex cursor-pointer items-center gap-3">
+                    <input
+                      type="checkbox"
+                      class="h-4 w-4 rounded border-border accent-primary"
+                      name="{{ value.param_name }}"
+                      value="{{ value.value }}"
+                      data-filter-checkbox
+                      {% if value.active %}checked{% endif %}
+                      {% if value.count == 0 and value.active == false %}disabled{% endif %}
+                    >
+                    <span class="flex-1 text-sm {% if value.count == 0 and value.active == false %}text-muted{% endif %}">
+                      {{ value.label }}
+                    </span>
+                    <span class="text-xs text-muted">({{ value.count }})</span>
+                  </label>
+                </li>
+              {%- endfor -%}
+            </ul>
+
+          {%- when 'price_range' -%}
+            {%- liquid
+              assign min_value = filter.min_value.value | default: 0 | money_without_trailing_zeros
+              assign max_value = filter.max_value.value | default: filter.range_max | money_without_trailing_zeros
+            -%}
+            <div class="flex items-center gap-3">
+              <div class="flex-1">
+                <label class="mb-1 block text-xs text-muted" for="filter-price-min-{{ filter.label | handleize }}">
+                  {{ 'collections.filter_min' | t }}
+                </label>
+                <input
+                  type="number"
+                  id="filter-price-min-{{ filter.label | handleize }}"
+                  class="w-full rounded border border-border px-3 py-2 text-sm"
+                  name="{{ filter.min_value.param_name }}"
+                  min="0"
+                  max="{{ filter.range_max | money_without_currency | strip }}"
+                  {% if filter.min_value.value %}value="{{ filter.min_value.value | money_without_currency | strip }}"{% endif %}
+                  placeholder="{{ 0 | money_without_trailing_zeros }}"
+                  data-filter-price
+                >
+              </div>
+              <span class="mt-5 text-muted">-</span>
+              <div class="flex-1">
+                <label class="mb-1 block text-xs text-muted" for="filter-price-max-{{ filter.label | handleize }}">
+                  {{ 'collections.filter_max' | t }}
+                </label>
+                <input
+                  type="number"
+                  id="filter-price-max-{{ filter.label | handleize }}"
+                  class="w-full rounded border border-border px-3 py-2 text-sm"
+                  name="{{ filter.max_value.param_name }}"
+                  min="0"
+                  max="{{ filter.range_max | money_without_currency | strip }}"
+                  {% if filter.max_value.value %}value="{{ filter.max_value.value | money_without_currency | strip }}"{% endif %}
+                  placeholder="{{ filter.range_max | money_without_trailing_zeros }}"
+                  data-filter-price
+                >
+              </div>
+            </div>
+        {%- endcase -%}
+      </div>
+    </details>
+  </div>
+{%- endfor -%}

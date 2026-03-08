@@ -1,0 +1,36 @@
+{
+  "sections": {
+    "main": {
+      "type": "product",
+      "blocks": {
+        "title": {
+          "type": "title"
+        },
+        "price": {
+          "type": "price"
+        },
+        "variant_selector": {
+          "type": "variant_selector"
+        },
+        "buy_buttons": {
+          "type": "buy_buttons"
+        },
+        "description": {
+          "type": "description"
+        }
+      },
+      "block_order": ["title", "price", "variant_selector", "buy_buttons", "description"],
+      "settings": {}
+    },
+    "recommendations": {
+      "type": "product-recommendations",
+      "settings": {
+        "heading": "You may also like",
+        "products_count": 4,
+        "padding_top": 40,
+        "padding_bottom": 40
+      }
+    }
+  },
+  "order": ["main", "recommendations"]
+}

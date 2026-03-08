@@ -1,0 +1,44 @@
+<section
+  class="page-width"
+  style="
+    --section-padding-top: {{ section.settings.padding_top }}px;
+    --section-padding-bottom: {{ section.settings.padding_bottom }}px;
+  "
+>
+  <div
+    class="mx-auto max-w-3xl"
+    style="padding-top: var(--section-padding-top); padding-bottom: var(--section-padding-bottom);"
+  >
+    <h1 class="mb-8 text-3xl font-bold md:text-4xl lg:text-5xl">{{ page.title }}</h1>
+    <div class="prose max-w-none">
+      {{ page.content }}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Page",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0,
+      "max": 100,
+      "default": 40,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 100,
+      "default": 40,
+      "unit": "px"
+    }
+  ]
+}
+{% endschema %}

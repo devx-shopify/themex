@@ -1,0 +1,25 @@
+{% doc %}
+  Image Preloads
+
+  Preloads critical above-the-fold images for performance.
+  Currently preloads the product featured media on product pages.
+{% enddoc %}
+
+{%- if template.name == 'product' -%}
+  {%- liquid
+    assign current_variant = product.selected_or_first_available_variant
+    assign preload_media = null
+
+    if current_variant.featured_media
+      assign preload_media = current_variant.featured_media
+    elsif product.media.size > 0
+      assign preload_media = product.media.first
+    else
+      assign preload_media = product.featured_image
+    endif
+  -%}
+
+  {%- if preload_media -%}
+    <link rel="preload" as="image" href="{{ preload_media | image_url: width: 800 }}" fetchpriority="high">
+  {%- endif -%}
+{%- endif -%}
