@@ -3,7 +3,7 @@
     "hero": {
       "type": "hero-banner",
       "settings": {
-        "heading": "Welcome to our store",
+        "heading": "Welcome to themex",
         "button_text": "Shop now",
         "text_alignment": "center",
         "background_color": "#111827",
