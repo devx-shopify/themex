@@ -58,7 +58,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  /* Recent searches */
   const STORAGE_KEY = 'themex-recent-searches';
   const MAX_RECENT = 5;
   const recentContainer = document.getElementById('recent-searches-container');
@@ -117,7 +116,6 @@ document.addEventListener('DOMContentLoaded', () => {
     renderRecentSearches();
   });
 
-  /* Save search on form submit */
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && input.value.trim()) {
       saveSearch(input.value.trim());

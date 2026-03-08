@@ -1,11 +1,4 @@
-/**
- * Customer Addresses Page
- *
- * Handles toggling new address form, edit/cancel address forms,
- * and country/province selector initialization.
- */
 document.addEventListener('DOMContentLoaded', () => {
-  // Toggle new address form
   const newAddressForm = document.querySelector('[data-new-address-form]');
   document.querySelectorAll('[data-toggle-new-address]').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -13,7 +6,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Edit address toggles
   document.querySelectorAll('[data-edit-address]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const id = btn.dataset.editAddress;
@@ -24,7 +16,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Cancel edit toggles
   document.querySelectorAll('[data-cancel-edit]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const id = btn.dataset.cancelEdit;
@@ -35,13 +26,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Country/Province selectors
   initCountryProvinceSelectors();
 });
 
-/**
- * Initialize country selectors to populate province dropdowns
- */
 function initCountryProvinceSelectors() {
   const countrySelects = document.querySelectorAll(
     '[data-address-country-select]'
@@ -59,7 +46,6 @@ function initCountryProvinceSelectors() {
     const defaultCountry = countrySelect.dataset.default;
     const defaultProvince = provinceSelect.dataset.default;
 
-    // Set default country
     if (defaultCountry) {
       const options = countrySelect.options;
       for (let i = 0; i < options.length; i++) {
@@ -70,19 +56,14 @@ function initCountryProvinceSelectors() {
       }
     }
 
-    // Update provinces on country change
     countrySelect.addEventListener('change', () => {
       updateProvinces(countrySelect, provinceSelect, null);
     });
 
-    // Initialize provinces
     updateProvinces(countrySelect, provinceSelect, defaultProvince);
   });
 }
 
-/**
- * Update province select based on selected country
- */
 function updateProvinces(countrySelect, provinceSelect, defaultProvince) {
   const selectedOption = countrySelect.options[countrySelect.selectedIndex];
   if (!selectedOption) return;

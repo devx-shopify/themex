@@ -1,9 +1,3 @@
-/**
- * Main Cart Page
- *
- * Handles quantity changes and removals on the /cart page
- * via the Cart API with section rendering.
- */
 class MainCart {
   constructor() {
     this.container = document.querySelector('[data-cart-page]');
@@ -28,9 +22,6 @@ class MainCart {
     });
   }
 
-  /**
-   * Update item quantity via Cart API + section rendering
-   */
   async updateItem(key, quantity) {
     const itemEl = this.container.querySelector(`[data-key="${key}"]`);
     const loader = itemEl?.querySelector('[data-cart-item-loader]');
@@ -66,7 +57,6 @@ class MainCart {
         this.renderCartSection(data.sections['cart']);
       }
 
-      // Keep cart drawer in sync
       const cartDrawer = document.querySelector('cart-drawer');
       if (cartDrawer && data.sections?.['cart-drawer']) {
         cartDrawer.renderSection(data.sections['cart-drawer']);
@@ -83,9 +73,6 @@ class MainCart {
     }
   }
 
-  /**
-   * Replace cart page content with new section HTML
-   */
   renderCartSection(html) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
@@ -96,14 +83,9 @@ class MainCart {
     const scrollY = window.scrollY;
     this.container.innerHTML = newContent.innerHTML;
     window.scrollTo(0, scrollY);
-
-    // Re-bind events since DOM was replaced
     this.bindEvents();
   }
 
-  /**
-   * Update cart count badges across the page
-   */
   updateCartCount(count) {
     if (count === undefined) return;
 

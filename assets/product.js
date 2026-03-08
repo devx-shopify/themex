@@ -1,10 +1,3 @@
-/**
- * Product Page — Variant Switcher
- *
- * Handles variant option selection, price updates,
- * media scrolling, URL updates, form state, and
- * unavailable variant indication.
- */
 document.addEventListener('DOMContentLoaded', () => {
   const dataScript = document.getElementById('product-variant-data');
   if (!dataScript) return;
@@ -31,7 +24,6 @@ document.addEventListener('DOMContentLoaded', () => {
     '[data-selected-option]'
   );
 
-  // Current selected options (array matching product.options order)
   let selectedOptions = [];
   const currentVariant = productData.variants.find(
     (v) => v.id === parseInt(variantInput?.value)
@@ -114,20 +106,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const allMediaItems = [...document.querySelectorAll('[data-media-id]')];
     if (allMediaItems.length === 0) return;
 
-    // Build ordered list of media IDs from the DOM (matches product.media order)
     const mediaOrder = allMediaItems.map((el) => Number(el.dataset.mediaId));
 
-    // Collect all unique featured_media_ids that mark the start of each variant's image set
     const allFeaturedIds = new Set(
       productData.variants
         .map((v) => v.featured_media_id)
         .filter((id) => id != null)
     );
 
-    // Find the selected variant's featured image position in the media order
     const startIndex = mediaOrder.indexOf(variant.featured_media_id);
     if (startIndex === -1) {
-      // Fallback: show all media, featured image gets col-span-2
       allMediaItems.forEach((item) => {
         item.classList.remove('hidden');
         const mediaId = Number(item.dataset.mediaId);
@@ -142,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // From startIndex, show all media until the next variant's featured image
+    // Show media from featured image until the next variant's featured image
     const visibleIds = new Set();
     visibleIds.add(mediaOrder[startIndex]);
 
@@ -155,7 +143,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const mediaId = Number(item.dataset.mediaId);
       if (visibleIds.has(mediaId)) {
         item.classList.remove('hidden');
-        // Desktop grid: variant's featured image spans 2 columns, rest span 1
         if (mediaId === variant.featured_media_id) {
           item.classList.add('col-span-2');
           item.classList.remove('col-span-1');
@@ -168,7 +155,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Reset mobile gallery scroll position
     const scrollContainer = document.querySelector(
       '[data-product-gallery-scroll]'
     );
@@ -185,7 +171,6 @@ document.addEventListener('DOMContentLoaded', () => {
     );
     if (!mediaEl) return;
 
-    // Mobile: horizontal scroll container
     const scrollContainer = document.querySelector(
       '[data-product-gallery-scroll]'
     );
@@ -198,7 +183,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Desktop: scroll into view
     mediaEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
@@ -242,27 +226,21 @@ document.addEventListener('DOMContentLoaded', () => {
     optionButtons.forEach((btn) => {
       const index = parseInt(btn.dataset.optionIndex);
       const value = btn.dataset.optionValue;
-      const isColor = btn.classList.contains('variant-option--color');
 
-      // Build test options: current selections but with this button's value
       const testOptions = [...options];
       testOptions[index] = value;
       const variant = findVariant(testOptions);
 
-      // Reset states
       btn.classList.remove('variant-unavailable', 'variant-sold-out');
 
       if (!variant) {
-        // No variant exists for this combination
         btn.classList.add('variant-unavailable');
       } else if (!variant.available) {
-        // Variant exists but is sold out
         btn.classList.add('variant-sold-out');
       }
     });
   }
 
-  // Event listeners
   optionButtons.forEach((btn) => {
     btn.addEventListener('click', () => {
       const index = parseInt(btn.dataset.optionIndex);
@@ -283,7 +261,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Initial availability check and media filtering
   updateAvailability(selectedOptions);
   if (currentVariant) {
     filterMediaByVariant(currentVariant);

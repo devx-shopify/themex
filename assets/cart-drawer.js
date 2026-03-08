@@ -1,10 +1,3 @@
-/**
- * Cart Drawer Web Component
- *
- * Traditional AJAX cart with section rendering.
- * Listens for `cart:refresh` from product-form, and handles
- * quantity changes / removals via the Cart API + section rendering.
- */
 class CartDrawer extends HTMLElement {
   connectedCallback() {
     this.overlay = this.querySelector('[data-cart-overlay]');
@@ -20,7 +13,6 @@ class CartDrawer extends HTMLElement {
       if (e.key === 'Escape' && this.isOpen()) this.closeDrawer();
     });
 
-    // Cart trigger buttons (in header)
     document.addEventListener('click', (e) => {
       if (e.target.closest('[data-cart-trigger]')) {
         e.preventDefault();
@@ -28,7 +20,6 @@ class CartDrawer extends HTMLElement {
       }
     });
 
-    // Quantity change / remove
     this.addEventListener('click', (e) => {
       const changeBtn = e.target.closest('[data-cart-change]');
       if (changeBtn) {
@@ -39,7 +30,6 @@ class CartDrawer extends HTMLElement {
       }
     });
 
-    // Listen for add-to-cart section rendering
     document.addEventListener('cart:refresh', (e) => {
       this.onCartRefresh(e.detail);
     });
@@ -86,7 +76,6 @@ class CartDrawer extends HTMLElement {
 
     this.notification.textContent = message;
     this.notification.classList.remove('hidden');
-
     this.notification.dataset.notificationType = type;
 
     this.notificationTimeout = setTimeout(() => {
@@ -94,9 +83,6 @@ class CartDrawer extends HTMLElement {
     }, 3000);
   }
 
-  /**
-   * Handle section rendering response from add-to-cart
-   */
   onCartRefresh(detail) {
     if (detail?.sections?.['cart-drawer']) {
       this.renderSection(detail.sections['cart-drawer']);
@@ -107,9 +93,6 @@ class CartDrawer extends HTMLElement {
     );
   }
 
-  /**
-   * Re-render the cart drawer with new section HTML
-   */
   renderSection(html) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
@@ -117,34 +100,26 @@ class CartDrawer extends HTMLElement {
 
     if (!newDrawer) return;
 
-    // Update items
     const newItems = newDrawer.querySelector('[data-cart-items]');
     const currentItems = this.querySelector('[data-cart-items]');
     if (newItems && currentItems) {
       currentItems.innerHTML = newItems.innerHTML;
     }
 
-    // Update footer (subtotal, buttons)
     const newFooter = newDrawer.querySelector('[data-cart-footer]');
     const currentFooter = this.querySelector('[data-cart-footer]');
     if (newFooter) {
       if (currentFooter) {
         currentFooter.innerHTML = newFooter.innerHTML;
       } else {
-        // Cart was empty, now has items — insert footer
         this.panel?.appendChild(newFooter);
       }
     } else if (currentFooter) {
-      // Cart is now empty — remove footer
       currentFooter.remove();
     }
   }
 
-  /**
-   * Update item quantity via Cart API + section rendering
-   */
   async updateItem(key, quantity) {
-    // Show loading state on the specific item
     const itemEl = this.querySelector(`[data-line-key="${key}"]`);
     const loader = itemEl?.querySelector('[data-cart-item-loader]');
     if (itemEl) itemEl.classList.add('pointer-events-none');
@@ -195,9 +170,6 @@ class CartDrawer extends HTMLElement {
     }
   }
 
-  /**
-   * Update cart count badges across the page
-   */
   async updateCartCount(count) {
     if (count === undefined) {
       try {

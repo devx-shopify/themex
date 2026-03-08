@@ -1,5 +1,18 @@
 {
   "enabledPlugins": {
     "shopify-theme-standards@shopify-standards": true
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "file=$(echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.file_path // empty') && [[ \"$file\" == *.liquid ]] && shopify theme check \"$file\" --fail-level error 2>&1 | tail -30 || true"
+          }
+        ]
+      }
+    ]
   }
 }

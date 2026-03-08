@@ -64,7 +64,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Escape' && isOpen) closeMenu();
   });
 
-  /* Header visibility on scroll (sticky header with shadow) */
   let lastScroll = 0;
   const mainHeader = document.getElementById('main-header');
 

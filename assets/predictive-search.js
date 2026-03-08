@@ -1,10 +1,3 @@
-/**
- * Predictive Search
- *
- * Fetches search results via Shopify's Predictive Search API
- * with section rendering. Results are server-rendered in
- * sections/predictive-search.liquid — no HTML is created in JS.
- */
 document.addEventListener('DOMContentLoaded', () => {
   const input = document.getElementById('predictive-search-input');
   const resultsContainer = document.getElementById('predictive-search-results');
@@ -64,9 +57,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!response.ok) throw new Error('Search failed');
 
       const text = await response.text();
-
-      // Extract the section content from the response
-      // The response wraps in a div with the section ID
       const parser = new DOMParser();
       const doc = parser.parseFromString(text, 'text/html');
       const sectionContent = doc.getElementById('predictive-search-section-results');
@@ -110,7 +100,6 @@ document.addEventListener('DOMContentLoaded', () => {
     debouncedSearch(query);
   });
 
-  // Submit on Enter navigates to full search page
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && input.value.trim()) {
       const root = window.Shopify?.routes?.root || '/';

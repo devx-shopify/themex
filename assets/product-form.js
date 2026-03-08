@@ -1,9 +1,3 @@
-/**
- * Product Form Web Component
- *
- * Handles add-to-cart via AJAX with section rendering,
- * and quantity selector +/- controls.
- */
 class ProductForm extends HTMLElement {
   connectedCallback() {
     this.form = this.querySelector('form[action*="/cart/add"]');
@@ -40,7 +34,6 @@ class ProductForm extends HTMLElement {
       }
     });
 
-    // Initial state
     if (minusBtn) minusBtn.disabled = true;
   }
 
@@ -108,7 +101,6 @@ class ProductForm extends HTMLElement {
 
       const data = await response.json();
 
-      // Dispatch event with section rendering HTML
       document.dispatchEvent(
         new CustomEvent('cart:refresh', {
           detail: {
@@ -118,7 +110,6 @@ class ProductForm extends HTMLElement {
         })
       );
 
-      // Open cart drawer
       const cartDrawer = document.querySelector('cart-drawer');
       if (cartDrawer) cartDrawer.openDrawer();
 
