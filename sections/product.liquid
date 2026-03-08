@@ -49,7 +49,7 @@
                 class="w-full rounded-lg"
               >
             {%- elsif media.media_type == 'video' -%}
-              {{ media | video_tag: autoplay: false, controls: true, class: 'w-full rounded-lg' }}
+              {{ media | video_tag: autoplay: true, controls: false, muted: true, class: 'w-full rounded-lg' }}
             {%- elsif media.media_type == 'external_video' -%}
               {{ media | external_video_tag: class: 'w-full rounded-lg' }}
             {%- endif -%}
@@ -74,7 +74,7 @@
                 class="w-full rounded-lg"
               >
             {%- elsif media.media_type == 'video' -%}
-              {{ media | video_tag: autoplay: false, controls: true, class: 'w-full rounded-lg' }}
+              {{ media | video_tag: autoplay: true, controls: false, muted: true, class: 'w-full rounded-lg' }}
             {%- elsif media.media_type == 'external_video' -%}
               {{ media | external_video_tag: class: 'w-full rounded-lg' }}
             {%- endif -%}
