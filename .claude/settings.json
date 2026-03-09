@@ -1,7 +1,4 @@
 {
-  "enabledPlugins": {
-    "shopify-theme-standards@shopify-standards": true
-  },
   "hooks": {
     "PostToolUse": [
       {
@@ -14,5 +11,8 @@
         ]
       }
     ]
+  },
+  "enabledPlugins": {
+    "shopify-theme-standards@shopify-standards": true
   }
 }
