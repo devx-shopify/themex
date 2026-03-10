@@ -8,7 +8,7 @@
         "announcement_1": {
           "type": "announcement-bar-item",
           "settings": {
-            "announcement_bar_text": "<p>Free shipping on orders over $50</p>"
+            "announcement_bar_text": "<p>Clone. Customize. Deploy</p>"
           }
         }
       },

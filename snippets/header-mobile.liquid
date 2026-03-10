@@ -35,7 +35,7 @@
             loading="eager"
           >
         {%- else -%}
-          <span class="text-lg font-bold">{{ shop.name }}</span>
+          <span class="font-primary text-lg font-normal tracking-tight">{{ shop.name }}</span>
         {%- endif -%}
       </a>
     </div>
@@ -81,7 +81,7 @@
     <div class="mobile-menu-panel absolute inset-y-0 left-0 w-full max-w-sm -translate-x-full transform bg-background transition-transform duration-300">
       {%- comment -%} Drawer header {%- endcomment -%}
       <div class="flex items-center justify-between border-b border-border px-4 py-3">
-        <span class="text-lg font-bold">{{ 'accessibility.menu' | t }}</span>
+        <span class="text-lg font-medium">{{ 'accessibility.menu' | t }}</span>
         <button
           type="button"
           class="mobile-menu-close"

@@ -18,7 +18,8 @@ body {
   font-family: var(--font-primary--family);
   color: var(--color-foreground);
   background-color: var(--color-background);
-  line-height: 1.5;
+  line-height: 1.6;
+  letter-spacing: 0.01em;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -57,7 +58,7 @@ ol {
 
 /* Utility classes */
 .page-width {
-  max-width: 1280px;
+  max-width: 1340px;
   margin: 0 auto;
   padding-inline: 1rem;
 }

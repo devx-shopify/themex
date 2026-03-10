@@ -1,5 +1,5 @@
 <section
-  class="hero-banner relative flex min-h-[60vh] items-center overflow-hidden lg:min-h-[80vh]"
+  class="hero-banner relative flex min-h-[80vh] items-center overflow-hidden lg:min-h-[calc(100vh-109px)]"
   style="
     --section-padding-top: {{ section.settings.padding_top }}px;
     --section-padding-bottom: {{ section.settings.padding_bottom }}px;
@@ -10,12 +10,23 @@
   {%- comment -%} Background image {%- endcomment -%}
   {%- if section.settings.image != blank -%}
     <div class="absolute inset-0">
-      {% render 'image',
+      {%
+        render 'image',
         image: section.settings.image,
         mobile_image: section.settings.mobile_image,
         class_name: 'h-full w-full object-cover',
-        lazy: false
+        lazy: false,
+        alt: section.settings.image.alt | default: 'Hero banner image'
       %}
+      {%- if section.settings.overlay_opacity > 0 -%}
+        <div
+          class="absolute inset-0"
+          style="background-color: rgba(0,0,0,{{ section.settings.overlay_opacity | divided_by: 100.0 }});"
+        ></div>
+      {%- endif -%}
+    </div>
+  {%- else -%}
+    <div class="absolute inset-0">
       {%- if section.settings.overlay_opacity > 0 -%}
         <div
           class="absolute inset-0"
@@ -32,19 +43,21 @@
   >
     <div class="mx-auto max-w-2xl {% if section.settings.text_alignment == 'left' %}mr-auto ml-0{% elsif section.settings.text_alignment == 'right' %}ml-auto mr-0{% endif %}">
       {%- if section.settings.subheading != blank -%}
-        <p class="mb-4 text-xs font-medium uppercase tracking-[0.2em] opacity-70 md:text-sm">
+        <p class="mb-6 flex items-center justify-{{ section.settings.text_alignment }} gap-4 text-[11px] font-medium uppercase tracking-[0.3em] opacity-70">
+          <span class="hidden h-px w-8 bg-current opacity-40 sm:inline-block"></span>
           {{ section.settings.subheading }}
+          <span class="hidden h-px w-8 bg-current opacity-40 sm:inline-block"></span>
         </p>
       {%- endif -%}
 
       {%- if section.settings.heading != blank -%}
-        <h1 class="mb-5 text-4xl font-bold leading-[1.1] tracking-tight md:text-5xl lg:text-7xl">
+        <h1 class="mb-6 font-primary text-5xl font-normal leading-[1.05] tracking-[-0.02em] md:text-6xl lg:text-8xl">
           {{ section.settings.heading }}
         </h1>
       {%- endif -%}
 
       {%- if section.settings.description != blank -%}
-        <div class="mb-8 text-base leading-relaxed opacity-85 lg:text-lg">
+        <div class="mb-10 font-secondary text-base leading-relaxed opacity-80 lg:text-lg">
           {{ section.settings.description }}
         </div>
       {%- endif -%}
@@ -52,7 +65,7 @@
       {%- if section.settings.button_text != blank -%}
         <a
           href="{{ section.settings.button_link | default: '#' }}"
-          class="inline-block rounded-md bg-background px-8 py-3.5 text-sm font-semibold text-foreground shadow-md transition-all duration-300 hover:shadow-lg hover:scale-[1.02]"
+          class="inline-block border border-current bg-transparent px-10 py-4 text-sm font-medium uppercase tracking-[0.15em] transition-all duration-300 hover:bg-white hover:text-[#21170f]"
         >
           {{ section.settings.button_text }}
         </a>
@@ -128,7 +141,7 @@
       "type": "color",
       "id": "background_color",
       "label": "Background color",
-      "default": "#111827"
+      "default": "#21170f"
     },
     {
       "type": "color",
@@ -142,7 +155,7 @@
       "label": "Padding top",
       "min": 0,
       "max": 100,
-      "default": 40,
+      "default": 0,
       "unit": "px"
     },
     {
@@ -151,7 +164,7 @@
       "label": "Padding bottom",
       "min": 0,
       "max": 100,
-      "default": 40,
+      "default": 0,
       "unit": "px"
     }
   ],

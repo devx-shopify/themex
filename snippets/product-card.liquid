@@ -43,7 +43,7 @@
 -%}
 
 <div
-  class="product-card group/card relative flex h-full w-full flex-col overflow-hidden rounded-lg border border-border transition-all duration-300 hover:shadow-lg hover:border-transparent {{ card_class }}"
+  class="product-card group/card relative flex h-full w-full flex-col overflow-hidden rounded-sm border border-border transition-all duration-300 hover:shadow-md {{ card_class }}"
   data-product-card
 >
   <div
@@ -59,7 +59,7 @@
         width="500"
         height="625"
         loading="{% if lazy_load %}lazy{% else %}eager{% endif %}"
-        class="h-full w-full object-cover transition-transform duration-500 ease-out group-hover/card:scale-105"
+        class="h-full w-full object-cover"
         data-product-card-image
       >
     {%- else -%}

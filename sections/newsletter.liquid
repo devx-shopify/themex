@@ -5,45 +5,50 @@
   Can be added to any page via the theme editor.
 {%- endcomment -%}
 
-<section class="newsletter-section page-width py-12 md:py-20">
-  <div class="mx-auto max-w-xl text-center">
-    {%- if section.settings.heading != blank -%}
-      <h2 class="mb-3 text-2xl font-bold md:text-3xl lg:text-4xl">{{ section.settings.heading }}</h2>
-    {%- endif -%}
-
-    {%- if section.settings.description != blank -%}
-      <p class="mb-8 text-base text-muted">{{ section.settings.description }}</p>
-    {%- endif -%}
-
-    {% form 'customer', class: 'flex gap-2' %}
-      {%- if form.errors -%}
-        <div class="mb-4 w-full rounded border border-error/20 bg-error/5 p-3 text-sm text-error">
-          {{ form.errors | default_errors }}
-        </div>
+<section
+  class="newsletter-section py-12 md:py-20"
+  style="background-color: {{ section.settings.background_color }}; color: {{ section.settings.text_color }};"
+>
+  <div class="page-width">
+    <div class="mx-auto max-w-xl text-center">
+      {%- if section.settings.heading != blank -%}
+        <h2 class="mb-3 font-primary text-2xl font-normal md:text-3xl lg:text-4xl">{{ section.settings.heading }}</h2>
       {%- endif -%}
 
-      {%- if form.posted_successfully? -%}
-        <div class="mb-4 w-full rounded border border-success/20 bg-success/5 p-3 text-sm text-success">
-          {{ 'newsletter.success' | t }}
-        </div>
-      {%- else -%}
-        <input type="hidden" name="contact[tags]" value="newsletter">
-        <input
-          type="email"
-          name="contact[email]"
-          placeholder="{{ 'newsletter.placeholder' | t }}"
-          required
-          class="flex-1 rounded border border-border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-          aria-label="{{ 'newsletter.placeholder' | t }}"
-        >
-        <button
-          type="submit"
-          class="rounded bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-all duration-200 hover:shadow-md"
-        >
-          {{ 'newsletter.submit' | t }}
-        </button>
+      {%- if section.settings.description != blank -%}
+        <p class="mb-8 text-base opacity-70">{{ section.settings.description }}</p>
       {%- endif -%}
-    {% endform %}
+
+      {% form 'customer', class: 'flex gap-2' %}
+        {%- if form.errors -%}
+          <div class="mb-4 w-full rounded border border-error/20 bg-error/5 p-3 text-sm text-error">
+            {{ form.errors | default_errors }}
+          </div>
+        {%- endif -%}
+
+        {%- if form.posted_successfully? -%}
+          <div class="mb-4 w-full rounded border border-success/20 bg-success/5 p-3 text-sm text-success">
+            {{ 'newsletter.success' | t }}
+          </div>
+        {%- else -%}
+          <input type="hidden" name="contact[tags]" value="newsletter">
+          <input
+            type="email"
+            name="contact[email]"
+            placeholder="{{ 'newsletter.placeholder' | t }}"
+            required
+            class="flex-1 border border-white/30 bg-transparent px-4 py-3 text-sm text-current placeholder:opacity-50 focus:border-white/60 focus:outline-none"
+            aria-label="{{ 'newsletter.placeholder' | t }}"
+          >
+          <button
+            type="submit"
+            class="border border-transparent bg-accent px-6 py-3 text-sm font-medium text-white transition-all duration-200 hover:bg-accent/90"
+          >
+            {{ 'newsletter.submit' | t }}
+          </button>
+        {%- endif -%}
+      {% endform %}
+    </div>
   </div>
 </section>
 
@@ -63,6 +68,18 @@
       "id": "description",
       "label": "Description",
       "default": "Be the first to know about new arrivals and exclusive offers."
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background color",
+      "default": "#473321"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#FFFFFF"
     }
   ],
   "presets": [

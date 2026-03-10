@@ -11,12 +11,12 @@
   assign products_to_show = section.settings.products_to_show | default: 4
 -%}
 
-<section class="featured-collection-section page-width py-10 md:py-16">
+<section class="featured-collection-section page-width py-12 md:py-20">
   {%- if heading != blank -%}
     <div class="mb-8 flex items-center justify-between">
-      <h2 class="text-2xl font-bold md:text-3xl lg:text-4xl">{{ heading }}</h2>
+      <h2 class="font-primary text-2xl font-normal md:text-3xl lg:text-4xl">{{ heading }}</h2>
       {%- if collection -%}
-        <a href="{{ collection.url }}" class="text-sm font-medium underline hover:text-muted">
+        <a href="{{ collection.url }}" class="text-sm font-medium uppercase tracking-[0.15em] opacity-60 transition-opacity duration-200 hover:opacity-100">
           {{ 'general.view_all' | t }}
         </a>
       {%- endif -%}

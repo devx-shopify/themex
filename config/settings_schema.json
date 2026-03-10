@@ -17,7 +17,7 @@
       {
         "type": "font_picker",
         "id": "type_primary_font",
-        "default": "work_sans_n4",
+        "default": "cormorant_n4",
         "label": "t:general.primary"
       },
       {
@@ -39,19 +39,19 @@
         "type": "color",
         "id": "color_primary",
         "label": "Primary",
-        "default": "#111827"
+        "default": "#1e1412"
       },
       {
         "type": "color",
         "id": "color_secondary",
         "label": "Secondary",
-        "default": "#6B7280"
+        "default": "#473321"
       },
       {
         "type": "color",
         "id": "color_accent",
         "label": "Accent",
-        "default": "#2563EB"
+        "default": "#b88455"
       },
       {
         "type": "header",
@@ -61,7 +61,7 @@
         "type": "color",
         "id": "color_foreground",
         "label": "Text",
-        "default": "#111827"
+        "default": "#1e1412"
       },
       {
         "type": "color",
@@ -79,13 +79,13 @@
         "type": "color",
         "id": "color_border",
         "label": "Border",
-        "default": "#E5E7EB"
+        "default": "#E0D5CA"
       },
       {
         "type": "color",
         "id": "color_muted",
         "label": "Muted text",
-        "default": "#9CA3AF"
+        "default": "#8C7B6B"
       },
       {
         "type": "header",
@@ -214,7 +214,7 @@
         "type": "color",
         "id": "sold_out_badge_bg_color",
         "label": "Sold Out Badge Background",
-        "default": "#111827"
+        "default": "#1e1412"
       },
       {
         "type": "color",
