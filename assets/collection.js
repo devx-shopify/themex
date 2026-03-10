@@ -262,6 +262,14 @@ class CollectionSection {
           });
         });
         document.body.classList.add('overflow-hidden');
+
+        // Re-initialize accordions now that the drawer is visible
+        // (scrollHeight returns 0 inside hidden containers)
+        const drawerAccordions = this.filterDrawer.querySelectorAll('[data-accordion-trigger]');
+        for (const trigger of drawerAccordions) {
+          delete trigger.dataset.accordionInitialized;
+        }
+        if (typeof initAccordions === 'function') initAccordions();
       }
     });
 

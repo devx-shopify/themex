@@ -54,10 +54,10 @@
         data-accordion-icon
         data-accordion-icon-type="plus-minus"
       >
-        <span class="accordion__icon-plus" data-accordion-icon-plus>
+        <span class="accordion__icon-plus {% if is_open %}hidden{% endif %}" data-accordion-icon-plus>
           {% render 'icon-plus', size: 16 %}
         </span>
-        <span class="accordion__icon-minus hidden" data-accordion-icon-minus>
+        <span class="accordion__icon-minus {% unless is_open %}hidden{% endunless %}" data-accordion-icon-minus>
           {% render 'icon-minus', size: 16 %}
         </span>
       </span>
