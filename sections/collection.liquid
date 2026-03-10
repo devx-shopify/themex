@@ -1,4 +1,4 @@
-{{ 'collection-stylesheet.css' | asset_url | stylesheet_tag }}
+{{ 'collection-stylesheet.css' | asset_url | stylesheet_tag: preload: true }}
 
 {%- liquid
   assign products_per_page = section.settings.products_per_page | default: 16
@@ -105,7 +105,10 @@
 
     {%- comment -%} Product grid + pagination {%- endcomment -%}
     <div class="relative flex-1 transition-opacity duration-300" data-collection-products>
-      <div class="absolute inset-0 z-10 hidden items-center justify-center bg-background/60 pt-16" data-collection-loader>
+      <div
+        class="absolute inset-0 z-10 hidden items-center justify-center bg-background/60 pt-16"
+        data-collection-loader
+      >
         <div class="h-7 w-7 animate-spin rounded-full border-2 border-border border-t-primary"></div>
       </div>
       {% paginate collection.products by products_per_page %}
