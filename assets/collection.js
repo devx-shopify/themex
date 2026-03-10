@@ -9,6 +9,7 @@ class CollectionSection {
 
     this.bindSort();
     this.bindFilters();
+    this.bindPriceSliders();
     this.bindFilterDrawer();
     this.bindActiveFilterLinks();
   }
@@ -44,6 +45,70 @@ class CollectionSection {
         this.applyFilters();
       }
     });
+  }
+
+  bindPriceSliders() {
+    const sliders = document.querySelectorAll('[data-price-slider]');
+
+    for (const slider of sliders) {
+      const sliderMin = slider.querySelector('[data-slider-min]');
+      const sliderMax = slider.querySelector('[data-slider-max]');
+      const inputMin = slider.querySelector('[data-price-input-min]');
+      const inputMax = slider.querySelector('[data-price-input-max]');
+      const fill = slider.querySelector('[data-slider-fill]');
+
+      if (!sliderMin || !sliderMax || !inputMin || !inputMax || !fill) continue;
+
+      const rangeMax = parseFloat(slider.dataset.rangeMax) || 1;
+      const MIN_GAP = 100;
+
+      const updateFill = () => {
+        const minVal = parseFloat(sliderMin.value);
+        const maxVal = parseFloat(sliderMax.value);
+        const minPercent = (minVal / rangeMax) * 100;
+        const maxPercent = (maxVal / rangeMax) * 100;
+        fill.style.setProperty('left', `${minPercent}%`);
+        fill.style.setProperty('width', `${Math.max(0, maxPercent - minPercent)}%`);
+      };
+
+      updateFill();
+
+      sliderMin.addEventListener('input', () => {
+        if (parseFloat(sliderMin.value) > parseFloat(sliderMax.value) - MIN_GAP) {
+          sliderMin.value = parseFloat(sliderMax.value) - MIN_GAP;
+        }
+        inputMin.value = sliderMin.value;
+        updateFill();
+      });
+
+      sliderMax.addEventListener('input', () => {
+        if (parseFloat(sliderMax.value) < parseFloat(sliderMin.value) + MIN_GAP) {
+          sliderMax.value = parseFloat(sliderMin.value) + MIN_GAP;
+        }
+        inputMax.value = sliderMax.value;
+        updateFill();
+      });
+
+      sliderMin.addEventListener('change', () => {
+        this.applyFilters();
+      });
+
+      sliderMax.addEventListener('change', () => {
+        this.applyFilters();
+      });
+
+      inputMin.addEventListener('input', () => {
+        const val = Math.min(parseFloat(inputMin.value) || 0, parseFloat(sliderMax.value) - MIN_GAP);
+        sliderMin.value = val;
+        updateFill();
+      });
+
+      inputMax.addEventListener('input', () => {
+        const val = Math.max(parseFloat(inputMax.value) || 0, parseFloat(sliderMin.value) + MIN_GAP);
+        sliderMax.value = val;
+        updateFill();
+      });
+    }
   }
 
   applyFilters() {
@@ -167,6 +232,7 @@ class CollectionSection {
 
     window.scrollTo(0, scrollY);
     this.bindSort();
+    this.bindPriceSliders();
   }
 
   bindFilterDrawer() {

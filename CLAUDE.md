@@ -59,8 +59,9 @@ Cross-component communication uses `CustomEvent` (e.g., `cart:refresh`). DOM sel
 
 ### Key Files
 
-- `src/input.css` — Tailwind entry point (imports + custom base styles)
-- `assets/base.css` — CSS reset, `.page-width` utility, component styles (hamburger, cart states, variants)
+- `src/input.css` — Tailwind entry point (directives only: `@tailwind base/components/utilities`). **NEVER add custom CSS here.**
+- `assets/tailwind.css` — Compiled Tailwind output. **NEVER edit directly** — it is auto-generated from `src/input.css`.
+- `assets/base.css` — CSS reset, `.page-width` utility, and **all custom component styles** (hamburger, cart states, variants, sliders, etc.). Any non-Tailwind CSS goes here.
 - `snippets/css-variables.liquid` — Dynamic CSS custom properties from theme settings
 - `snippets/meta-tags.liquid` — SEO, Open Graph, structured data
 - `snippets/image.liquid` — Responsive `<picture>` element with WebP and srcset
