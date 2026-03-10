@@ -1,37 +1,22 @@
-{%- comment -%}
-  Newsletter Section
-
-  Renders a newsletter signup form using Shopify's customer form.
-  Can be added to any page via the theme editor.
-{%- endcomment -%}
-
 <section
-  class="newsletter-section py-12 md:py-20"
+  class="newsletter py-12 md:py-20"
   style="background-color: {{ section.settings.background_color }}; color: {{ section.settings.text_color }};"
 >
   <div class="page-width">
     <div class="mx-auto max-w-xl text-center">
       {%- if section.settings.heading != blank -%}
-        <h2 class="mb-3 font-primary text-2xl font-normal md:text-3xl lg:text-4xl">{{ section.settings.heading }}</h2>
+        <h2 class="mb-3 font-primary text-2xl font-normal md:text-3xl lg:text-4xl">{{ section.settings.heading | escape }}</h2>
       {%- endif -%}
 
       {%- if section.settings.description != blank -%}
-        <p class="mb-8 text-base opacity-70">{{ section.settings.description }}</p>
+        <p class="mb-8 text-base opacity-70">{{ section.settings.description | escape }}</p>
       {%- endif -%}
 
-      {% form 'customer', class: 'flex gap-2' %}
-        {%- if form.errors -%}
-          <div class="mb-4 w-full rounded border border-error/20 bg-error/5 p-3 text-sm text-error">
-            {{ form.errors | default_errors }}
-          </div>
-        {%- endif -%}
+      <div data-newsletter-form data-action="/contact">
+        <input type="hidden" name="form_type" value="customer">
+        <input type="hidden" name="contact[tags]" value="newsletter">
 
-        {%- if form.posted_successfully? -%}
-          <div class="mb-4 w-full rounded border border-success/20 bg-success/5 p-3 text-sm text-success">
-            {{ 'newsletter.success' | t }}
-          </div>
-        {%- else -%}
-          <input type="hidden" name="contact[tags]" value="newsletter">
+        <div class="flex gap-2">
           <input
             type="email"
             name="contact[email]"
@@ -39,18 +24,36 @@
             required
             class="flex-1 border border-white/30 bg-transparent px-4 py-3 text-sm text-current placeholder:opacity-50 focus:border-white/60 focus:outline-none"
             aria-label="{{ 'newsletter.placeholder' | t }}"
+            data-newsletter-email
           >
           <button
-            type="submit"
+            type="button"
             class="border border-transparent bg-accent px-6 py-3 text-sm font-medium text-white transition-all duration-200 hover:bg-accent/90"
+            data-newsletter-submit
           >
             {{ 'newsletter.submit' | t }}
           </button>
-        {%- endif -%}
-      {% endform %}
+        </div>
+
+        {%- comment -%} Toast notification for AJAX feedback {%- endcomment -%}
+        <div
+          class="mt-4 hidden items-center gap-2 overflow-hidden rounded p-3 text-sm transition-all duration-300"
+          data-newsletter-toast
+          role="alert"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          <span class="hidden" data-newsletter-toast-success>
+            {%- render 'icon-checkmark', size: 16 -%}
+          </span>
+          <span data-newsletter-toast-message></span>
+        </div>
+      </div>
     </div>
   </div>
 </section>
+
+<script src="{{ 'newsletter.js' | asset_url }}" defer></script>
 
 {% schema %}
 {
