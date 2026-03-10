@@ -30,6 +30,25 @@
   if collection.filters.size > 0
     assign has_filters = true
   endif
+
+  assign is_sort_active = false
+  if current_sort != collection.default_sort_by
+    assign is_sort_active = true
+  endif
+
+  assign has_active_filters = false
+  for filter in collection.filters
+    if filter.active_values.size > 0
+      assign has_active_filters = true
+      break
+    endif
+    if filter.type == 'price_range'
+      if filter.min_value.value or filter.max_value.value
+        assign has_active_filters = true
+        break
+      endif
+    endif
+  endfor
 -%}
 
 <section
@@ -39,7 +58,16 @@
 >
   {%- comment -%} Collection header {%- endcomment -%}
   <div class="mb-8 pb-6">
-    <h1 class="text-2xl font-semibold tracking-tight md:text-3xl lg:text-4xl">{{ collection.title }}</h1>
+    <h1 class="text-2xl font-semibold tracking-tight md:text-3xl lg:text-4xl">
+      {{ collection.title }}
+
+      {% comment %}
+        <p class="text-sm text-muted">
+          {{ 'collections.products_count' | t: count: collection.products_count }}
+        </p>
+      {% endcomment %}
+    </h1>
+
     {%- if collection.description != blank -%}
       <div class="mt-2 max-w-2xl text-sm leading-relaxed text-muted md:text-base">{{ collection.description }}</div>
     {%- endif -%}
@@ -63,10 +91,6 @@
           {{ 'collections.filter' | t }}
         </button>
       {%- endif -%}
-
-      <p class="text-sm text-muted">
-        {{ 'collections.products_count' | t: count: collection.products_count }}
-      </p>
     </div>
 
     <div class="flex items-center gap-2">
@@ -189,6 +213,55 @@
           {{ 'collections.clear_all' | t }}
         </a>
       </div>
+    </div>
+  </div>
+{%- endif -%}
+
+{%- comment -%} Sort drawer (mobile) {%- endcomment -%}
+{% render 'collection-sort-drawer', collection: collection, current_sort: current_sort %}
+
+{%- comment -%} Sticky mobile sort/filter bar {%- endcomment -%}
+{%- if has_filters -%}
+  <div
+    class="fixed bottom-4 left-1/2 z-40 invisible w-[60%] max-w-xs -translate-x-1/2 translate-y-4 rounded-lg bg-black/70 opacity-0 shadow-lg backdrop-blur-lg transition-all duration-300 ease-out lg:hidden"
+    data-sticky-bar
+    data-default-sort="{{ collection.default_sort_by }}"
+  >
+    <div class="flex items-stretch justify-between">
+      <button
+        type="button"
+        class="flex flex-1 items-center justify-center gap-2 p-3 text-white"
+        data-sort-toggle
+        aria-label="{{ 'collections.sort_by' | t }}"
+      >
+        <span class="relative text-sm font-medium">
+          {{ 'collections.sort_by' | t }}
+          <span
+            class="absolute -right-1.5 -top-0.5 h-1.5 w-1.5 rounded-full bg-accent{% unless is_sort_active %} hidden{% endunless %}"
+            data-sort-indicator
+          ></span>
+        </span>
+      </button>
+
+      <div class="w-px bg-white/30"></div>
+
+      <button
+        type="button"
+        class="flex flex-1 items-center justify-center gap-2 p-3 text-white"
+        data-filter-toggle
+        aria-expanded="false"
+        aria-controls="filter-drawer"
+        aria-label="{{ 'collections.filter' | t }}"
+      >
+        <span class="relative text-sm font-medium">
+          {{ 'collections.filter' | t }}
+          <span
+            class="absolute -right-1.5 -top-0.5 h-1.5 w-1.5 rounded-full bg-accent{% unless has_active_filters %} hidden{% endunless %}"
+            data-filter-indicator
+          ></span>
+        </span>
+        {% render 'icon-filter', size: 14 %}
+      </button>
     </div>
   </div>
 {%- endif -%}

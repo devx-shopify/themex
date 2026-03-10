@@ -1,0 +1,67 @@
+{% doc %}
+  Collection Sort Drawer
+
+  Bottom-sheet drawer for mobile sort options. Slides up from bottom.
+  Sort options come from the collection object's sort_options.
+
+  @param {Object} collection - The collection object
+  @param {String} current_sort - Currently active sort value
+{% enddoc %}
+
+{%- liquid
+  assign collection = collection | default: blank
+
+  unless collection != blank
+    break
+  endunless
+
+  assign current_sort = current_sort | default: collection.default_sort_by
+-%}
+
+<div
+  class="fixed inset-0 z-[70] hidden"
+  data-sort-drawer
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="sort-drawer-title"
+>
+  {%- comment -%} Overlay {%- endcomment -%}
+  <div
+    class="absolute inset-0 bg-black/50 opacity-0 transition-opacity duration-300"
+    data-sort-overlay
+  ></div>
+
+  {%- comment -%} Panel — slides up from bottom {%- endcomment -%}
+  <div
+    class="absolute inset-x-0 bottom-0 translate-y-full rounded-t-xl bg-background shadow-xl transition-transform duration-300"
+    data-sort-panel
+  >
+    <div class="flex items-center justify-between border-b border-border px-4 py-4">
+      <h2 id="sort-drawer-title" class="text-lg font-bold">{{ 'collections.sort_by' | t }}</h2>
+      <button type="button" class="transition-colors hover:text-muted" data-sort-close>
+        {% render 'icon-close', size: 20, class: 'w-5 h-5' %}
+      </button>
+    </div>
+
+    <div class="px-4 py-2" data-sort-options>
+      {%- for option in collection.sort_options -%}
+        <button
+          type="button"
+          class="flex w-full items-center justify-between py-3 text-left text-sm transition-colors hover:text-muted{% unless forloop.last %} border-b border-border{% endunless %}"
+          data-sort-option
+          data-sort-value="{{ option.value }}"
+        >
+          <span>{{ option.name }}</span>
+          <span
+            class="flex h-5 w-5 items-center justify-center rounded-full border-2 transition-colors{% if option.value == current_sort %} border-foreground bg-foreground{% else %} border-border{% endif %}"
+            data-sort-radio
+          >
+            {%- if option.value == current_sort -%}
+              <span class="h-2 w-2 rounded-full bg-background"></span>
+            {%- endif -%}
+          </span>
+        </button>
+      {%- endfor -%}
+    </div>
+  </div>
+</div>
