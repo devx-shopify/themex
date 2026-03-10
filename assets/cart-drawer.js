@@ -189,6 +189,11 @@ class CartDrawer extends HTMLElement {
       badge.textContent = count > 0 ? count : '';
       badge.classList.toggle('hidden', count === 0);
     });
+
+    const headingCount = this.querySelector('[data-cart-heading-count]');
+    if (headingCount) {
+      headingCount.textContent = count;
+    }
   }
 }
 
