@@ -46,49 +46,54 @@
           <p class="mt-0.5 text-xs text-muted">{{ property.first }}: {{ property.last }}</p>
         {%- endif -%}
       {%- endfor -%}
-
-      <span class="text-sm font-medium">{{ item.final_line_price | money }}</span>
     </div>
-
-    <div class="mt-2 flex items-center justify-between">
-      {%- comment -%} Quantity controls {%- endcomment -%}
-      <div class="flex items-center gap-2 rounded border border-border">
-        {%- if item.quantity == 1 -%}
-          <button
-            type="button"
-            class="flex h-8 w-8 items-center justify-center text-muted transition-colors hover:text-error"
-            data-cart-change
-            data-line-key="{{ item.key }}"
-            data-quantity="0"
-            aria-label="{{ 'cart.remove' | t }}"
-          >
-            {% render 'icon-delete', size: 14 %}
-          </button>
-        {%- else -%}
+    <div class="flex items-center justify-between">
+      <div class="cart-item-price-container flex items-center gap-2">
+        <span class="text-sm font-medium">{{ item.final_line_price | money }}</span>
+        {%- if item.original_line_price != item.final_line_price -%}
+          <s class="text-xs text-muted">{{ item.original_line_price | money }}</s>
+        {%- endif -%}
+      </div>
+      <div class="flex items-center justify-between">
+        {%- comment -%} Quantity controls {%- endcomment -%}
+        <div class="flex items-center gap-2 rounded border border-border">
+          {%- if item.quantity == 1 -%}
+            <button
+              type="button"
+              class="flex h-8 w-8 items-center justify-center text-muted transition-colors hover:text-error"
+              data-cart-change
+              data-line-key="{{ item.key }}"
+              data-quantity="0"
+              aria-label="{{ 'cart.remove' | t }}"
+            >
+              {% render 'icon-delete', size: 14 %}
+            </button>
+          {%- else -%}
+            <button
+              type="button"
+              class="flex h-8 w-8 items-center justify-center text-muted transition-colors hover:text-foreground"
+              data-cart-change
+              data-line-key="{{ item.key }}"
+              data-quantity="{{ item.quantity | minus: 1 }}"
+              aria-label="{{ 'cart.decrease' | t: product: item.product.title }}"
+            >
+              {% render 'icon-minus', size: 14 %}
+            </button>
+          {%- endif -%}
+          <span class="min-w-[1.5rem] text-center text-sm" data-quantity-value>
+            {{ item.quantity }}
+          </span>
           <button
             type="button"
             class="flex h-8 w-8 items-center justify-center text-muted transition-colors hover:text-foreground"
             data-cart-change
             data-line-key="{{ item.key }}"
-            data-quantity="{{ item.quantity | minus: 1 }}"
-            aria-label="{{ 'cart.decrease' | t: product: item.product.title }}"
+            data-quantity="{{ item.quantity | plus: 1 }}"
+            aria-label="{{ 'cart.increase' | t: product: item.product.title }}"
           >
-            {% render 'icon-minus', size: 14 %}
+            {% render 'icon-plus', size: 14 %}
           </button>
-        {%- endif -%}
-        <span class="min-w-[1.5rem] text-center text-sm" data-quantity-value>
-          {{ item.quantity }}
-        </span>
-        <button
-          type="button"
-          class="flex h-8 w-8 items-center justify-center text-muted transition-colors hover:text-foreground"
-          data-cart-change
-          data-line-key="{{ item.key }}"
-          data-quantity="{{ item.quantity | plus: 1 }}"
-          aria-label="{{ 'cart.increase' | t: product: item.product.title }}"
-        >
-          {% render 'icon-plus', size: 14 %}
-        </button>
+        </div>
       </div>
     </div>
   </div>
