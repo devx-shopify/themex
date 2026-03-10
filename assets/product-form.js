@@ -14,6 +14,7 @@ class ProductForm extends HTMLElement {
         this.variantIdInput = this.submitForm?.querySelector('input[name="id"]');
 
         this.submitForm?.addEventListener('submit', this.handleSubmit);
+        this.setupQuantityControls();
     }
 
     disconnectedCallback() {
