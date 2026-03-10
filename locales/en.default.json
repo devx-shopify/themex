@@ -200,6 +200,7 @@
     "article": "Article",
     "page": "Page",
     "recent_searches": "Recent searches",
+    "recently_viewed": "Recently viewed",
     "trending": "Trending",
     "clear_history": "Clear history",
     "view_all_results": "View all results for \"{{ terms }}\""

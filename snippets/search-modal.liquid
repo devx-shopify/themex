@@ -2,7 +2,8 @@
   Search Modal
 
   Full-screen search overlay with predictive search results,
-  recent searches, and trending collections.
+  recent searches, recently viewed products, trending collections,
+  and best seller products.
 
   @example
   {% render 'search-modal' %}
@@ -49,21 +50,9 @@
       </div>
 
       {%- comment -%} Default content (shown when no search query) {%- endcomment -%}
-      <div id="search-default-content">
-        {%- comment -%} Recent searches {%- endcomment -%}
-        <div id="recent-searches-container" class="mb-6 hidden">
-          <div class="mb-3 flex items-center justify-between">
-            <h3 class="text-sm font-semibold uppercase tracking-wider text-muted">{{ 'search.recent_searches' | t }}</h3>
-            <button
-              type="button"
-              id="clear-recent-searches"
-              class="text-xs text-muted transition-colors hover:text-foreground"
-            >
-              {{ 'search.clear_history' | t }}
-            </button>
-          </div>
-          <ul id="recent-searches-list" class="space-y-2"></ul>
-        </div>
+      <div id="search-default-content" class="max-h-[60vh] overflow-y-auto">
+        {%- render 'search-modal-recent-searches' -%}
+        {%- render 'search-modal-recently-viewed' -%}
 
         {%- comment -%} Trending collections {%- endcomment -%}
         {%- if settings.trending_collections != blank -%}
@@ -75,7 +64,7 @@
                   href="{{ collection.url }}"
                   class="rounded-full border border-border px-4 py-2 text-sm transition-colors hover:border-primary hover:text-primary"
                 >
-                  {{ collection.title }}
+                  {{ collection.title | escape }}
                 </a>
               {%- endfor -%}
             </div>
@@ -109,7 +98,7 @@
                       </div>
                     {%- endif -%}
                     <div>
-                      <p class="text-xs font-medium leading-tight">{{ product.title }}</p>
+                      <p class="text-xs font-medium leading-tight">{{ product.title | escape }}</p>
                       <p class="mt-1 text-xs text-muted">{{ product.price | money }}</p>
                     </div>
                   </a>

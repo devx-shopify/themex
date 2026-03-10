@@ -32,14 +32,14 @@
     assign discount_amount = product.compare_at_price | minus: product.price
     assign discount_percentage = discount_amount | times: 100.0 | divided_by: product.compare_at_price | round
     assign badge_text = discount_percentage | append: '% off'
-    assign badge_bg = settings.discount_badge_bg_color | default: '#DC2626'
+    assign badge_bg = settings.discount_badge_bg_color | default: '#000'
     assign badge_color = settings.discount_badge_text_color | default: '#FFFFFF'
   endif
 -%}
 
 {%- if badge_type != 'none' -%}
   <span
-    class="product-badge absolute left-3 top-3 z-[1] rounded px-2 py-1 text-xs font-medium"
+    class="product-badge absolute left-3 top-3 z-[1] rounded px-2 py-1 text-xs font-extrabold"
     style="background-color: {{ badge_bg }}; color: {{ badge_color }};"
   >
     {{ badge_text }}

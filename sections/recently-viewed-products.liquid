@@ -1,0 +1,38 @@
+{%- comment -%} HTML {%- endcomment -%}
+<div class="recently-viewed-products">
+  {%- liquid
+    capture handles_raw
+      render 'get-url-param', param_name: 'handles'
+    endcapture
+    assign handles_raw = handles_raw | strip
+
+    if handles_raw != blank
+      assign handle_items = handles_raw | split: ','
+    endif
+  -%}
+
+  {%- if handle_items != blank and handle_items.size > 0 -%}
+    <div id="recently-viewed-products-content" class="flex gap-3">
+      {%- for handle_item in handle_items -%}
+        {%- assign product_handle = handle_item | strip -%}
+        {%- if product_handle != blank -%}
+          {%- assign viewed_product = all_products[product_handle] -%}
+          {%- if viewed_product != blank and viewed_product.title != blank -%}
+            <div class="flex-[0_0_45%] min-w-0 sm:flex-[0_0_35%] lg:flex-[0_0_28%]">
+              {%- render 'product-card', card_product: viewed_product, lazy_load: true -%}
+            </div>
+          {%- endif -%}
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+  {%- endif -%}
+</div>
+
+{%- comment -%} Schema {%- endcomment -%}
+{% schema %}
+{
+  "name": "Recently Viewed Products",
+  "class": "recently-viewed-products-section",
+  "settings": []
+}
+{% endschema %}

@@ -1,0 +1,43 @@
+{%- comment -%} HTML {%- endcomment -%}
+<div class="recent-searches">
+  {%- liquid
+    capture queries_raw
+      render 'get-url-param', param_name: 'queries'
+    endcapture
+    assign queries_raw = queries_raw | strip
+
+    if queries_raw != blank
+      assign query_items = queries_raw | split: ','
+    endif
+  -%}
+
+  {%- if query_items != blank and query_items.size > 0 -%}
+    <ul id="recent-searches-results">
+      {%- for query_item in query_items -%}
+        {%- assign search_query = query_item | strip -%}
+        {%- if search_query != blank -%}
+          {%- assign encoded_query = search_query | url_encode -%}
+          <li>
+            <a
+              href="/search?q={{ encoded_query }}"
+              class="flex items-center gap-2 rounded px-2 py-1.5 text-sm transition-colors hover:bg-muted/10 hover:text-primary"
+              data-query="{{ search_query | escape }}"
+            >
+              {%- render 'icon-search', size: 14, class: 'text-muted' -%}
+              <span>{{ search_query | escape }}</span>
+            </a>
+          </li>
+        {%- endif -%}
+      {%- endfor -%}
+    </ul>
+  {%- endif -%}
+</div>
+
+{%- comment -%} Schema {%- endcomment -%}
+{% schema %}
+{
+  "name": "Recent Searches",
+  "class": "recent-searches-section",
+  "settings": []
+}
+{% endschema %}
