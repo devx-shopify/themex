@@ -19,116 +19,117 @@
 -%}
 
 {%- for filter in collection.filters -%}
-  <div class="filter-group border-b border-border py-4 first:pt-0" data-filter-group>
-    <details open>
-      <summary class="flex cursor-pointer items-center justify-between py-2 text-sm font-medium">
-        <span>{{ filter.label }}</span>
-        {% render 'icon-chevron-down', size: 16, class: 'transition-transform duration-200 details-open:rotate-180' %}
-      </summary>
+  {%- capture filter_content -%}
+    {%- case filter.type -%}
+      {%- when 'list' -%}
+        <ul class="space-y-2">
+          {%- for value in filter.values -%}
+            <li>
+              <label class="flex cursor-pointer items-center gap-3">
+                <input
+                  type="checkbox"
+                  class="h-4 w-4 rounded border-border accent-primary"
+                  name="{{ value.param_name }}"
+                  value="{{ value.value }}"
+                  data-filter-checkbox
+                  {% if value.active %}checked{% endif %}
+                  {% if value.count == 0 and value.active == false %}disabled{% endif %}
+                >
+                <span class="flex-1 text-sm {% if value.count == 0 and value.active == false %}text-muted{% endif %}">
+                  {{ value.label }}
+                </span>
+                <span class="text-xs text-muted">({{ value.count }})</span>
+              </label>
+            </li>
+          {%- endfor -%}
+        </ul>
 
-      <div class="pb-2 pt-3">
-        {%- case filter.type -%}
-          {%- when 'list' -%}
-            <ul class="space-y-2">
-              {%- for value in filter.values -%}
-                <li>
-                  <label class="flex cursor-pointer items-center gap-3">
-                    <input
-                      type="checkbox"
-                      class="h-4 w-4 rounded border-border accent-primary"
-                      name="{{ value.param_name }}"
-                      value="{{ value.value }}"
-                      data-filter-checkbox
-                      {% if value.active %}checked{% endif %}
-                      {% if value.count == 0 and value.active == false %}disabled{% endif %}
-                    >
-                    <span class="flex-1 text-sm {% if value.count == 0 and value.active == false %}text-muted{% endif %}">
-                      {{ value.label }}
-                    </span>
-                    <span class="text-xs text-muted">({{ value.count }})</span>
-                  </label>
-                </li>
-              {%- endfor -%}
-            </ul>
-
-          {%- when 'price_range' -%}
-            {%- liquid
-              assign price_range_max = filter.range_max | money_without_currency | replace: ',', '' | strip
-              assign price_current_min = filter.min_value.value | money_without_currency | replace: ',', '' | strip | default: '0'
-              assign price_current_max = filter.max_value.value | money_without_currency | replace: ',', '' | strip | default: price_range_max
-            -%}
-            <div
-              class="price-range-slider"
-              data-price-slider
-              data-range-min="0"
-              data-range-max="{{ price_range_max }}"
-              data-current-min="{{ price_current_min }}"
-              data-current-max="{{ price_current_max }}"
+      {%- when 'price_range' -%}
+        {%- liquid
+          assign price_range_max = filter.range_max | money_without_currency | replace: ',', '' | strip
+          assign price_current_min = filter.min_value.value | money_without_currency | replace: ',', '' | strip | default: '0'
+          assign price_current_max = filter.max_value.value | money_without_currency | replace: ',', '' | strip | default: price_range_max
+        -%}
+        <div
+          class="price-range-slider"
+          data-price-slider
+          data-range-min="0"
+          data-range-max="{{ price_range_max }}"
+          data-current-min="{{ price_current_min }}"
+          data-current-max="{{ price_current_max }}"
+        >
+          <div class="price-range-slider__track">
+            <div class="price-range-slider__fill" data-slider-fill></div>
+            <input
+              type="range"
+              class="price-range-slider__input price-range-slider__input--min"
+              min="0"
+              max="{{ price_range_max }}"
+              value="{{ price_current_min }}"
+              step="1"
+              data-slider-min
+              aria-label="{{ 'collections.filter_min' | t }}"
             >
-              <div class="price-range-slider__track">
-                <div class="price-range-slider__fill" data-slider-fill></div>
-                <input
-                  type="range"
-                  class="price-range-slider__input price-range-slider__input--min"
-                  min="0"
-                  max="{{ price_range_max }}"
-                  value="{{ price_current_min }}"
-                  step="1"
-                  data-slider-min
-                  aria-label="{{ 'collections.filter_min' | t }}"
-                >
-                <input
-                  type="range"
-                  class="price-range-slider__input price-range-slider__input--max"
-                  min="0"
-                  max="{{ price_range_max }}"
-                  value="{{ price_current_max }}"
-                  step="1"
-                  data-slider-max
-                  aria-label="{{ 'collections.filter_max' | t }}"
-                >
-              </div>
+            <input
+              type="range"
+              class="price-range-slider__input price-range-slider__input--max"
+              min="0"
+              max="{{ price_range_max }}"
+              value="{{ price_current_max }}"
+              step="1"
+              data-slider-max
+              aria-label="{{ 'collections.filter_max' | t }}"
+            >
+          </div>
 
-              <div class="flex items-center gap-3 mt-3">
-                <div class="flex-1">
-                  <label class="mb-1 block text-xs text-muted" for="filter-price-min-{{ filter.label | handleize }}">
-                    {{ 'collections.filter_min' | t }}
-                  </label>
-                  <input
-                    type="number"
-                    id="filter-price-min-{{ filter.label | handleize }}"
-                    class="w-full rounded border border-border px-3 py-2 text-sm"
-                    name="{{ filter.min_value.param_name }}"
-                    min="0"
-                    max="{{ price_range_max }}"
-                    value="{{ price_current_min }}"
-                    placeholder="{{ 0 | money_without_trailing_zeros }}"
-                    data-filter-price
-                    data-price-input-min
-                  >
-                </div>
-                <span class="mt-5 text-muted">-</span>
-                <div class="flex-1">
-                  <label class="mb-1 block text-xs text-muted" for="filter-price-max-{{ filter.label | handleize }}">
-                    {{ 'collections.filter_max' | t }}
-                  </label>
-                  <input
-                    type="number"
-                    id="filter-price-max-{{ filter.label | handleize }}"
-                    class="w-full rounded border border-border px-3 py-2 text-sm"
-                    name="{{ filter.max_value.param_name }}"
-                    min="0"
-                    max="{{ price_range_max }}"
-                    value="{{ price_current_max }}"
-                    placeholder="{{ filter.range_max | money_without_trailing_zeros }}"
-                    data-filter-price
-                    data-price-input-max
-                  >
-                </div>
-              </div>
+          <div class="flex items-center gap-3 mt-3">
+            <div class="flex-1">
+              <label class="mb-1 block text-xs text-muted" for="filter-price-min-{{ filter.label | handleize }}">
+                {{ 'collections.filter_min' | t }}
+              </label>
+              <input
+                type="number"
+                id="filter-price-min-{{ filter.label | handleize }}"
+                class="w-full rounded border border-border px-3 py-2 text-sm"
+                name="{{ filter.min_value.param_name }}"
+                min="0"
+                max="{{ price_range_max }}"
+                value="{{ price_current_min }}"
+                placeholder="{{ 0 | money_without_trailing_zeros }}"
+                data-filter-price
+                data-price-input-min
+              >
             </div>
-        {%- endcase -%}
-      </div>
-    </details>
-  </div>
+            <span class="mt-5 text-muted">-</span>
+            <div class="flex-1">
+              <label class="mb-1 block text-xs text-muted" for="filter-price-max-{{ filter.label | handleize }}">
+                {{ 'collections.filter_max' | t }}
+              </label>
+              <input
+                type="number"
+                id="filter-price-max-{{ filter.label | handleize }}"
+                class="w-full rounded border border-border px-3 py-2 text-sm"
+                name="{{ filter.max_value.param_name }}"
+                min="0"
+                max="{{ price_range_max }}"
+                value="{{ price_current_max }}"
+                placeholder="{{ filter.range_max | money_without_trailing_zeros }}"
+                data-filter-price
+                data-price-input-max
+              >
+            </div>
+          </div>
+        </div>
+    {%- endcase -%}
+  {%- endcapture -%}
+
+  {% render 'accordion',
+    title: filter.label,
+    content: filter_content,
+    default_open: true,
+    icon_type: 'plus-minus',
+    class_name: 'filter-group border-b border-border py-4 first:pt-0',
+    title_class: 'py-2 text-sm font-medium',
+    content_class: 'pb-2 pt-3'
+  %}
 {%- endfor -%}

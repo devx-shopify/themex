@@ -1,0 +1,76 @@
+{% doc %}
+  Reusable Accordion Component
+
+  @param {String} title - The clickable title/header text
+  @param {String} content - The HTML content to show/hide
+  @param {String} [unique_id] - Unique identifier to prevent duplicate IDs
+  @param {String} [class_name] - Additional CSS classes for the wrapper
+  @param {String} [title_class] - Additional CSS classes for the trigger button
+  @param {String} [content_class] - Additional CSS classes for the content inner
+  @param {Boolean} [default_open] - Whether accordion starts open (default: false)
+  @param {String} [icon_type] - Icon style: 'plus-minus' (default) or 'chevron'
+{% enddoc %}
+
+{%- liquid
+  assign accordion_title_handle = title | handleize
+
+  if unique_id != blank
+    assign accordion_suffix = unique_id
+  elsif forloop.index
+    if forloop.parentloop.index
+      assign accordion_suffix = forloop.parentloop.index | append: '-' | append: forloop.index
+    else
+      assign accordion_suffix = forloop.index
+    endif
+  else
+    assign accordion_suffix = 'now' | date: '%s%N'
+  endif
+
+  assign accordion_id = 'accordion-' | append: accordion_title_handle | append: '-' | append: accordion_suffix
+  assign is_open = default_open | default: false
+  assign icon_type = icon_type | default: 'plus-minus'
+-%}
+
+<div class="accordion {{ class_name }}" data-accordion>
+  <button
+    class="accordion__trigger flex w-full cursor-pointer items-center justify-between text-left {{ title_class }}"
+    type="button"
+    aria-expanded="{{ is_open }}"
+    aria-controls="{{ accordion_id }}-content"
+    data-accordion-trigger
+  >
+    <span class="accordion__title min-w-0 flex-1">{{ title }}</span>
+    {%- if icon_type == 'chevron' -%}
+      <span
+        class="accordion__icon flex h-6 w-6 items-center justify-center transition-transform duration-300 {% if is_open %}rotate-180{% endif %}"
+        data-accordion-icon
+        data-accordion-icon-type="chevron"
+      >
+        {% render 'icon-chevron-down', size: 12, class: '' %}
+      </span>
+    {%- else -%}
+      <span
+        class="accordion__icon flex h-6 w-6 items-center justify-center transition-transform duration-300"
+        data-accordion-icon
+        data-accordion-icon-type="plus-minus"
+      >
+        <span class="accordion__icon-plus" data-accordion-icon-plus>
+          {% render 'icon-plus', size: 16 %}
+        </span>
+        <span class="accordion__icon-minus hidden" data-accordion-icon-minus>
+          {% render 'icon-minus', size: 16 %}
+        </span>
+      </span>
+    {%- endif -%}
+  </button>
+  <div
+    class="accordion__content overflow-hidden transition-all duration-300 {% if is_open == false %}max-h-0{% endif %}"
+    id="{{ accordion_id }}-content"
+    data-accordion-content
+    aria-hidden="{% if is_open %}false{% else %}true{% endif %}"
+  >
+    <div class="accordion__content-inner {{ content_class }}">
+      {{ content }}
+    </div>
+  </div>
+</div>
