@@ -67,9 +67,9 @@ class CollectionSection {
     const priceInputs = source.querySelectorAll('[data-filter-price]');
     priceInputs.forEach((input) => {
       if (input.value) {
-        const cents = Math.round(parseFloat(input.value) * 100);
-        if (!isNaN(cents) && cents > 0) {
-          url.searchParams.set(input.name, cents);
+        const price = parseFloat(input.value);
+        if (!isNaN(price) && price > 0) {
+          url.searchParams.set(input.name, price);
         }
       }
     });
