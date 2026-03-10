@@ -71,12 +71,12 @@
       {%- comment -%} Menu columns {%- endcomment -%}
       <div class="md:col-span-8">
         {%- if section.settings.menu != blank -%}
-          <ul class="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-4">
+          <ul class="grid grid-cols-2 gap-8">
             {%- for link in linklists[section.settings.menu].links -%}
               <li>
                 <a
                   href="{{ link.url }}"
-                  class="mb-5 block text-[11px] font-medium uppercase tracking-[0.25em] hover:underline hover:underline-offset-4"
+                  class="block text-[11px] font-medium uppercase tracking-[0.25em] hover:underline hover:underline-offset-4 break-words"
                 >
                   {{ link.title }}
                 </a>

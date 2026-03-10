@@ -58,7 +58,7 @@
         >
           {% render 'icon-cart', size: 20 %}
           <span
-            class="cart-item-count absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground{% if cart.item_count == 0 %} hidden{% endif %}"
+            class="cart-item-count absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground{% if cart.item_count == 0 %} hidden{% endif %}"
             data-cart-count="{{ cart.item_count }}"
           >
             {%- if cart.item_count > 0 -%}{{ cart.item_count }}{%- endif -%}
@@ -75,7 +75,10 @@
     aria-hidden="true"
   >
     {%- comment -%} Backdrop {%- endcomment -%}
-    <div class="mobile-menu-backdrop absolute inset-0 bg-black/50 opacity-0 transition-opacity duration-300" data-mobile-menu-close></div>
+    <div
+      class="mobile-menu-backdrop absolute inset-0 bg-black/50 opacity-0 transition-opacity duration-300"
+      data-mobile-menu-close
+    ></div>
 
     {%- comment -%} Drawer panel {%- endcomment -%}
     <div class="mobile-menu-panel absolute inset-y-0 left-0 w-full max-w-sm -translate-x-full transform bg-background transition-transform duration-300">
@@ -115,7 +118,10 @@
                           <ul class="space-y-1">
                             {%- for grandchild_link in child_link.links -%}
                               <li>
-                                <a href="{{ grandchild_link.url }}" class="block py-1 text-sm transition-colors hover:text-accent">
+                                <a
+                                  href="{{ grandchild_link.url }}"
+                                  class="block py-1 text-sm transition-colors hover:text-accent"
+                                >
                                   {{ grandchild_link.title }}
                                 </a>
                               </li>
@@ -124,7 +130,10 @@
                         </li>
                       {%- else -%}
                         <li>
-                          <a href="{{ child_link.url }}" class="block px-6 py-2 text-sm transition-colors hover:text-accent">
+                          <a
+                            href="{{ child_link.url }}"
+                            class="block px-6 py-2 text-sm transition-colors hover:text-accent"
+                          >
                             {{ child_link.title }}
                           </a>
                         </li>
@@ -133,7 +142,10 @@
                   </ul>
                 </details>
               {%- else -%}
-                <a href="{{ link.url }}" class="block px-4 py-3 text-sm font-medium transition-colors hover:text-accent">
+                <a
+                  href="{{ link.url }}"
+                  class="block px-4 py-3 text-sm font-medium transition-colors hover:text-accent"
+                >
                   {{ link.title }}
                 </a>
               {%- endif -%}
