@@ -12,6 +12,8 @@ document.addEventListener("DOMContentLoaded", () => {
     window.searchRecentlyViewed?.renderRecentlyViewedProducts();
   };
 
+  const content = modal.querySelector(".search-modal-content");
+
   const openModal = () => {
     modal.classList.remove("hidden");
     modal.setAttribute("aria-hidden", "false");
@@ -20,22 +22,35 @@ document.addEventListener("DOMContentLoaded", () => {
     showDefaultContent();
 
     requestAnimationFrame(() => {
-      input.focus();
+      requestAnimationFrame(() => {
+        modal.classList.remove("opacity-0");
+        modal.classList.add("opacity-100");
+        content?.classList.remove("translate-y-4", "opacity-0");
+        content?.classList.add("translate-y-0", "opacity-100");
+        input.focus();
+      });
     });
   };
 
   const closeModal = () => {
-    modal.classList.add("hidden");
-    modal.setAttribute("aria-hidden", "true");
-    document.body.classList.remove("overflow-hidden");
-    input.value = "";
+    modal.classList.remove("opacity-100");
+    modal.classList.add("opacity-0");
+    content?.classList.remove("translate-y-0", "opacity-100");
+    content?.classList.add("translate-y-4", "opacity-0");
 
-    const results = document.getElementById("predictive-search-results");
-    if (results) {
-      results.classList.add("hidden");
-      results.innerHTML = "";
-    }
-    if (defaultContent) defaultContent.classList.remove("hidden");
+    setTimeout(() => {
+      modal.classList.add("hidden");
+      modal.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("overflow-hidden");
+      input.value = "";
+
+      const results = document.getElementById("predictive-search-results");
+      if (results) {
+        results.classList.add("hidden");
+        results.innerHTML = "";
+      }
+      if (defaultContent) defaultContent.classList.remove("hidden");
+    }, 300);
   };
 
   triggers.forEach((trigger) => {

@@ -10,14 +10,14 @@
 {% enddoc %}
 
 <div
-  class="search-modal fixed inset-0 z-[60] hidden bg-black/50"
+  class="search-modal fixed inset-0 z-[60] hidden bg-black/50 opacity-0 transition-opacity duration-300"
   id="search-modal"
   aria-hidden="true"
   role="dialog"
   aria-label="{{ 'accessibility.search' | t }}"
 >
   <div class="flex h-full items-start justify-center pt-20 px-4 md:pt-32">
-    <div class="search-modal-content w-full max-w-2xl rounded-lg bg-background p-6 shadow-2xl">
+    <div class="search-modal-content w-full max-w-2xl translate-y-4 rounded-lg bg-background p-6 opacity-0 shadow-2xl transition-all duration-300">
       {%- comment -%} Search input {%- endcomment -%}
       <div class="relative mb-6">
         <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
