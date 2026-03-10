@@ -23,8 +23,7 @@
       assign grid_class_mobile = 'grid-cols-2'
   endcase
 
-  assign sort_options = 'manual,best-selling,title-ascending,title-descending,price-ascending,price-descending,created-ascending,created-descending' | split: ','
-  assign current_sort = collection.sort_by | default: collection.default_sort_by | default: 'manual'
+  assign current_sort = collection.sort_by | default: collection.default_sort_by
   assign has_filters = false
   if collection.filters.size > 0
     assign has_filters = true
@@ -75,14 +74,14 @@
         class="rounded border border-border bg-transparent px-3 py-1.5 text-sm"
         data-collection-sort
       >
-        {%- for option in sort_options -%}
+        {%- for option in collection.sort_options -%}
           <option
-            value="{{ option }}"
-            {% if option == current_sort %}
+            value="{{ option.value }}"
+            {% if option.value == current_sort %}
               selected
             {% endif %}
           >
-            {{ option }}
+            {{ option.name }}
           </option>
         {%- endfor -%}
       </select>
