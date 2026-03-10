@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   modal.addEventListener('click', (e) => {
-    if (e.target === modal) closeModal();
+    if (!e.target.closest('.search-modal-content')) closeModal();
   });
 
   document.addEventListener('keydown', (e) => {
