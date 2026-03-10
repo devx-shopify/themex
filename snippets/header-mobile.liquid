@@ -7,21 +7,21 @@
 
 <div class="menu-mobile lg:hidden" id="mobile-header">
   {%- comment -%} Top bar {%- endcomment -%}
-  <div class="flex items-center justify-between px-4 py-3">
-    <div class="flex items-center gap-3">
-      <button
-        type="button"
-        class="menu-hamburger"
-        id="mobile-menu-trigger"
-        aria-label="{{ 'accessibility.menu' | t }}"
-        aria-expanded="false"
-      >
-        <div class="flex flex-col justify-center gap-[5px]" data-mobile-hamburger>
-          <span class="hamburger-line block h-0.5 w-5 bg-foreground transition-all duration-300"></span>
-          <span class="hamburger-line block h-0.5 w-5 bg-foreground transition-all duration-300"></span>
-        </div>
-      </button>
+  <div class="relative flex items-center justify-between px-4 py-3">
+    <button
+      type="button"
+      class="menu-hamburger"
+      id="mobile-menu-trigger"
+      aria-label="{{ 'accessibility.menu' | t }}"
+      aria-expanded="false"
+    >
+      <div class="flex flex-col justify-center gap-[5px]" data-mobile-hamburger>
+        <span class="hamburger-line block h-0.5 w-5 bg-foreground transition-all duration-300"></span>
+        <span class="hamburger-line block h-0.5 w-5 bg-foreground transition-all duration-300"></span>
+      </div>
+    </button>
 
+    <div class="absolute left-1/2 -translate-x-1/2 z-10">
       <a
         href="{{ routes.root_url }}"
         aria-label="{{ shop.name }} - Home"
@@ -39,7 +39,6 @@
         {%- endif -%}
       </a>
     </div>
-
     <div class="flex items-center gap-3">
       <button
         type="button"
