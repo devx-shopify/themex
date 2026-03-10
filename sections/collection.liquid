@@ -102,7 +102,10 @@
     {%- endif -%}
 
     {%- comment -%} Product grid + pagination {%- endcomment -%}
-    <div class="flex-1" data-collection-products>
+    <div class="relative flex-1 transition-opacity duration-300" data-collection-products>
+      <div class="collection-loader" data-collection-loader>
+        <div class="collection-loader__spinner"></div>
+      </div>
       {% paginate collection.products by products_per_page %}
         {%- if collection.products.size > 0 -%}
           <div
