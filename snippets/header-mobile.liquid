@@ -100,14 +100,8 @@
           {%- for link in linklists[section.settings.menu].links -%}
             <li>
               {%- if link.links.size > 0 -%}
-                <details class="group/details">
-                  <summary class="flex cursor-pointer items-center justify-between px-4 py-3 text-sm font-medium">
-                    <span>{{ link.title }}</span>
-                    <span class="transition-transform duration-200 group-open/details:rotate-180">
-                      {% render 'icon-chevron-down', size: 16 %}
-                    </span>
-                  </summary>
-                  <ul class="border-t border-border bg-muted/5 py-2">
+                {%- capture menu_content -%}
+                  <ul class="border-t border-border py-2">
                     {%- for child_link in link.links -%}
                       {%- if child_link.links.size > 0 -%}
                         <li class="px-4 py-2">
@@ -139,7 +133,14 @@
                       {%- endif -%}
                     {%- endfor -%}
                   </ul>
-                </details>
+                {%- endcapture -%}
+                {% render 'accordion',
+                  title: link.title,
+                  content: menu_content,
+                  unique_id: link.handle,
+                  title_class: 'px-4 py-3 text-sm font-medium',
+                  icon_type: 'chevron'
+                %}
               {%- else -%}
                 <a
                   href="{{ link.url }}"
