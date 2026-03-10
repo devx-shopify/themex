@@ -8,23 +8,23 @@
     "theme_support_url": "https://devxcommerce.com/support"
   },
   {
-    "name": "t:general.typography",
+    "name": "Typography",
     "settings": [
       {
         "type": "header",
-        "content": "t:general.fonts"
+        "content": "Fonts"
       },
       {
         "type": "font_picker",
         "id": "type_primary_font",
         "default": "cormorant_n4",
-        "label": "t:general.primary"
+        "label": "Primary"
       },
       {
         "type": "font_picker",
         "id": "type_secondary_font",
         "default": "work_sans_n4",
-        "label": "t:general.secondary"
+        "label": "Secondary"
       }
     ]
   },
@@ -39,19 +39,19 @@
         "type": "color",
         "id": "color_primary",
         "label": "Primary",
-        "default": "#1e1412"
+        "default": "#0a0a0a"
       },
       {
         "type": "color",
         "id": "color_secondary",
         "label": "Secondary",
-        "default": "#473321"
+        "default": "#6b7280"
       },
       {
         "type": "color",
         "id": "color_accent",
         "label": "Accent",
-        "default": "#b88455"
+        "default": "#737373"
       },
       {
         "type": "header",
@@ -61,7 +61,7 @@
         "type": "color",
         "id": "color_foreground",
         "label": "Text",
-        "default": "#1e1412"
+        "default": "#0a0a0a"
       },
       {
         "type": "color",
@@ -79,13 +79,13 @@
         "type": "color",
         "id": "color_border",
         "label": "Border",
-        "default": "#E0D5CA"
+        "default": "#e5e7eb"
       },
       {
         "type": "color",
         "id": "color_muted",
         "label": "Muted text",
-        "default": "#8C7B6B"
+        "default": "#6b7280"
       },
       {
         "type": "header",
@@ -214,7 +214,7 @@
         "type": "color",
         "id": "sold_out_badge_bg_color",
         "label": "Sold Out Badge Background",
-        "default": "#1e1412"
+        "default": "#0a0a0a"
       },
       {
         "type": "color",

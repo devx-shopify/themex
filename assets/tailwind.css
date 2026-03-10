@@ -2218,8 +2218,17 @@ video {
   color: rgb(29 50 74 / var(--tw-text-opacity, 1));
 }
 
+.hover\:text-\[\#0a0a0a\]:hover {
+  --tw-text-opacity: 1;
+  color: rgb(10 10 10 / var(--tw-text-opacity, 1));
+}
+
 .hover\:underline:hover {
   text-decoration-line: underline;
+}
+
+.hover\:underline-offset-4:hover {
+  text-underline-offset: 4px;
 }
 
 .hover\:opacity-100:hover {

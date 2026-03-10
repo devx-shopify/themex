@@ -43,7 +43,7 @@
   >
     <div class="mx-auto max-w-2xl {% if section.settings.text_alignment == 'left' %}mr-auto ml-0{% elsif section.settings.text_alignment == 'right' %}ml-auto mr-0{% endif %}">
       {%- if section.settings.subheading != blank -%}
-        <p class="mb-6 flex items-center justify-{{ section.settings.text_alignment }} gap-4 text-[11px] font-medium uppercase tracking-[0.3em] opacity-70">
+        <p class="mb-6 flex items-center justify-{{ section.settings.text_alignment }} gap-4 text-[11px] font-medium uppercase tracking-[0.3em]">
           <span class="hidden h-px w-8 bg-current opacity-40 sm:inline-block"></span>
           {{ section.settings.subheading }}
           <span class="hidden h-px w-8 bg-current opacity-40 sm:inline-block"></span>
@@ -65,7 +65,7 @@
       {%- if section.settings.button_text != blank -%}
         <a
           href="{{ section.settings.button_link | default: '#' }}"
-          class="inline-block border border-current bg-transparent px-10 py-4 text-sm font-medium uppercase tracking-[0.15em] transition-all duration-300 hover:bg-white hover:text-[#21170f]"
+          class="inline-block border border-current bg-transparent px-10 py-4 text-sm font-medium uppercase tracking-[0.15em] transition-all duration-300 hover:bg-white hover:text-[#0a0a0a]"
         >
           {{ section.settings.button_text }}
         </a>
@@ -141,13 +141,13 @@
       "type": "color",
       "id": "background_color",
       "label": "Background color",
-      "default": "#21170f"
+      "default": "#0a0a0a"
     },
     {
       "type": "color",
       "id": "text_color",
       "label": "Text color",
-      "default": "#FFFFFF"
+      "default": "#ffffff"
     },
     {
       "type": "range",

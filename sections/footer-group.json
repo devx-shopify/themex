@@ -5,6 +5,8 @@
     "footer": {
       "type": "footer",
       "settings": {
+        "background_color": "#0a0a0a",
+        "text_color": "#ffffff",
         "menu": "footer"
       }
     }

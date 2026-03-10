@@ -14,6 +14,8 @@
       },
       "block_order": ["announcement_1"],
       "settings": {
+        "background_color": "#0a0a0a",
+        "text_color": "#ffffff",
         "scroll_speed": 50
       }
     },

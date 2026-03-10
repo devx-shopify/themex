@@ -74,9 +74,12 @@
           <ul class="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-4">
             {%- for link in linklists[section.settings.menu].links -%}
               <li>
-                <span class="mb-5 block text-[11px] font-medium uppercase tracking-[0.25em] opacity-50">
+                <a
+                  href="{{ link.url }}"
+                  class="mb-5 block text-[11px] font-medium uppercase tracking-[0.25em] hover:underline hover:underline-offset-4"
+                >
                   {{ link.title }}
-                </span>
+                </a>
                 {%- if link.links.size > 0 -%}
                   <ul class="space-y-3">
                     {%- for child_link in link.links -%}
@@ -136,13 +139,13 @@
       "type": "color",
       "id": "background_color",
       "label": "Background color",
-      "default": "#21170f"
+      "default": "#0a0a0a"
     },
     {
       "type": "color",
       "id": "text_color",
       "label": "Text color",
-      "default": "#FFFFFF"
+      "default": "#ffffff"
     },
     {
       "type": "range",

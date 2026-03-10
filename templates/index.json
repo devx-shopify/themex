@@ -6,8 +6,8 @@
         "subheading": "A new way to build your theme",
         "heading": "themex",
         "text_alignment": "center",
-        "background_color": "#21170f",
-        "text_color": "#FFFFFF",
+        "background_color": "#0a0a0a",
+        "text_color": "#ffffff",
         "overlay_opacity": 30,
         "padding_top": 0,
         "padding_bottom": 0
