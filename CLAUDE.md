@@ -73,3 +73,17 @@ Cross-component communication uses `CustomEvent` (e.g., `cart:refresh`). DOM sel
 - **Settings IDs**: snake_case (e.g., `type_primary_font`, `color_primary`)
 - **Snippets**: use `{% render %}` (not `{% include %}`)
 - **Images**: always use lazy loading (`loading="lazy"`) except above-the-fold
+
+
+## Project Standards — MANDATORY
+
+Coding standards are provided as **plugin skills** from the `shopify-theme-standards` plugin listed in the system prompt. They are NOT files on disk — they must be invoked using the **Skill tool** before writing any code.
+
+**Before writing or modifying any file, invoke the relevant skill(s):**
+- **`.liquid` files** → invoke `shopify-theme-standards:liquid-standards`
+- **`.js` files** → invoke `shopify-theme-standards:js-standards`
+- **CSS / Tailwind / styling** → invoke `shopify-theme-standards:css-standards`
+- **Section files** → invoke `shopify-theme-standards:section-standards` and `shopify-theme-standards:section-schema-standards`
+- **New files / architecture decisions** → invoke `shopify-theme-standards:theme-architecture`
+
+**This is non-negotiable.** Do not skip this step. Do not assume CLAUDE.md alone contains all standards. The plugin skills have detailed rules and checklists that must be followed.
