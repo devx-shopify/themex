@@ -44,7 +44,7 @@ class MainCart {
         body: JSON.stringify({
           id: key,
           quantity,
-          sections: 'cart,cart-drawer',
+          sections: 'cart,cart-drawer,cart-item-count',
         }),
         signal: this.abortController.signal,
       });
@@ -57,12 +57,13 @@ class MainCart {
         this.renderCartSection(data.sections['cart']);
       }
 
-      const cartDrawer = document.querySelector('cart-drawer');
-      if (cartDrawer && data.sections?.['cart-drawer']) {
-        cartDrawer.renderSection(data.sections['cart-drawer']);
-      }
-
-      this.updateCartCount(data.item_count);
+      // Dispatch cart:rerender so the cart drawer's optimistic system handles reconciliation
+      document.documentElement.dispatchEvent(
+        new CustomEvent('cart:rerender', {
+          detail: { ...data, operationType: 'quantity-change' },
+          bubbles: true,
+        })
+      );
     } catch (error) {
       if (error.name === 'AbortError') return;
 

@@ -1,7 +1,8 @@
 {% doc %}
   Cart Item
 
-  Renders a single cart item in the cart drawer or cart page.
+  Renders a single cart item in the cart drawer.
+  Supports optimistic UI with instant quantity updates and server reconciliation.
 
   @param {line_item} item - Cart line item (required)
 
@@ -17,9 +18,20 @@
   endunless
 -%}
 
-<cart-actions class="cart-item relative flex gap-3 border-b border-border py-4" data-line-key="{{ item.key }}">
+<cart-actions
+  class="cart-item relative flex gap-3 border-b border-border py-4 transition-opacity duration-300"
+  data-line-key="{{ item.key }}"
+  data-key="{{ item.key }}"
+  data-variant-id="{{ item.variant_id }}"
+  data-product-id="{{ item.product.id }}"
+  data-item-price="{{ item.final_price }}"
+  data-item-price-formatted="{{ item.final_price | money }}"
+  data-line-price-formatted="{{ item.final_line_price | money }}"
+  data-item-properties="{}"
+  data-has-discount="{{ item.discount_allocations.size | default: 0 }}"
+>
   {%- comment -%} Image {%- endcomment -%}
-  <a href="{{ item.url }}" class="block h-20 w-20 flex-shrink-0 overflow-hidden rounded border border-border">
+  <a href="{{ item.url }}" class="cart-item-image block h-20 w-20 flex-shrink-0 overflow-hidden rounded border border-border" data-item-url>
     {%- if item.image -%}
       <img
         src="{{ item.image | image_url: width: 160 }}"
@@ -28,81 +40,85 @@
         height="80"
         loading="lazy"
         class="h-full w-full object-cover"
+        data-item-image
       >
     {%- endif -%}
   </a>
 
   {%- comment -%} Details {%- endcomment -%}
-  <div class="flex flex-1 flex-col justify-between">
+  <div class="cart-item-details flex flex-1 flex-col justify-between">
     <div>
-      <a href="{{ item.url }}" class="text-sm font-medium leading-tight">
+      <a href="{{ item.url }}" class="text-sm font-medium leading-tight" data-item-title>
         {{ item.product.title }}
       </a>
       {%- if item.variant.title != 'Default Title' -%}
-        <p class="mt-0.5 text-xs text-muted">{{ item.variant.title }}</p>
+        <p class="cart-item-variant-title mt-0.5 text-xs text-muted" data-item-variant>{{ item.variant.title }}</p>
       {%- endif -%}
-      {%- for property in item.properties -%}
-        {%- if property.last != blank -%}
-          <p class="mt-0.5 text-xs text-muted">{{ property.first }}: {{ property.last }}</p>
-        {%- endif -%}
-      {%- endfor -%}
+      <div class="cart-item-properties-container" data-item-properties-container>
+        {%- for property in item.properties -%}
+          {%- if property.last != blank -%}
+            <p class="cart-item-property mt-0.5 text-xs text-muted">{{ property.first }}: {{ property.last }}</p>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
     </div>
     <div class="flex items-center justify-between">
-      <div class="cart-item-price-container flex items-center gap-2">
-        <span class="text-sm font-medium">{{ item.final_line_price | money }}</span>
+      <div class="cart-item-price-container" data-line-total data-line-total-container>
+        <span class="text-sm font-medium" data-line-total-value>{{ item.final_line_price | money }}</span>
         {%- if item.original_line_price != item.final_line_price -%}
-          <s class="text-xs text-muted">{{ item.original_line_price | money }}</s>
+          <s class="ml-1 text-xs text-muted" data-original-price>{{ item.original_line_price | money }}</s>
         {%- endif -%}
+        {%- for discount_allocation in item.discount_allocations -%}
+          <p class="text-xs text-success">
+            {{ discount_allocation.discount_application.title | escape }} (-{{ discount_allocation.amount | money }})
+          </p>
+        {%- endfor -%}
       </div>
       <div class="flex items-center justify-between">
         {%- comment -%} Quantity controls {%- endcomment -%}
-        <div class="flex items-center gap-2 rounded border border-border">
-          {%- if item.quantity == 1 -%}
-            <button
-              type="button"
-              class="flex h-8 w-8 items-center justify-center text-muted transition-colors hover:text-error"
-              data-cart-change
-              data-line-key="{{ item.key }}"
-              data-quantity="0"
-              aria-label="{{ 'cart.remove' | t }}"
-            >
-              {% render 'icon-delete', size: 14 %}
-            </button>
-          {%- else -%}
-            <button
-              type="button"
-              class="flex h-8 w-8 items-center justify-center text-muted transition-colors hover:text-foreground"
-              data-cart-change
-              data-line-key="{{ item.key }}"
-              data-quantity="{{ item.quantity | minus: 1 }}"
-              aria-label="{{ 'cart.decrease' | t: product: item.product.title }}"
-            >
+        <div class="flex items-center rounded border border-border">
+          <button
+            type="button"
+            class="flex h-8 w-8 items-center justify-center text-muted transition-colors hover:text-foreground relative"
+            data-decrement
+            data-quantity="{%- if item.quantity <= 1 -%}0{%- else -%}{{ item.quantity | minus: 1 }}{%- endif -%}"
+            aria-label="{%- if item.quantity <= 1 -%}{{ 'cart.remove' | t }}{%- else -%}{{ 'cart.decrease' | t: product: item.product.title }}{%- endif -%}"
+          >
+            <span data-icon-minus class="{%- if item.quantity <= 1 -%}hidden {%- endif -%}flex items-center justify-center">
               {% render 'icon-minus', size: 14 %}
-            </button>
-          {%- endif -%}
+            </span>
+            <span data-icon-delete class="{%- if item.quantity > 1 -%}hidden {%- endif -%}flex items-center justify-center">
+              {% render 'icon-delete', size: 14 %}
+            </span>
+            <span class="absolute inset-0 hidden items-center justify-center" data-button-loader>
+              {% render 'icon-spinner', size: 14 %}
+            </span>
+          </button>
           <span class="min-w-[1.5rem] text-center text-sm" data-quantity-value>
             {{ item.quantity }}
           </span>
           <button
             type="button"
-            class="flex h-8 w-8 items-center justify-center text-muted transition-colors hover:text-foreground"
-            data-cart-change
-            data-line-key="{{ item.key }}"
+            class="flex h-8 w-8 items-center justify-center text-muted transition-colors hover:text-foreground relative"
+            data-plus
             data-quantity="{{ item.quantity | plus: 1 }}"
             aria-label="{{ 'cart.increase' | t: product: item.product.title }}"
           >
             {% render 'icon-plus', size: 14 %}
+            <span class="absolute inset-0 hidden items-center justify-center" data-button-loader>
+              {% render 'icon-spinner', size: 14 %}
+            </span>
           </button>
         </div>
       </div>
     </div>
   </div>
 
-  {%- comment -%} Loading overlay {%- endcomment -%}
+  {%- comment -%} Item notification {%- endcomment -%}
   <div
-    class="pointer-events-none absolute inset-0 hidden items-center justify-center bg-background/80"
-    data-cart-item-loader
+    class="absolute bottom-0 left-0 w-full overflow-hidden max-h-0 transition-all duration-300 ease-in-out"
+    data-item-notification
   >
-    {% render 'icon-spinner', size: 24 %}
+    <div class="px-3 py-1.5 text-xs font-medium text-center" data-item-notification-content></div>
   </div>
 </cart-actions>

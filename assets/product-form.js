@@ -1,124 +1,158 @@
 class ProductForm extends HTMLElement {
-  connectedCallback() {
-    this.form = this.querySelector('form[action*="/cart/add"]');
-    this.submitButton = this.form?.querySelector('button[type="submit"]');
-    this.buttonText = this.submitButton?.querySelector('[data-button-text]');
-    this.buttonLoading = this.submitButton?.querySelector('[data-button-loading]');
-    this.errorContainer = this.querySelector('[data-form-error]');
-    this.quantityInput = this.form?.querySelector('input[name="quantity"]');
+    constructor() {
+        super();
 
-    this.form?.addEventListener('submit', this.handleSubmit.bind(this));
-    this.setupQuantityControls();
-  }
+        this.submitForm = this.querySelector('form[action*="/cart/add"]');
+        this.submitButton = null;
+        this.variantIdInput = null;
 
-  setupQuantityControls() {
-    const minusBtn = this.querySelector('[data-quantity-minus]');
-    const plusBtn = this.querySelector('[data-quantity-plus]');
-
-    if (!this.quantityInput) return;
-
-    minusBtn?.addEventListener('click', () => {
-      const current = parseInt(this.quantityInput.value) || 1;
-      if (current > 1) {
-        this.quantityInput.value = current - 1;
-        minusBtn.disabled = current - 1 <= 1;
-      }
-    });
-
-    plusBtn?.addEventListener('click', () => {
-      const current = parseInt(this.quantityInput.value) || 1;
-      const max = parseInt(this.quantityInput.max) || 99;
-      if (current < max) {
-        this.quantityInput.value = current + 1;
-        if (minusBtn) minusBtn.disabled = false;
-      }
-    });
-
-    if (minusBtn) minusBtn.disabled = true;
-  }
-
-  setLoading(loading) {
-    if (!this.submitButton) return;
-
-    this.submitButton.disabled = loading;
-
-    if (this.buttonText) {
-      this.buttonText.classList.toggle('hidden', loading);
+        this.handleSubmit = this.handleSubmit.bind(this);
     }
 
-    if (this.buttonLoading) {
-      this.buttonLoading.classList.toggle('hidden', !loading);
+    connectedCallback() {
+        this.submitButton = this.submitForm?.querySelector('button[type="submit"]');
+        this.variantIdInput = this.submitForm?.querySelector('input[name="id"]');
+
+        this.submitForm?.addEventListener('submit', this.handleSubmit);
     }
-  }
 
-  showError(message) {
-    if (!this.errorContainer) return;
-    this.errorContainer.textContent = message;
-    this.errorContainer.classList.remove('hidden');
+    disconnectedCallback() {
+        this.submitForm?.removeEventListener('submit', this.handleSubmit);
+    }
 
-    setTimeout(() => {
-      this.errorContainer.classList.add('hidden');
-    }, 5000);
-  }
+    setupQuantityControls() {
+        const minusBtn = this.querySelector('[data-quantity-minus]');
+        const plusBtn = this.querySelector('[data-quantity-plus]');
+        const quantityInput = this.submitForm?.querySelector('input[name="quantity"]');
 
-  async handleSubmit(event) {
-    event.preventDefault();
+        if (!quantityInput) return;
 
-    const variantInput = this.form.querySelector('input[name="id"]');
-    const quantityInput = this.form.querySelector('input[name="quantity"]');
+        minusBtn?.addEventListener('click', () => {
+            const current = parseInt(quantityInput.value) || 1;
+            if (current > 1) {
+                quantityInput.value = current - 1;
+                minusBtn.disabled = current - 1 <= 1;
+            }
+        });
 
-    if (!variantInput) return;
+        plusBtn?.addEventListener('click', () => {
+            const current = parseInt(quantityInput.value) || 1;
+            const max = parseInt(quantityInput.max) || 99;
+            if (current < max) {
+                quantityInput.value = current + 1;
+                if (minusBtn) minusBtn.disabled = false;
+            }
+        });
 
-    this.setLoading(true);
-    if (this.errorContainer) this.errorContainer.classList.add('hidden');
+        if (minusBtn) minusBtn.disabled = true;
 
-    const body = {
-      items: [
-        {
-          id: parseInt(variantInput.value),
-          quantity: parseInt(quantityInput?.value || 1),
-        },
-      ],
-      sections: 'cart-drawer',
-    };
+        this.setupQuantityControls = () => {};
+    }
 
-    try {
-      const response = await fetch(
-        `${window.Shopify?.routes?.root || '/'}cart/add.js`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
+    handleSubmit(event) {
+        event.preventDefault();
+
+        const variantIdInput = this.submitForm.querySelector('input[name="id"]');
+        const quantityInput = this.submitForm.querySelector('input[name="quantity"]');
+
+        if (!variantIdInput || !quantityInput) return;
+
+        const variantId = variantIdInput.value;
+        const quantity = parseInt(quantityInput.value) || 1;
+
+        const productData = {
+            productId: this.dataset.productId,
+            title: this.dataset.productTitle,
+            url: this.dataset.productUrl,
+            image: this.dataset.productImage,
+            variantTitle: this.dataset.variantTitle,
+            variantPrice: parseInt(this.dataset.variantPrice),
+            variantPriceFormatted: this.dataset.variantPriceFormatted || '',
+            variantId,
+            quantity,
+            properties: {}
+        };
+
+        const cartDrawer = document.querySelector('cart-drawer');
+
+        if (!cartDrawer) {
+            this.submitForm.submit();
+            return;
         }
-      );
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.description || 'Failed to add product to cart'
-        );
-      }
+        cartDrawer.openDrawer();
+        cartDrawer.addOptimisticItem(productData);
 
-      const data = await response.json();
+        const formData = {
+            items: [
+                {
+                    id: variantId,
+                    quantity,
+                },
+            ],
+            sections: 'cart-drawer,cart-item-count',
+        };
 
-      document.dispatchEvent(
-        new CustomEvent('cart:refresh', {
-          detail: {
-            sections: data.sections,
-            itemCount: data.items?.reduce((sum, item) => sum + item.quantity, 0),
-          },
-        })
-      );
+        const requestSequenceId = ++cartDrawer.addToCartSequence;
 
-      const cartDrawer = document.querySelector('cart-drawer');
-      if (cartDrawer) cartDrawer.openDrawer();
+        const performRequest = (retryCount = 0) => {
+            return fetch(`${window.Shopify.routes.root}cart/add.js`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData),
+            })
+                .then((response) => {
+                    if (response.status === 409) {
+                        if (retryCount >= 5) throw new Error('Cart update conflict after retries');
+                        return new Promise(resolve => setTimeout(resolve, 150 * (retryCount + 1)))
+                            .then(() => performRequest(retryCount + 1));
+                    }
+                    if (!response.ok) {
+                        return response.json().then(err => {
+                            throw new Error(err.description || 'Failed to add product to cart');
+                        });
+                    }
+                    return response.json();
+                });
+        };
 
-    } catch (error) {
-      this.showError(error.message);
-    } finally {
-      this.setLoading(false);
+        const previousRequest = cartDrawer.pendingAddToCartRequest || Promise.resolve();
+
+        const requestPromise = previousRequest
+            .catch(() => { })
+            .then(() => performRequest())
+            .then((data) => {
+                const isLatest = requestSequenceId === cartDrawer.addToCartSequence;
+
+                if (isLatest) {
+                    document.documentElement.dispatchEvent(
+                        new CustomEvent('cart:rerender', {
+                            detail: data,
+                            bubbles: true,
+                        })
+                    );
+                }
+
+                return data;
+            })
+            .catch((error) => {
+                const isLatest = requestSequenceId === cartDrawer.addToCartSequence;
+
+                if (isLatest) {
+                    cartDrawer.removeOptimisticItem();
+                    cartDrawer.showNotification(error.message || 'Failed to add product. Please try again.', 'error');
+                }
+            })
+            .finally(() => {
+                if (cartDrawer.pendingAddToCartRequest === requestPromise) {
+                    cartDrawer.pendingAddToCartRequest = null;
+                }
+            });
+
+        cartDrawer.pendingAddToCartRequest = requestPromise;
     }
-  }
 }
 
 customElements.define('product-form', ProductForm);

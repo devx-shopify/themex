@@ -23,6 +23,90 @@
       </button>
     </div>
 
+    {%- comment -%} Notification - slides down below header {%- endcomment -%}
+    <div
+      class="overflow-hidden max-h-0 transition-all duration-300 ease-in-out"
+      data-cart-notification
+      role="alert"
+      aria-live="assertive"
+      aria-atomic="true"
+    >
+      <div class="px-4 py-3 text-sm font-medium" data-notification-content></div>
+    </div>
+
+    {%- comment -%} Optimistic item template {%- endcomment -%}
+    <template data-optimistic-item-template>
+      <cart-actions class="cart-item optimistic-item relative flex gap-3 border-b border-border py-4 transition-opacity duration-300">
+        <a href="#" class="cart-item-image block h-20 w-20 flex-shrink-0 overflow-hidden rounded border border-border" data-item-url>
+          <img src="" alt="" width="80" height="80" loading="lazy" class="h-full w-full object-cover" data-item-image>
+        </a>
+        <div class="cart-item-details flex flex-1 flex-col justify-between">
+          <div>
+            <a href="#" class="text-sm font-medium leading-tight" data-item-title></a>
+            <p class="cart-item-variant-title mt-0.5 text-xs text-muted hidden" data-item-variant></p>
+            <div class="cart-item-properties-container" data-item-properties-container></div>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="cart-item-price-container" data-line-total data-line-total-container>
+              <span class="text-sm font-medium" data-line-total-value></span>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center rounded border border-border">
+                <button
+                  type="button"
+                  class="flex h-8 w-8 items-center justify-center opacity-50 cursor-not-allowed"
+                  disabled
+                >
+                  {% render 'icon-delete', size: 14 %}
+                </button>
+                <span class="min-w-[1.5rem] text-center text-sm" data-quantity-value></span>
+                <button
+                  type="button"
+                  class="flex h-8 w-8 items-center justify-center opacity-50 cursor-not-allowed"
+                  disabled
+                >
+                  {% render 'icon-plus', size: 14 %}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </cart-actions>
+    </template>
+
+    {%- comment -%} Optimistic footer template {%- endcomment -%}
+    <template data-optimistic-footer-template>
+      <div class="cart-drawer-footer border-t border-border px-4 py-4" data-cart-footer>
+        <div class="mb-4 flex items-center justify-between">
+          <span class="text-sm font-medium">{{ 'cart.subtotal' | t }}</span>
+          <span class="text-lg font-bold" data-cart-subtotal></span>
+        </div>
+        <a
+          href="/checkout"
+          class="block w-full rounded bg-primary py-3 text-center text-sm font-medium text-primary-foreground transition-all duration-200 hover:shadow-md"
+          data-cart-checkout
+        >
+          <span data-checkout-text>{{ 'cart.checkout' | t }}</span>
+          <span data-checkout-loader class="hidden">
+            {% render 'icon-spinner', size: 20 %}
+          </span>
+        </a>
+      </div>
+    </template>
+
+    {%- comment -%} Empty cart template {%- endcomment -%}
+    <template data-empty-cart-template>
+      <div class="flex h-full flex-col items-center justify-center text-center" data-cart-empty>
+        <p class="mb-4 text-muted">{{ 'cart.empty_cart' | t }}</p>
+        <a
+          href="{{ routes.all_products_collection_url }}"
+          class="rounded bg-primary px-6 py-2 text-sm font-medium text-primary-foreground transition-all duration-200 hover:shadow-md"
+        >
+          {{ 'general.continue_shopping' | t }}
+        </a>
+      </div>
+    </template>
+
     {%- comment -%} Cart items {%- endcomment -%}
     <div class="cart-drawer-items flex-1 overflow-y-auto px-4 py-4" data-cart-items>
       {%- if cart.item_count > 0 -%}
@@ -44,31 +128,42 @@
 
     {%- comment -%} Footer {%- endcomment -%}
     {%- if cart.item_count > 0 -%}
-      <div class="border-t border-border px-4 py-4" data-cart-footer>
+      <div class="cart-drawer-footer border-t border-border px-4 py-4" data-cart-footer>
+        {%- comment -%} Discount applications {%- endcomment -%}
+        {%- if cart.cart_level_discount_applications.size > 0 -%}
+          <div class="mb-3 space-y-1" data-cart-discounts>
+            {%- for discount_application in cart.cart_level_discount_applications -%}
+              <div class="flex items-center justify-between text-sm text-success">
+                <span>{{ discount_application.title | escape }}</span>
+                <span>-{{ discount_application.total_allocated_amount | money }}</span>
+              </div>
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+
         <div class="mb-4 flex items-center justify-between">
           <span class="text-sm font-medium">{{ 'cart.subtotal' | t }}</span>
-          <span class="text-lg font-bold" data-cart-subtotal>{{ cart.total_price | money }}</span>
+          <div class="text-right">
+            {%- if cart.original_total_price != cart.total_price -%}
+              <s class="block text-xs text-muted">{{ cart.original_total_price | money }}</s>
+            {%- endif -%}
+            <span class="text-lg font-bold" data-cart-subtotal>{{ cart.total_price | money }}</span>
+          </div>
         </div>
-        <form action="{{ routes.cart_url }}" method="post">
-          <button
-            type="submit"
-            name="checkout"
-            class="block w-full rounded bg-primary py-3 text-center text-sm font-medium text-primary-foreground transition-all duration-200 hover:shadow-md"
-          >
-            {{ 'cart.checkout' | t }}
-          </button>
-        </form>
+        <a
+          href="/checkout"
+          class="relative block w-full rounded bg-primary py-3 text-center text-sm font-medium text-primary-foreground transition-all duration-200 hover:shadow-md"
+          data-cart-checkout
+          aria-busy="false"
+        >
+          <span data-checkout-text>{{ 'cart.checkout' | t }}</span>
+          <span data-checkout-loader class="hidden absolute inset-0 flex items-center justify-center">
+            {% render 'icon-spinner', size: 20 %}
+          </span>
+        </a>
       </div>
     {%- endif -%}
   </div>
-
-  {%- comment -%} Notification toast {%- endcomment -%}
-  <div
-    class="cart-notification fixed bottom-4 left-1/2 z-[90] hidden -translate-x-1/2 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground shadow-lg transition-all duration-300 data-[notification-type=error]:bg-error"
-    data-cart-notification
-    role="status"
-    aria-live="polite"
-  ></div>
 </cart-drawer>
 
 {% schema %}
