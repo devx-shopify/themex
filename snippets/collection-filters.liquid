@@ -58,11 +58,12 @@
           data-current-min="{{ price_current_min }}"
           data-current-max="{{ price_current_max }}"
         >
-          <div class="price-range-slider__track">
-            <div class="price-range-slider__fill" data-slider-fill></div>
+          <div class="relative h-9 w-full">
+            <div class="absolute top-1/2 left-0 h-[5px] w-full -translate-y-1/2 rounded-full bg-border pointer-events-none"></div>
+            <div class="absolute top-1/2 h-[5px] -translate-y-1/2 rounded-full bg-primary pointer-events-none" data-slider-fill></div>
             <input
               type="range"
-              class="price-range-slider__input price-range-slider__input--min"
+              class="price-range-slider__input absolute -top-2 left-0 m-0 h-full w-full appearance-none bg-transparent pointer-events-none"
               min="0"
               max="{{ price_range_max }}"
               value="{{ price_current_min }}"
@@ -72,7 +73,7 @@
             >
             <input
               type="range"
-              class="price-range-slider__input price-range-slider__input--max"
+              class="price-range-slider__input absolute -top-2 left-0 m-0 h-full w-full appearance-none bg-transparent pointer-events-none"
               min="0"
               max="{{ price_range_max }}"
               value="{{ price_current_max }}"

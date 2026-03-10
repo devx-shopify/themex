@@ -1,0 +1,45 @@
+/* Price range slider — browser pseudo-elements that Tailwind cannot target */
+.price-range-slider__input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  background-color: rgb(var(--color-primary));
+  border: 2px solid rgb(var(--color-background));
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.price-range-slider__input::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background-color: rgb(var(--color-primary));
+  border: 2px solid rgb(var(--color-background));
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.price-range-slider__input::-webkit-slider-runnable-track {
+  -webkit-appearance: none;
+  height: 5px;
+  background: transparent;
+}
+
+.price-range-slider__input::-moz-range-track {
+  height: 5px;
+  background: transparent;
+  border: none;
+}
+
+.price-range-slider__input:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid rgb(var(--color-primary));
+  outline-offset: 2px;
+}
+
+.price-range-slider__input:focus-visible::-moz-range-thumb {
+  outline: 2px solid rgb(var(--color-primary));
+  outline-offset: 2px;
+}

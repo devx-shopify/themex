@@ -165,7 +165,10 @@ class CollectionSection {
     const grid = this.section.querySelector('[data-collection-products]');
     const loader = this.section.querySelector('[data-collection-loader]');
     if (grid) grid.classList.add('opacity-50', 'pointer-events-none');
-    if (loader) loader.classList.add('is-loading');
+    if (loader) {
+      loader.classList.remove('hidden');
+      loader.classList.add('flex');
+    }
 
     const fetchUrl = new URL(url);
     fetchUrl.searchParams.set('sections', this.sectionId);
@@ -187,7 +190,10 @@ class CollectionSection {
     } catch (error) {
       if (error.name === 'AbortError') return;
       if (grid) grid.classList.remove('opacity-50', 'pointer-events-none');
-      if (loader) loader.classList.remove('is-loading');
+      if (loader) {
+        loader.classList.add('hidden');
+        loader.classList.remove('flex');
+      }
     }
   }
 
