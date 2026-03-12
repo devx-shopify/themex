@@ -1,29 +1,41 @@
-class MainCart {
-  constructor() {
-    this.container = document.querySelector('[data-cart-page]');
-    if (!this.container) return;
+/**
+ * Main Cart Page Actions.
+ * Handles quantity +/-, remove on the /cart page.
+ * Uses CartAPI for requests and cart events for coordination.
+ * Cart count updates are handled by cart-count.js via events.
+ */
+document.addEventListener('DOMContentLoaded', () => {
+  const container = document.querySelector('[data-cart-page]');
+  if (!container) return;
 
-    this.abortController = null;
-    this.bindEvents();
-  }
+  const renderCartSection = (html) => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const newContent = doc.querySelector('[data-cart-page]');
 
-  bindEvents() {
-    this.container.addEventListener('click', (e) => {
-      const btn = e.target.closest('[data-cart-change]');
-      if (!btn) return;
+    if (!newContent || !container) return;
 
-      e.preventDefault();
-      const key = btn.dataset.key;
-      const quantity = parseInt(btn.dataset.quantity);
+    const scrollY = window.scrollY;
+    container.innerHTML = newContent.innerHTML;
+    window.scrollTo(0, scrollY);
+    bindEvents();
+  };
 
-      if (key && !isNaN(quantity)) {
-        this.updateItem(key, quantity);
-      }
-    });
-  }
+  const bindEvents = () => {
+    container.addEventListener('click', handleClick);
+  };
 
-  async updateItem(key, quantity) {
-    const itemEl = this.container.querySelector(`[data-key="${key}"]`);
+  const handleClick = (e) => {
+    const btn = e.target.closest('[data-cart-change]');
+    if (!btn) return;
+
+    e.preventDefault();
+    const key = btn.dataset.key;
+    const quantity = parseInt(btn.dataset.quantity);
+
+    if (!key || isNaN(quantity)) return;
+
+    const itemEl = container.querySelector(`[data-key="${key}"]`);
     const loader = itemEl?.querySelector('[data-cart-item-loader]');
 
     if (loader) {
@@ -31,74 +43,22 @@ class MainCart {
       loader.classList.add('opacity-100');
     }
 
-    if (this.abortController) {
-      this.abortController.abort();
-    }
-    this.abortController = new AbortController();
-
-    try {
-      const root = window.Shopify?.routes?.root || '/';
-      const response = await fetch(`${root}cart/change.js`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: key,
-          quantity,
-          sections: 'cart,cart-drawer,cart-item-count',
-        }),
-        signal: this.abortController.signal,
-      });
-
-      if (!response.ok) throw new Error('Failed to update cart');
-
-      const data = await response.json();
-
-      if (data.sections?.['cart']) {
-        this.renderCartSection(data.sections['cart']);
-      }
-
-      // Dispatch cart:rerender so the cart drawer's optimistic system handles reconciliation
-      document.documentElement.dispatchEvent(
-        new CustomEvent('cart:rerender', {
-          detail: { ...data, operationType: 'quantity-change' },
-          bubbles: true,
-        })
-      );
-    } catch (error) {
-      if (error.name === 'AbortError') return;
-
-      if (loader) {
-        loader.classList.add('opacity-0', 'pointer-events-none');
-        loader.classList.remove('opacity-100');
-      }
-    }
-  }
-
-  renderCartSection(html) {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-    const newContent = doc.querySelector('[data-cart-page]');
-
-    if (!newContent || !this.container) return;
-
-    const scrollY = window.scrollY;
-    this.container.innerHTML = newContent.innerHTML;
-    window.scrollTo(0, scrollY);
-    this.bindEvents();
-  }
-
-  updateCartCount(count) {
-    if (count === undefined) return;
-
-    const badges = document.querySelectorAll('[data-cart-count]');
-    badges.forEach((badge) => {
-      badge.dataset.cartCount = count;
-      badge.textContent = count > 0 ? count : '';
-      badge.classList.toggle('hidden', count === 0);
+    // Cart page needs 'cart' section (not 'cart-drawer'), so not using CART_DEFAULT_SECTIONS
+    CartAPI.changeItem(key, quantity, {
+      debounce: false,
+      sections: 'cart,cart-drawer,cart-item-count',
     });
-  }
-}
+  };
 
-document.addEventListener('DOMContentLoaded', () => {
-  new MainCart();
+  // Listen for API success to update the cart page section
+  cartListen(CART_EVENTS.apiSuccess, (e) => {
+    if (e.detail.source !== 'change-item' && e.detail.source !== 'refresh') return;
+    const sections = e.detail.sections;
+
+    if (sections?.['cart']) {
+      renderCartSection(sections['cart']);
+    }
+  });
+
+  bindEvents();
 });

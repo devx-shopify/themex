@@ -69,7 +69,7 @@
           <s class="ml-1 text-xs text-muted" data-original-price>{{ item.original_line_price | money }}</s>
         {%- endif -%}
         {%- for discount_allocation in item.discount_allocations -%}
-          <p class="text-xs text-success">
+          <p class="text-xs text-success" data-discount-allocation>
             {{ discount_allocation.discount_application.title | escape }} (-{{ discount_allocation.amount | money }})
           </p>
         {%- endfor -%}
