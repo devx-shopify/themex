@@ -94,36 +94,30 @@ input[type='search']::-webkit-search-decoration {
   transform: translateY(-2px) rotate(-45deg);
 }
 
-/* Cart actions loading state */
-cart-actions button.loading {
-  pointer-events: none;
+/* Cart drawer loading overlay */
+.cart-drawer-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color: rgb(var(--color-background) / 0.8);
 }
 
-cart-actions button.loading svg {
-  width: 1rem;
-  height: 1rem;
+.cart-drawer-loading svg {
+  width: 2rem;
+  height: 2rem;
+  animation: spin 1s linear infinite;
 }
 
-/* Optimistic cart price placeholder */
-@keyframes cart-price-pulse {
-  0%, 100% {
-    opacity: 1;
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
   }
-  50% {
-    opacity: 0.3;
+  to {
+    transform: rotate(360deg);
   }
-}
-
-.optimistic-item [data-line-total-value]:empty {
-  display: inline-block;
-  width: 3rem;
-  height: 0.875rem;
-  border-radius: 0.125rem;
-  background-color: var(--color-border);
-  animation: cart-price-pulse 1s ease-in-out infinite;
 }
 
 /* Announcement bar scroll animation */

@@ -1,14 +1,12 @@
 /**
- * Cart Event System — Foundation Module.
+ * Cart Event System.
  * Defines all cart event names, dispatch/listen helpers, and shared constants.
  * Must load before all other cart modules.
  */
 const CART_EVENTS = {
-  addOptimistic: 'cart:add-optimistic',
-  changeOptimistic: 'cart:change-optimistic',
-  removeOptimistic: 'cart:remove-optimistic',
   apiSuccess: 'cart:api-success',
   apiError: 'cart:api-error',
+  loading: 'cart:loading',
   notify: 'cart:notify',
   drawerOpen: 'cart:drawer-open',
   drawerClose: 'cart:drawer-close',

@@ -1,18 +1,3 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@layer utilities {
-  @keyframes cart-price-pulse {
-    0%, 100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.3;
-    }
-  }
-
-  .cart-price-loading {
-    animation: cart-price-pulse 1s ease-in-out infinite;
-  }
-}

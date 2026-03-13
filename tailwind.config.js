@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  safelist: ['cart-price-loading'],
+  safelist: [],
   content: [
     './layout/**/*.liquid',
     './templates/**/*.liquid',

@@ -7,9 +7,14 @@
 
   {%- comment -%} Drawer panel {%- endcomment -%}
   <div
-    class="cart-drawer-panel fixed inset-y-0 right-0 z-[80] flex flex-col justify-between w-full max-w-md translate-x-full bg-background shadow-xl transition-transform duration-300"
+    class="cart-drawer-panel fixed inset-y-0 right-0 z-[80] flex w-full max-w-md translate-x-full flex-col justify-between bg-background shadow-xl transition-transform duration-300"
     data-cart-panel
   >
+    {%- comment -%} Loading overlay {%- endcomment -%}
+    <div class="cart-drawer-loading hidden" data-cart-loading>
+      {% render 'icon-spinner', size: 32 %}
+    </div>
+
     <div class="cart-drawer-panel-content">
       {%- comment -%} Header {%- endcomment -%}
       <div class="flex items-center justify-between border-b border-border px-4 py-4">
@@ -26,9 +31,9 @@
         </button>
       </div>
 
-      {%- comment -%} Notification - slides down below header {%- endcomment -%}
+      {%- comment -%} Notification {%- endcomment -%}
       <div
-        class="overflow-hidden max-h-0 transition-all duration-300 ease-in-out"
+        class="max-h-0 overflow-hidden transition-all duration-300 ease-in-out"
         data-cart-notification
         role="alert"
         aria-live="assertive"
@@ -37,36 +42,29 @@
         <div class="px-4 py-3 text-sm font-medium" data-notification-content></div>
       </div>
 
-      {%- comment -%} Cart items manager — handles all item DOM updates {%- endcomment -%}
-      <cart-items-manager data-context="drawer">
-        {%- comment -%} Optimistic UI templates {%- endcomment -%}
-        {% render 'cart-templates' %}
-
-        {%- comment -%} Cart items {%- endcomment -%}
-        <div class="cart-drawer-items flex-1 overflow-y-auto px-4 py-4" data-cart-items>
-          {%- if cart.item_count > 0 -%}
-            {%- for item in cart.items -%}
-              {% render 'cart-item', item: item %}
-            {%- endfor -%}
-          {%- else -%}
-            <div class="flex h-full flex-col items-center justify-center text-center" data-cart-empty>
-              <p class="mb-4 text-muted">{{ 'cart.empty_cart' | t }}</p>
-              <a
-                href="{{ routes.all_products_collection_url }}"
-                class="rounded bg-primary px-6 py-2 text-sm font-medium text-primary-foreground transition-all duration-200 hover:shadow-md"
-              >
-                {{ 'general.continue_shopping' | t }}
-              </a>
-            </div>
-          {%- endif -%}
-        </div>
-      </cart-items-manager>
+      {%- comment -%} Cart items {%- endcomment -%}
+      <div class="cart-drawer-items flex-1 overflow-y-auto px-4 py-4" data-cart-items>
+        {%- if cart.item_count > 0 -%}
+          {%- for item in cart.items -%}
+            {% render 'cart-item', item: item %}
+          {%- endfor -%}
+        {%- else -%}
+          <div class="flex h-full flex-col items-center justify-center text-center" data-cart-empty>
+            <p class="mb-4 text-muted">{{ 'cart.empty_cart' | t }}</p>
+            <a
+              href="{{ routes.all_products_collection_url }}"
+              class="rounded bg-primary px-6 py-2 text-sm font-medium text-primary-foreground transition-all duration-200 hover:shadow-md"
+            >
+              {{ 'general.continue_shopping' | t }}
+            </a>
+          </div>
+        {%- endif -%}
+      </div>
     </div>
 
     {%- comment -%} Footer {%- endcomment -%}
     {%- if cart.item_count > 0 -%}
       <div class="cart-drawer-footer border-t border-border px-4 py-4" data-cart-footer>
-        {%- comment -%} Discount applications {%- endcomment -%}
         {%- if cart.cart_level_discount_applications.size > 0 -%}
           <div class="mb-3 space-y-1" data-cart-discounts>
             {%- for discount_application in cart.cart_level_discount_applications -%}
@@ -91,12 +89,8 @@
           href="/checkout"
           class="relative block w-full rounded bg-primary py-3 text-center text-sm font-medium text-primary-foreground transition-all duration-200 hover:shadow-md"
           data-cart-checkout
-          aria-busy="false"
         >
-          <span data-checkout-text>{{ 'cart.checkout' | t }}</span>
-          <span data-checkout-loader class="hidden absolute inset-0 flex items-center justify-center">
-            {% render 'icon-spinner', size: 20 %}
-          </span>
+          {{ 'cart.checkout' | t }}
         </a>
       </div>
     {%- endif -%}

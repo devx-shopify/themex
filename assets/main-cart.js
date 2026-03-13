@@ -18,11 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const scrollY = window.scrollY;
     container.innerHTML = newContent.innerHTML;
     window.scrollTo(0, scrollY);
-    bindEvents();
-  };
-
-  const bindEvents = () => {
-    container.addEventListener('click', handleClick);
   };
 
   const handleClick = (e) => {
@@ -43,9 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
       loader.classList.add('opacity-100');
     }
 
-    // Cart page needs 'cart' section (not 'cart-drawer'), so not using CART_DEFAULT_SECTIONS
     CartAPI.changeItem(key, quantity, {
-      debounce: false,
       sections: 'cart,cart-drawer,cart-item-count',
     });
   };
@@ -60,5 +53,5 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  bindEvents();
+  container.addEventListener('click', handleClick);
 });
