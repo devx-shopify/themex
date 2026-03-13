@@ -1,0 +1,127 @@
+{% doc %}
+  Cart Templates
+
+  Client-side templates used by cart-items-manager for optimistic UI rendering.
+  Includes templates for: optimistic cart item, footer, empty cart state, and property line.
+  Must be rendered inside <cart-items-manager> so JS can query them via this.querySelector().
+
+  @example
+  {% render 'cart-templates' %}
+{% enddoc %}
+
+{%- comment -%} Optimistic item template {%- endcomment -%}
+<template data-optimistic-item-template>
+  <cart-actions
+    class="cart-item optimistic-item relative flex gap-3 border-b border-border py-4 transition-opacity duration-300"
+    data-label-remove="{{ 'cart.remove' | t | escape }}"
+    data-label-decrease="{{ 'cart.decrease' | t | escape }}"
+  >
+    <a
+      href="#"
+      class="cart-item-image block h-20 w-20 flex-shrink-0 overflow-hidden rounded border border-border"
+      data-item-url
+    >
+      <img
+        src=""
+        alt=""
+        width="80"
+        height="80"
+        loading="lazy"
+        class="h-full w-full object-cover"
+        data-item-image
+      >
+    </a>
+    <div class="flex justify-between items-start w-full">
+      <div class="cart-item-details flex flex-1 flex-col justify-start gap-1">
+        <div>
+          <a href="#" class="text-sm font-medium leading-tight" data-item-title></a>
+          <p class="cart-item-variant-title mt-0.5 text-xs text-muted hidden" data-item-variant></p>
+          <div class="cart-item-properties-container" data-item-properties-container></div>
+        </div>
+        <div class="cart-item-price-container flex flex-col gap-1" data-line-total data-line-total-container>
+          <div class="flex items-center gap-1">
+            <span class="text-sm font-medium" data-line-total-value></span>
+          </div>
+        </div>
+      </div>
+      <div class="flex items-center rounded border border-border" data-quantity-controls>
+        <button
+          type="button"
+          class="flex h-8 w-8 items-center justify-center text-muted transition-colors hover:text-foreground relative"
+          data-decrement
+          data-quantity="0"
+          disabled
+          aria-label="{{ 'cart.remove' | t }}"
+        >
+          <span data-icon-minus class="hidden items-center justify-center">
+            {% render 'icon-minus', size: 14 %}
+          </span>
+          <span data-icon-delete class="flex items-center justify-center">
+            {% render 'icon-delete', size: 14 %}
+          </span>
+          <span class="absolute inset-0 hidden items-center justify-center" data-button-loader>
+            {% render 'icon-spinner', size: 14 %}
+          </span>
+        </button>
+        <span class="min-w-[1.5rem] text-center text-sm" data-quantity-value></span>
+        <button
+          type="button"
+          class="flex h-8 w-8 items-center justify-center text-muted transition-colors hover:text-foreground relative"
+          data-plus
+          data-quantity="2"
+          disabled
+          aria-label="{{ 'cart.increase' | t }}"
+        >
+          {% render 'icon-plus', size: 14 %}
+          <span class="absolute inset-0 hidden items-center justify-center" data-button-loader>
+            {% render 'icon-spinner', size: 14 %}
+          </span>
+        </button>
+      </div>
+    </div>
+    <div
+      class="absolute bottom-0 left-0 w-full overflow-hidden max-h-0 transition-all duration-300 ease-in-out"
+      data-item-notification
+    >
+      <div class="px-3 py-1.5 text-xs font-medium text-center" data-item-notification-content></div>
+    </div>
+  </cart-actions>
+</template>
+
+{%- comment -%} Optimistic footer template {%- endcomment -%}
+<template data-optimistic-footer-template>
+  <div class="cart-drawer-footer border-t border-border px-4 py-4" data-cart-footer>
+    <div class="mb-4 flex items-center justify-between">
+      <span class="text-sm font-medium">{{ 'cart.subtotal' | t }}</span>
+      <span class="text-lg font-bold" data-cart-subtotal></span>
+    </div>
+    <a
+      href="/checkout"
+      class="block w-full rounded bg-primary py-3 text-center text-sm font-medium text-primary-foreground transition-all duration-200 hover:shadow-md"
+      data-cart-checkout
+    >
+      <span data-checkout-text>{{ 'cart.checkout' | t }}</span>
+      <span data-checkout-loader class="hidden">
+        {% render 'icon-spinner', size: 20 %}
+      </span>
+    </a>
+  </div>
+</template>
+
+{%- comment -%} Empty cart template {%- endcomment -%}
+<template data-empty-cart-template>
+  <div class="flex h-full flex-col items-center justify-center text-center" data-cart-empty>
+    <p class="mb-4 text-muted">{{ 'cart.empty_cart' | t }}</p>
+    <a
+      href="{{ routes.all_products_collection_url }}"
+      class="rounded bg-primary px-6 py-2 text-sm font-medium text-primary-foreground transition-all duration-200 hover:shadow-md"
+    >
+      {{ 'general.continue_shopping' | t }}
+    </a>
+  </div>
+</template>
+
+{%- comment -%} Cart property template for optimistic items {%- endcomment -%}
+<template data-cart-property-template>
+  <p class="cart-item-property mt-0.5 text-xs text-muted"></p>
+</template>

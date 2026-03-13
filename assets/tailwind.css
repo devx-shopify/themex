@@ -977,6 +977,10 @@ video {
   height: 1px;
 }
 
+.h-3 {
+  height: 0.75rem;
+}
+
 .max-h-0 {
   max-height: 0px;
 }
@@ -1087,6 +1091,10 @@ video {
 
 .w-px {
   width: 1px;
+}
+
+.w-3 {
+  width: 0.75rem;
 }
 
 .min-w-0 {
@@ -1270,6 +1278,10 @@ video {
 
 .items-stretch {
   align-items: stretch;
+}
+
+.justify-start {
+  justify-content: flex-start;
 }
 
 .justify-end {

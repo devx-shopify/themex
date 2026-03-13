@@ -19,7 +19,7 @@
 -%}
 
 <cart-actions
-  class="cart-item relative flex gap-3 border-b border-border py-4 transition-opacity duration-300"
+  class="cart-item relative flex gap-3 border-b border-border py-4 first:pt-0 transition-opacity duration-300"
   data-line-key="{{ item.key }}"
   data-key="{{ item.key }}"
   data-variant-id="{{ item.variant_id }}"
@@ -33,7 +33,11 @@
   data-label-decrease="{{ 'cart.decrease' | t | escape }}"
 >
   {%- comment -%} Image {%- endcomment -%}
-  <a href="{{ item.url }}" class="cart-item-image block h-20 w-20 flex-shrink-0 overflow-hidden rounded border border-border" data-item-url>
+  <a
+    href="{{ item.url }}"
+    class="cart-item-image block h-20 w-20 flex-shrink-0 overflow-hidden rounded border border-border"
+    data-item-url
+  >
     {%- if item.image -%}
       <img
         src="{{ item.image | image_url: width: 160 }}"
@@ -47,72 +51,81 @@
     {%- endif -%}
   </a>
 
-  {%- comment -%} Details {%- endcomment -%}
-  <div class="cart-item-details flex flex-1 flex-col justify-between">
-    <div>
-      <a href="{{ item.url }}" class="text-sm font-medium leading-tight" data-item-title>
-        {{ item.product.title }}
-      </a>
-      {%- if item.variant.title != 'Default Title' -%}
-        <p class="cart-item-variant-title mt-0.5 text-xs text-muted" data-item-variant>{{ item.variant.title }}</p>
-      {%- endif -%}
-      <div class="cart-item-properties-container" data-item-properties-container>
-        {%- for property in item.properties -%}
-          {%- if property.last != blank -%}
-            <p class="cart-item-property mt-0.5 text-xs text-muted">{{ property.first | escape }}: {{ property.last | escape }}</p>
-          {%- endif -%}
-        {%- endfor -%}
-      </div>
-    </div>
-    <div class="flex items-center justify-between">
-      <div class="cart-item-price-container" data-line-total data-line-total-container>
-        <span class="text-sm font-medium" data-line-total-value>{{ item.final_line_price | money }}</span>
-        {%- if item.original_line_price != item.final_line_price -%}
-          <s class="ml-1 text-xs text-muted" data-original-price>{{ item.original_line_price | money }}</s>
+  <div class="flex justify-between items-start w-full">
+    {%- comment -%} Details {%- endcomment -%}
+    <div class="cart-item-details flex flex-1 flex-col justify-start gap-1">
+      <div>
+        <a href="{{ item.url }}" class="text-sm font-medium leading-tight" data-item-title>
+          {{ item.product.title }}
+        </a>
+        {%- if item.variant.title != 'Default Title' -%}
+          <p class="cart-item-variant-title mt-0.5 text-xs text-muted" data-item-variant>{{ item.variant.title }}</p>
         {%- endif -%}
+        <div class="cart-item-properties-container" data-item-properties-container>
+          {%- for property in item.properties -%}
+            {%- if property.last != blank -%}
+              <p class="cart-item-property mt-0.5 text-xs text-muted">
+                {{ property.first | escape }}: {{ property.last | escape }}
+              </p>
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+      </div>
+      <div class="cart-item-price-container flex flex-col gap-1" data-line-total data-line-total-container>
+        <div class="flex items-center gap-1">
+          <span class="text-sm font-medium" data-line-total-value>{{ item.final_line_price | money }}</span>
+          {%- if item.original_line_price != item.final_line_price -%}
+            <s class="text-sm text-muted" data-original-price>{{ item.original_line_price | money }}</s>
+          {%- endif -%}
+        </div>
         {%- for discount_allocation in item.discount_allocations -%}
-          <p class="text-xs text-success" data-discount-allocation>
-            {{ discount_allocation.discount_application.title | escape }} (-{{ discount_allocation.amount | money }})
+          <p class="flex items-center gap-1 text-sm" data-discount-allocation>
+            {% render 'icon-discount', class: 'w-3 h-3', size: 8 %}
+            {{ discount_allocation.discount_application.title | escape }}
           </p>
         {%- endfor -%}
       </div>
-      <div class="flex items-center justify-between">
-        {%- comment -%} Quantity controls {%- endcomment -%}
-        <div class="flex items-center rounded border border-border" data-quantity-controls>
-          <button
-            type="button"
-            class="flex h-8 w-8 items-center justify-center text-muted transition-colors hover:text-foreground relative"
-            data-decrement
-            data-quantity="{%- if item.quantity <= 1 -%}0{%- else -%}{{ item.quantity | minus: 1 }}{%- endif -%}"
-            aria-label="{%- if item.quantity <= 1 -%}{{ 'cart.remove' | t }}{%- else -%}{{ 'cart.decrease' | t: product: item.product.title }}{%- endif -%}"
-          >
-            <span data-icon-minus class="{%- if item.quantity <= 1 -%}hidden {%- endif -%}flex items-center justify-center">
-              {% render 'icon-minus', size: 14 %}
-            </span>
-            <span data-icon-delete class="{%- if item.quantity > 1 -%}hidden {%- endif -%}flex items-center justify-center">
-              {% render 'icon-delete', size: 14 %}
-            </span>
-            <span class="absolute inset-0 hidden items-center justify-center" data-button-loader>
-              {% render 'icon-spinner', size: 14 %}
-            </span>
-          </button>
-          <span class="min-w-[1.5rem] text-center text-sm" data-quantity-value>
-            {{ item.quantity }}
-          </span>
-          <button
-            type="button"
-            class="flex h-8 w-8 items-center justify-center text-muted transition-colors hover:text-foreground relative"
-            data-plus
-            data-quantity="{{ item.quantity | plus: 1 }}"
-            aria-label="{{ 'cart.increase' | t: product: item.product.title }}"
-          >
-            {% render 'icon-plus', size: 14 %}
-            <span class="absolute inset-0 hidden items-center justify-center" data-button-loader>
-              {% render 'icon-spinner', size: 14 %}
-            </span>
-          </button>
-        </div>
-      </div>
+    </div>
+    {%- comment -%} Quantity controls {%- endcomment -%}
+    <div class="flex items-center rounded border border-border" data-quantity-controls>
+      <button
+        type="button"
+        class="flex h-8 w-8 items-center justify-center text-muted transition-colors hover:text-foreground relative"
+        data-decrement
+        data-quantity="{%- if item.quantity <= 1 -%}0{%- else -%}{{ item.quantity | minus: 1 }}{%- endif -%}"
+        aria-label="{%- if item.quantity <= 1 -%}{{ 'cart.remove' | t }}{%- else -%}{{ 'cart.decrease' | t: product: item.product.title }}{%- endif -%}"
+      >
+        <span
+          data-icon-minus
+          class="{%- if item.quantity <= 1 -%}hidden {%- endif -%}flex items-center justify-center"
+        >
+          {% render 'icon-minus', size: 14 %}
+        </span>
+        <span
+          data-icon-delete
+          class="{%- if item.quantity > 1 -%}hidden {%- endif -%}flex items-center justify-center"
+        >
+          {% render 'icon-delete', size: 14 %}
+        </span>
+        <span class="absolute inset-0 hidden items-center justify-center" data-button-loader>
+          {% render 'icon-spinner', size: 14 %}
+        </span>
+      </button>
+      <span class="min-w-[1.5rem] text-center text-sm" data-quantity-value>
+        {{ item.quantity }}
+      </span>
+      <button
+        type="button"
+        class="flex h-8 w-8 items-center justify-center text-muted transition-colors hover:text-foreground relative"
+        data-plus
+        data-quantity="{{ item.quantity | plus: 1 }}"
+        aria-label="{{ 'cart.increase' | t: product: item.product.title }}"
+      >
+        {% render 'icon-plus', size: 14 %}
+        <span class="absolute inset-0 hidden items-center justify-center" data-button-loader>
+          {% render 'icon-spinner', size: 14 %}
+        </span>
+      </button>
     </div>
   </div>
 
