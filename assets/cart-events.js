@@ -6,21 +6,10 @@
 const CART_EVENTS = {
   apiSuccess: 'cart:api-success',
   apiError: 'cart:api-error',
-  loading: 'cart:loading',
-  notify: 'cart:notify',
   drawerOpen: 'cart:drawer-open',
-  drawerClose: 'cart:drawer-close',
 };
 
 const CART_DEFAULT_SECTIONS = 'cart-drawer,cart-item-count';
-
-const NOTIFICATION_BG_CLASSES = ['bg-success', 'bg-error', 'bg-accent', 'bg-foreground'];
-const NOTIFICATION_STYLES = {
-  success: ['bg-success', 'text-background'],
-  error: ['bg-error', 'text-background'],
-  warning: ['bg-accent', 'text-foreground'],
-  info: ['bg-foreground', 'text-background'],
-};
 
 const cartDispatch = (eventName, detail = {}) => {
   document.dispatchEvent(new CustomEvent(eventName, { detail, bubbles: true }));

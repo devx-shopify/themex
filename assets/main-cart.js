@@ -2,11 +2,13 @@
  * Main Cart Page Actions.
  * Handles quantity +/-, remove on the /cart page.
  * Uses CartAPI for requests and cart events for coordination.
- * Cart count updates are handled by cart-count.js via events.
+ * Debounces rapid quantity clicks (300ms) to batch into a single API call.
  */
 document.addEventListener('DOMContentLoaded', () => {
   const container = document.querySelector('[data-cart-page]');
   if (!container) return;
+
+  const debounceTimers = {};
 
   const renderCartSection = (html) => {
     const parser = new DOMParser();
@@ -38,14 +40,17 @@ document.addEventListener('DOMContentLoaded', () => {
       loader.classList.add('opacity-100');
     }
 
-    CartAPI.changeItem(key, quantity, {
-      sections: 'cart,cart-drawer,cart-item-count',
-    });
+    clearTimeout(debounceTimers[key]);
+    debounceTimers[key] = setTimeout(() => {
+      delete debounceTimers[key];
+      CartAPI.changeItem(key, quantity, {
+        sections: 'cart,cart-item-count',
+      });
+    }, 300);
   };
 
-  // Listen for API success to update the cart page section
   cartListen(CART_EVENTS.apiSuccess, (e) => {
-    if (e.detail.source !== 'change-item' && e.detail.source !== 'refresh') return;
+    if (e.detail.source !== 'change-item') return;
     const sections = e.detail.sections;
 
     if (sections?.['cart']) {

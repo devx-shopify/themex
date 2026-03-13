@@ -2,6 +2,7 @@
  * Cart Drawer Web Component.
  * Handles drawer UI, section rendering, loading overlay, and quantity changes.
  * Uses event delegation for quantity buttons (survives full panel replacement).
+ * Debounces rapid quantity clicks (300ms) to batch into a single API call.
  */
 class CartDrawer extends HTMLElement {
   constructor() {
@@ -10,16 +11,13 @@ class CartDrawer extends HTMLElement {
     this.overlay = this.querySelector('[data-cart-overlay]');
     this.panel = this.querySelector('[data-cart-panel]');
     this.closeButton = this.querySelector('[data-cart-close]');
-    this.loadingOverlay = this.querySelector('[data-cart-loading]');
     this.isOpen = false;
+    this.debounceTimers = {};
 
     this.handleOverlayClick = this.handleOverlayClick.bind(this);
     this.handleEscapeKey = this.handleEscapeKey.bind(this);
     this.closeDrawer = this.closeDrawer.bind(this);
-    this.handleDrawerOpen = this.handleDrawerOpen.bind(this);
-    this.handleLoading = this.handleLoading.bind(this);
     this.handleApiSuccess = this.handleApiSuccess.bind(this);
-    this.handleApiError = this.handleApiError.bind(this);
     this.handlePanelClick = this.handlePanelClick.bind(this);
     this.handleCartTriggerClick = this.handleCartTriggerClick.bind(this);
   }
@@ -32,11 +30,8 @@ class CartDrawer extends HTMLElement {
     document.addEventListener('click', this.handleCartTriggerClick);
 
     this.unsubscribers = [
-      cartListen(CART_EVENTS.drawerOpen, this.handleDrawerOpen),
-      cartListen(CART_EVENTS.drawerClose, () => this.closeDrawer()),
-      cartListen(CART_EVENTS.loading, this.handleLoading),
+      cartListen(CART_EVENTS.drawerOpen, () => this.openDrawer()),
       cartListen(CART_EVENTS.apiSuccess, this.handleApiSuccess),
-      cartListen(CART_EVENTS.apiError, this.handleApiError),
     ];
   }
 
@@ -47,16 +42,14 @@ class CartDrawer extends HTMLElement {
     document.removeEventListener('keydown', this.handleEscapeKey);
     document.removeEventListener('click', this.handleCartTriggerClick);
 
+    for (const timer of Object.values(this.debounceTimers)) clearTimeout(timer);
+
     if (this.unsubscribers) {
       for (const unsub of this.unsubscribers) unsub();
     }
   }
 
-  /* ── Drawer UI ── */
-
-  handleDrawerOpen() {
-    this.openDrawer();
-  }
+  /* -- Drawer UI -- */
 
   handleCartTriggerClick(event) {
     const trigger = event.target.closest('[data-cart-trigger]');
@@ -110,41 +103,29 @@ class CartDrawer extends HTMLElement {
     }, 300);
   }
 
-  /* ── Loading Overlay ── */
-
-  handleLoading() {
-    this.showLoading();
-  }
+  /* -- Loading Overlay -- */
 
   showLoading() {
-    this.loadingOverlay = this.querySelector('[data-cart-loading]');
-    if (this.loadingOverlay) {
-      this.loadingOverlay.classList.remove('hidden');
-    }
+    const loader = this.querySelector('[data-cart-loading]');
+    loader?.classList.remove('hidden');
   }
 
   hideLoading() {
-    this.loadingOverlay = this.querySelector('[data-cart-loading]');
-    if (this.loadingOverlay) {
-      this.loadingOverlay.classList.add('hidden');
-    }
+    const loader = this.querySelector('[data-cart-loading]');
+    loader?.classList.add('hidden');
   }
 
-  /* ── Section Rendering ── */
+  /* -- Section Rendering -- */
 
   handleApiSuccess(event) {
     const { source, sections } = event.detail;
-    if (source !== 'add-to-cart' && source !== 'change-item' && source !== 'refresh') return;
+    if (source !== 'add-to-cart' && source !== 'change-item') return;
 
     const newCartDrawerHTML = sections?.['cart-drawer'];
     if (newCartDrawerHTML) {
       this.renderSection(newCartDrawerHTML);
     }
 
-    this.hideLoading();
-  }
-
-  handleApiError() {
     this.hideLoading();
   }
 
@@ -157,15 +138,11 @@ class CartDrawer extends HTMLElement {
 
     this.panel.innerHTML = newPanel.innerHTML;
 
-    // Re-query elements that were replaced
     this.closeButton = this.querySelector('[data-cart-close]');
-    this.loadingOverlay = this.querySelector('[data-cart-loading]');
-
-    // Re-bind close button
     this.closeButton?.addEventListener('click', this.closeDrawer);
   }
 
-  /* ── Event Delegation for Quantity Changes ── */
+  /* -- Event Delegation for Quantity Changes (debounced) -- */
 
   handlePanelClick(event) {
     const quantityButton = event.target.closest('[data-quantity]');
@@ -179,7 +156,13 @@ class CartDrawer extends HTMLElement {
 
     if (!key || isNaN(quantity)) return;
 
-    CartAPI.changeItem(key, quantity);
+    this.showLoading();
+
+    clearTimeout(this.debounceTimers[key]);
+    this.debounceTimers[key] = setTimeout(() => {
+      delete this.debounceTimers[key];
+      CartAPI.changeItem(key, quantity);
+    }, 300);
   }
 }
 

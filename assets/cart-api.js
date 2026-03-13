@@ -2,19 +2,24 @@
  * Cart API layer.
  * Single-request architecture: mutation + sections in one POST.
  * Dispatches CART_EVENTS on completion.
+ * Aborts stale in-flight requests when a new one fires.
  */
 const CartAPI = (() => {
   const rootUrl = () => window.Shopify?.routes?.root || '/';
+  let currentController = null;
 
   const post = (url, body) => {
-    cartDispatch(CART_EVENTS.loading);
+    if (currentController) currentController.abort();
+    currentController = new AbortController();
 
     return fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
+      signal: currentController.signal,
     })
       .then((response) => {
+        currentController = null;
         if (!response.ok) {
           return response.json().then((err) => {
             throw new Error(err.description || 'Cart request failed');
@@ -45,6 +50,7 @@ const CartAPI = (() => {
         return data;
       })
       .catch((error) => {
+        if (error.name === 'AbortError') return;
         cartDispatch(CART_EVENTS.apiError, {
           source: 'add-to-cart',
           error,
@@ -74,6 +80,7 @@ const CartAPI = (() => {
         return data;
       })
       .catch((error) => {
+        if (error.name === 'AbortError') return;
         cartDispatch(CART_EVENTS.apiError, {
           source: 'change-item',
           error,
