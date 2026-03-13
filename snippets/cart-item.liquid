@@ -27,8 +27,10 @@
   data-item-price="{{ item.final_price }}"
   data-item-price-formatted="{{ item.final_price | money }}"
   data-line-price-formatted="{{ item.final_line_price | money }}"
-  data-item-properties="{}"
+  data-item-properties="{{ item.properties | json | escape }}"
   data-has-discount="{{ item.discount_allocations.size | default: 0 }}"
+  data-label-remove="{{ 'cart.remove' | t | escape }}"
+  data-label-decrease="{{ 'cart.decrease' | t | escape }}"
 >
   {%- comment -%} Image {%- endcomment -%}
   <a href="{{ item.url }}" class="cart-item-image block h-20 w-20 flex-shrink-0 overflow-hidden rounded border border-border" data-item-url>
@@ -57,7 +59,7 @@
       <div class="cart-item-properties-container" data-item-properties-container>
         {%- for property in item.properties -%}
           {%- if property.last != blank -%}
-            <p class="cart-item-property mt-0.5 text-xs text-muted">{{ property.first }}: {{ property.last }}</p>
+            <p class="cart-item-property mt-0.5 text-xs text-muted">{{ property.first | escape }}: {{ property.last | escape }}</p>
           {%- endif -%}
         {%- endfor -%}
       </div>
@@ -76,7 +78,7 @@
       </div>
       <div class="flex items-center justify-between">
         {%- comment -%} Quantity controls {%- endcomment -%}
-        <div class="flex items-center rounded border border-border">
+        <div class="flex items-center rounded border border-border" data-quantity-controls>
           <button
             type="button"
             class="flex h-8 w-8 items-center justify-center text-muted transition-colors hover:text-foreground relative"

@@ -18,11 +18,13 @@
             "price_formatted": {{ variant.price | money | json }},
             "compare_at_price_formatted": {{ variant.compare_at_price | money | json }},
             "featured_media_id": {{ variant.featured_media.id | default: 'null' }},
+            "image": {{ variant.featured_image | image_url: width: 160 | default: '' | json }},
             "options": {{ variant.options | json }}
           }{%- unless forloop.last -%},{%- endunless -%}
         {%- endfor -%}
       ],
-      "options": {{ product.options_with_values | json }}
+      "options": {{ product.options_with_values | json }},
+      "featured_image": {{ product.featured_image | image_url: width: 160 | default: '' | json }}
     }
   </script>
 

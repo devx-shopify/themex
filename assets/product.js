@@ -83,6 +83,14 @@ document.addEventListener('DOMContentLoaded', () => {
           window.theme?.strings?.addToCart || 'Add to cart';
       }
     }
+
+    const productFormEl = document.querySelector('product-form');
+    if (productFormEl) {
+      productFormEl.dataset.variantTitle = variant.title || '';
+      productFormEl.dataset.variantPrice = variant.price ?? '';
+      productFormEl.dataset.variantPriceFormatted = variant.price_formatted || '';
+      productFormEl.dataset.productImage = variant.image || productData.featured_image || '';
+    }
   }
 
   function updateURL(variantId) {

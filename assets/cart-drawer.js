@@ -21,22 +21,18 @@ class CartDrawer extends HTMLElement {
     this.closeDrawer = this.closeDrawer.bind(this);
     this.handleDrawerOpen = this.handleDrawerOpen.bind(this);
     this.handleApiSuccess = this.handleApiSuccess.bind(this);
+    this.handleCheckoutClick = this.handleCheckoutClick.bind(this);
+    this.handleCartTriggerClick = this.handleCartTriggerClick.bind(this);
   }
 
   connectedCallback() {
     this.checkoutButton = this.querySelector('[data-cart-checkout]');
     if (this.checkoutButton && !this.checkoutButton.hasAttribute('data-checkout-handler-attached')) {
-      this.checkoutButton.addEventListener('click', this.handleCheckoutClick.bind(this));
+      this.checkoutButton.addEventListener('click', this.handleCheckoutClick);
       this.checkoutButton.setAttribute('data-checkout-handler-attached', 'true');
     }
 
-    document.addEventListener('click', (e) => {
-      const trigger = e.target.closest('[data-cart-trigger]');
-      if (trigger) {
-        e.preventDefault();
-        this.openDrawer();
-      }
-    });
+    document.addEventListener('click', this.handleCartTriggerClick);
 
     this.closeButton?.addEventListener('click', this.closeDrawer);
     this.overlay?.addEventListener('click', this.handleOverlayClick);
@@ -53,6 +49,7 @@ class CartDrawer extends HTMLElement {
     this.closeButton?.removeEventListener('click', this.closeDrawer);
     this.overlay?.removeEventListener('click', this.handleOverlayClick);
     document.removeEventListener('keydown', this.handleEscapeKey);
+    document.removeEventListener('click', this.handleCartTriggerClick);
 
     if (this.unsubscribers) {
       for (const unsub of this.unsubscribers) unsub();
@@ -65,6 +62,14 @@ class CartDrawer extends HTMLElement {
 
   handleDrawerOpen() {
     this.openDrawer();
+  }
+
+  handleCartTriggerClick(event) {
+    const trigger = event.target.closest('[data-cart-trigger]');
+    if (trigger) {
+      event.preventDefault();
+      this.openDrawer();
+    }
   }
 
   handleOverlayClick(event) {
@@ -114,18 +119,20 @@ class CartDrawer extends HTMLElement {
   }
 
   handleApiSuccess(event) {
-    if (event.detail.source !== 'add-to-cart') return;
+    const { source } = event.detail;
+    if (source !== 'add-to-cart' && source !== 'change-item' && source !== 'refresh') return;
 
-    // Re-bind checkout button after DOM updates
+    // Re-bind checkout button after DOM updates (footer innerHTML may have been replaced)
     this.checkoutButton = this.querySelector('[data-cart-checkout]');
     if (this.checkoutButton && !this.checkoutButton.hasAttribute('data-checkout-handler-attached')) {
-      this.checkoutButton.addEventListener('click', this.handleCheckoutClick.bind(this));
+      this.checkoutButton.addEventListener('click', this.handleCheckoutClick);
       this.checkoutButton.setAttribute('data-checkout-handler-attached', 'true');
     }
 
-    // Start auto-close timer on first add-to-cart
-    if (this.autoCloseTimer) {
-      clearTimeout(this.autoCloseTimer);
+    if (source === 'add-to-cart') {
+      if (this.autoCloseTimer) {
+        clearTimeout(this.autoCloseTimer);
+      }
     }
 
     if (!this.checkoutPending) {

@@ -203,10 +203,12 @@ const CartState = (() => {
     return properties;
   };
 
-  // Auto-reconcile on API success
+  // Auto-reconcile on API success for both add-to-cart and quantity changes
   cartListen(CART_EVENTS.apiSuccess, (e) => {
-    if (e.detail.source !== 'add-to-cart') return;
-    const serverItems = e.detail.items || [];
+    const { source, items } = e.detail;
+    if (source !== 'add-to-cart' && source !== 'change-item' && source !== 'refresh') return;
+
+    const serverItems = items || [];
     const warnings = reconcile(serverItems);
     for (const warning of warnings) {
       cartDispatch(CART_EVENTS.notify, warning);

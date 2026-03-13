@@ -1212,10 +1212,6 @@ video {
   animation: spin 1s linear infinite;
 }
 
-.cursor-not-allowed {
-  cursor: not-allowed;
-}
-
 .cursor-pointer {
   cursor: pointer;
 }
@@ -2033,10 +2029,6 @@ video {
 
 .opacity-40 {
   opacity: 0.4;
-}
-
-.opacity-50 {
-  opacity: 0.5;
 }
 
 .opacity-60 {

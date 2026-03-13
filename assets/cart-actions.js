@@ -5,7 +5,9 @@
  * Uses CartAPI for server requests and events for coordination.
  */
 class CartActions extends HTMLElement {
-  static MAX_QUANTITY = 5;
+  static get MAX_QUANTITY() {
+    return CartState.MAX_QUANTITY;
+  }
 
   constructor() {
     super();
@@ -44,7 +46,33 @@ class CartActions extends HTMLElement {
     }
   }
 
+  refreshButtons() {
+    this.decrementButton?.removeEventListener('click', this.handleChange);
+    this.plusButton?.removeEventListener('click', this.handleChange);
+
+    this.decrementButton = this.querySelector('[data-decrement]');
+    this.plusButton = this.querySelector('[data-plus]');
+
+    this.decrementButton?.addEventListener('click', this.handleChange);
+    this.plusButton?.addEventListener('click', this.handleChange);
+
+    if (this.decrementButton) this.decrementButton.removeAttribute('disabled');
+    if (this.plusButton) this.plusButton.removeAttribute('disabled');
+
+    const quantityDisplay = this.querySelector('[data-quantity-value]');
+    this.serverQuantity = parseInt(quantityDisplay?.textContent) || 1;
+
+    this.updateButtonStates();
+  }
+
   updateButtonStates() {
+    if (this.decrementButton && !this.decrementButton.isConnected) {
+      this.decrementButton = this.querySelector('[data-decrement]');
+    }
+    if (this.plusButton && !this.plusButton.isConnected) {
+      this.plusButton = this.querySelector('[data-plus]');
+    }
+
     const quantityDisplay = this.querySelector('[data-quantity-value]');
     const currentQuantity = parseInt(quantityDisplay?.textContent) || 1;
     const maxQuantity = CartActions.MAX_QUANTITY;
@@ -77,20 +105,23 @@ class CartActions extends HTMLElement {
       const iconMinus = this.decrementButton.querySelector('[data-icon-minus]');
       const iconDelete = this.decrementButton.querySelector('[data-icon-delete]');
 
+      const labelRemove = this.dataset.labelRemove || 'Remove item';
+      const labelDecrease = this.dataset.labelDecrease || 'Decrease quantity';
+
       if (currentQuantity <= 1) {
         iconMinus?.classList.add('hidden');
         iconMinus?.classList.remove('flex');
         iconDelete?.classList.remove('hidden');
         iconDelete?.classList.add('flex');
         this.decrementButton.setAttribute('data-quantity', '0');
-        this.decrementButton.setAttribute('aria-label', 'Remove item');
+        this.decrementButton.setAttribute('aria-label', labelRemove);
       } else {
         iconMinus?.classList.remove('hidden');
         iconMinus?.classList.add('flex');
         iconDelete?.classList.add('hidden');
         iconDelete?.classList.remove('flex');
         this.decrementButton.setAttribute('data-quantity', String(currentQuantity - 1));
-        this.decrementButton.setAttribute('aria-label', 'Decrease quantity');
+        this.decrementButton.setAttribute('aria-label', labelDecrease);
       }
     }
   }

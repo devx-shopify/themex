@@ -124,7 +124,7 @@ class CartItemsManager extends HTMLElement {
     const quantityValue = optimisticItem.querySelector('[data-quantity-value]');
 
     if (itemUrl) itemUrl.href = productData.url;
-    if (itemImage) {
+    if (itemImage && productData.image) {
       itemImage.src = productData.image;
       itemImage.alt = productData.title;
     }
@@ -151,9 +151,9 @@ class CartItemsManager extends HTMLElement {
 
     if (quantityValue) quantityValue.textContent = productData.quantity;
 
-    const lineTotalValueEl = optimisticItem.querySelector('[data-line-total-value]');
-    if (lineTotalValueEl && productData.variantPriceFormatted) {
-      lineTotalValueEl.textContent = productData.variantPriceFormatted;
+    const lineTotalContainer = optimisticItem.querySelector('[data-line-total-container]') || optimisticItem.querySelector('[data-line-total]');
+    if (lineTotalContainer) {
+      lineTotalContainer.classList.add('cart-price-loading');
     }
 
     cartItemsContainer.insertBefore(optimisticItem, cartItemsContainer.firstChild);
@@ -244,22 +244,53 @@ class CartItemsManager extends HTMLElement {
       .map((itemEl) => this.extractCartItemData(itemEl));
 
     const matchedNewItems = new Set();
+    const matchedCurrentItems = new Set();
 
     for (const currentItem of currentCartItems) {
       const matchedNewItem = newCartItems.find((newItem) => {
+        if (matchedNewItems.has(newItem)) return false;
         const match = this.matchCartItems(currentItem, [newItem.data]);
         return match === newItem.data;
       });
 
       if (matchedNewItem) {
         matchedNewItems.add(matchedNewItem);
+        matchedCurrentItems.add(currentItem);
         this.updateCartItemElement(currentItem.element, matchedNewItem.data, matchedNewItem.element);
       }
     }
 
+    // Cart Transform detection — if too many items are unmatched on both sides,
+    // the server likely restructured lines (merge/expand). Fall back to full replacement.
+    const unmatchedCurrent = currentCartItems.filter((item) =>
+      !matchedCurrentItems.has(item) && !item.element.classList.contains('optimistic-item')
+    );
+    const unmatchedNew = newCartItems.filter((item) => !matchedNewItems.has(item));
+    const totalItems = Math.max(currentCartItems.length, newCartItems.length);
+
+    if (totalItems > 1 && unmatchedCurrent.length > 0 && unmatchedNew.length > 0
+      && (unmatchedCurrent.length + unmatchedNew.length) > totalItems * 0.5) {
+      return false;
+    }
+
     // Add items that exist in server but not in current DOM
-    const newItemsToAdd = newCartItems.filter((item) => !matchedNewItems.has(item));
+    const newItemsToAdd = unmatchedNew;
     if (newItemsToAdd.length > 0) {
+      // Detect free gifts — server items with variant IDs not present in current DOM
+      const currentVariantIds = new Set(
+        currentCartItems.map((item) => item.variantId).filter(Boolean)
+      );
+
+      for (const newItem of newItemsToAdd) {
+        if (newItem.data.variantId && !currentVariantIds.has(newItem.data.variantId)) {
+          cartDispatch(CART_EVENTS.notify, {
+            message: `${newItem.data.title || 'Free gift'} added to your cart!`,
+            type: 'success',
+            duration: 4000,
+          });
+        }
+      }
+
       const fragment = document.createDocumentFragment();
       for (const newItem of newItemsToAdd) {
         if (newItem.element) {
@@ -281,21 +312,26 @@ class CartItemsManager extends HTMLElement {
     }
 
     // Remove items that no longer exist on server (keep optimistic items)
-    const newItemKeys = new Set(newCartItems.map((item) => item.data.key).filter(Boolean));
-    const newItemVariantIds = new Set(newCartItems.map((item) => item.data.variantId).filter(Boolean));
-
+    // Falls back to variant+properties matching when key changes (e.g., discount Functions)
     for (const currentItem of currentCartItems) {
-      const isInServerResponse = (currentItem.key && newItemKeys.has(currentItem.key))
-        || (!currentItem.key && currentItem.variantId && newItemVariantIds.has(currentItem.variantId));
+      if (matchedCurrentItems.has(currentItem)) continue;
+      if (currentItem.element.classList.contains('optimistic-item')) continue;
+
+      const isInServerResponse = newCartItems.some((newItem) => {
+        if (currentItem.key && newItem.data.key && currentItem.key === newItem.data.key) return true;
+        if (currentItem.variantId && newItem.data.variantId === currentItem.variantId) {
+          return CartState.propertiesMatch(currentItem.properties || {}, newItem.data.properties || {});
+        }
+        return false;
+      });
 
       if (!isInServerResponse) {
-        if (currentItem.element.classList.contains('optimistic-item')) continue;
         currentItem.element.classList.add('opacity-0');
         setTimeout(() => currentItem.element.remove(), 300);
       }
     }
 
-    // Update footer
+    // Update footer — includes cart-level discounts, struck-through originals from server
     const currentFooter = this.closest('cart-drawer')?.querySelector('.cart-drawer-footer');
     const newFooter = newPanel.querySelector('.cart-drawer-footer');
     if (newFooter) {
@@ -309,9 +345,12 @@ class CartItemsManager extends HTMLElement {
           panel.appendChild(clonedFooter);
         }
       }
+    } else if (currentFooter && newCartItems.length === 0) {
+      currentFooter.classList.add('hidden');
     }
 
-    // Re-init button states on all cart-actions
+    // Button re-init is handled by refreshButtons() called from updateCartItemElement().
+    // Re-init any remaining cart-actions that weren't updated via selective diff.
     const allCartActions = this.querySelectorAll('cart-actions');
     for (const actions of allCartActions) {
       if (actions.updateButtonStates) {
@@ -424,6 +463,7 @@ class CartItemsManager extends HTMLElement {
 
   updateCartItemElement(currentElement, newData, newElement = null) {
     if (newElement) {
+      // Replace price container innerHTML — includes discount allocations
       const newPriceContainer = newElement.querySelector('[data-line-total-container]') || newElement.querySelector('[data-line-total]');
       const currentPriceContainer = currentElement.querySelector('[data-line-total-container]') || currentElement.querySelector('[data-line-total]');
       if (newPriceContainer && currentPriceContainer) {
@@ -431,17 +471,18 @@ class CartItemsManager extends HTMLElement {
         currentPriceContainer.classList.remove('cart-price-loading');
       }
 
-      // Update discount allocations using data attribute
-      const newDiscountEls = newElement.querySelectorAll('[data-discount-allocation]');
-      const currentDiscountEls = currentElement.querySelectorAll('[data-discount-allocation]');
-      for (const el of currentDiscountEls) {
-        el.remove();
+      // Replace entire quantity controls from server HTML
+      const newQuantityControls = newElement.querySelector('[data-quantity-controls]');
+      const currentQuantityControls = currentElement.querySelector('[data-quantity-controls]');
+      if (newQuantityControls && currentQuantityControls) {
+        currentQuantityControls.innerHTML = newQuantityControls.innerHTML;
       }
-      const priceContainer = currentElement.querySelector('[data-line-total-container]') || currentElement.querySelector('[data-line-total]');
-      if (priceContainer) {
-        for (const el of newDiscountEls) {
-          priceContainer.parentNode.insertBefore(el.cloneNode(true), priceContainer.nextSibling);
-        }
+
+      // Update data-key from server
+      const newKey = newElement.getAttribute('data-key');
+      if (newKey) {
+        currentElement.setAttribute('data-key', newKey);
+        currentElement.setAttribute('data-line-key', newKey);
       }
     } else {
       const priceEl = currentElement.querySelector('[data-line-total-value]');
@@ -453,28 +494,6 @@ class CartItemsManager extends HTMLElement {
     const quantityEl = currentElement.querySelector('[data-quantity-value]');
     if (quantityEl && newData.quantity !== null) {
       quantityEl.textContent = newData.quantity.toString();
-    }
-
-    if (newElement) {
-      // Update quantity controls from server HTML
-      const newDecrement = newElement.querySelector('[data-decrement]');
-      const currentDecrement = currentElement.querySelector('[data-decrement]');
-      if (newDecrement && currentDecrement) {
-        currentDecrement.setAttribute('data-quantity', newDecrement.getAttribute('data-quantity') || '0');
-      }
-
-      const newPlus = newElement.querySelector('[data-plus]');
-      const currentPlus = currentElement.querySelector('[data-plus]');
-      if (newPlus && currentPlus) {
-        currentPlus.setAttribute('data-quantity', newPlus.getAttribute('data-quantity') || '0');
-      }
-
-      // Update data-key from server
-      const newKey = newElement.getAttribute('data-key');
-      if (newKey) {
-        currentElement.setAttribute('data-key', newKey);
-        currentElement.setAttribute('data-line-key', newKey);
-      }
     }
 
     if (newData.variantId) {
@@ -551,6 +570,11 @@ class CartItemsManager extends HTMLElement {
           }
         }
       }
+    }
+
+    // Re-initialize button references and event listeners after HTML replacement
+    if (currentElement.refreshButtons) {
+      currentElement.refreshButtons();
     }
   }
 

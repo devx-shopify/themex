@@ -38,7 +38,10 @@
     <cart-items-manager data-context="drawer">
       {%- comment -%} Optimistic item template {%- endcomment -%}
       <template data-optimistic-item-template>
-        <cart-actions class="cart-item optimistic-item relative flex gap-3 border-b border-border py-4 transition-opacity duration-300">
+        <cart-actions class="cart-item optimistic-item relative flex gap-3 border-b border-border py-4 transition-opacity duration-300"
+          data-label-remove="{{ 'cart.remove' | t | escape }}"
+          data-label-decrease="{{ 'cart.decrease' | t | escape }}"
+        >
           <a href="#" class="cart-item-image block h-20 w-20 flex-shrink-0 overflow-hidden rounded border border-border" data-item-url>
             <img src="" alt="" width="80" height="80" loading="lazy" class="h-full w-full object-cover" data-item-image>
           </a>
@@ -53,21 +56,38 @@
                 <span class="text-sm font-medium" data-line-total-value></span>
               </div>
               <div class="flex items-center justify-between">
-                <div class="flex items-center rounded border border-border">
+                <div class="flex items-center rounded border border-border" data-quantity-controls>
                   <button
                     type="button"
-                    class="flex h-8 w-8 items-center justify-center opacity-50 cursor-not-allowed"
+                    class="flex h-8 w-8 items-center justify-center text-muted transition-colors hover:text-foreground relative"
+                    data-decrement
+                    data-quantity="0"
                     disabled
+                    aria-label="{{ 'cart.remove' | t }}"
                   >
-                    {% render 'icon-delete', size: 14 %}
+                    <span data-icon-minus class="hidden items-center justify-center">
+                      {% render 'icon-minus', size: 14 %}
+                    </span>
+                    <span data-icon-delete class="flex items-center justify-center">
+                      {% render 'icon-delete', size: 14 %}
+                    </span>
+                    <span class="absolute inset-0 hidden items-center justify-center" data-button-loader>
+                      {% render 'icon-spinner', size: 14 %}
+                    </span>
                   </button>
                   <span class="min-w-[1.5rem] text-center text-sm" data-quantity-value></span>
                   <button
                     type="button"
-                    class="flex h-8 w-8 items-center justify-center opacity-50 cursor-not-allowed"
+                    class="flex h-8 w-8 items-center justify-center text-muted transition-colors hover:text-foreground relative"
+                    data-plus
+                    data-quantity="2"
                     disabled
+                    aria-label="{{ 'cart.increase' | t }}"
                   >
                     {% render 'icon-plus', size: 14 %}
+                    <span class="absolute inset-0 hidden items-center justify-center" data-button-loader>
+                      {% render 'icon-spinner', size: 14 %}
+                    </span>
                   </button>
                 </div>
               </div>
