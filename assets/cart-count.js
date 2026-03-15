@@ -1,9 +1,10 @@
 /**
  * Cart Count Badge Manager.
- * Updates all [data-cart-count] and [data-cart-heading-count] elements
- * from server section response.
+ * Updates all [data-cart-count] and [data-cart-heading-count] elements.
+ * Exposes CartCount.update() for optimistic count updates.
+ * Reconciles with server truth via apiSuccess listener.
  */
-document.addEventListener('DOMContentLoaded', () => {
+const CartCount = (() => {
   const updateAllBadges = (count) => {
     const badges = document.querySelectorAll('[data-cart-count]');
     for (const badge of badges) {
@@ -22,17 +23,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  cartListen(CART_EVENTS.apiSuccess, (e) => {
-    const sections = e.detail.sections;
-    if (!sections?.['cart-item-count']) return;
+  const getCurrent = () => {
+    const badge = document.querySelector('[data-cart-count]');
+    return badge ? parseInt(badge.getAttribute('data-cart-count')) || 0 : 0;
+  };
 
-    const temp = document.createElement('div');
-    temp.innerHTML = sections['cart-item-count'];
-    const newCountElement = temp.querySelector('[data-cart-count]');
+  document.addEventListener('DOMContentLoaded', () => {
+    cartListen(CART_EVENTS.apiSuccess, (e) => {
+      const sections = e.detail.sections;
+      if (!sections?.['cart-item-count']) return;
 
-    if (newCountElement) {
-      const count = parseInt(newCountElement.getAttribute('data-cart-count')) || 0;
-      updateAllBadges(count);
-    }
+      const temp = document.createElement('div');
+      temp.innerHTML = sections['cart-item-count'];
+      const newCountElement = temp.querySelector('[data-cart-count]');
+
+      if (newCountElement) {
+        const count = parseInt(newCountElement.getAttribute('data-cart-count')) || 0;
+        updateAllBadges(count);
+      }
+    });
   });
-});
+
+  return { update: updateAllBadges, getCurrent };
+})();

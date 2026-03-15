@@ -18,9 +18,17 @@
 -%}
 
 <div
-  class="cart-item relative flex gap-3 border-b border-border py-4 first:pt-0 transition-opacity duration-300"
+  class="cart-item relative flex gap-3 border-b border-border py-4 first:pt-0 transition-all duration-300"
   data-key="{{ item.key }}"
 >
+  {%- comment -%} Per-item loading overlay {%- endcomment -%}
+  <div
+    class="absolute inset-0 z-10 flex items-center justify-center bg-background/75 opacity-0 pointer-events-none transition-opacity duration-200"
+    data-cart-item-loader
+  >
+    {% render 'icon-spinner', size: 20 %}
+  </div>
+
   {%- comment -%} Image {%- endcomment -%}
   <a
     href="{{ item.url }}"
@@ -77,7 +85,7 @@
       <button
         type="button"
         class="flex h-8 w-8 items-center justify-center text-muted transition-colors hover:text-foreground"
-        data-quantity="{%- if item.quantity <= 1 -%}0{%- else -%}{{ item.quantity | minus: 1 }}{%- endif -%}"
+        data-action="decrement"
         aria-label="{%- if item.quantity <= 1 -%}{{ 'cart.remove' | t }}{%- else -%}{{ 'cart.decrease' | t: product: item.product.title }}{%- endif -%}"
       >
         {%- if item.quantity <= 1 -%}
@@ -86,13 +94,13 @@
           {% render 'icon-minus', size: 14 %}
         {%- endif -%}
       </button>
-      <span class="min-w-[1.5rem] text-center text-sm">
+      <span class="min-w-[1.5rem] text-center text-sm" data-item-quantity>
         {{ item.quantity }}
       </span>
       <button
         type="button"
         class="flex h-8 w-8 items-center justify-center text-muted transition-colors hover:text-foreground"
-        data-quantity="{{ item.quantity | plus: 1 }}"
+        data-action="increment"
         aria-label="{{ 'cart.increase' | t: product: item.product.title }}"
       >
         {% render 'icon-plus', size: 14 %}

@@ -10,11 +10,6 @@
     class="cart-drawer-panel fixed inset-y-0 right-0 z-[80] flex w-full max-w-md translate-x-full flex-col justify-between bg-background shadow-xl transition-transform duration-300"
     data-cart-panel
   >
-    {%- comment -%} Loading overlay {%- endcomment -%}
-    <div class="cart-drawer-loading hidden" data-cart-loading>
-      {% render 'icon-spinner', size: 32 %}
-    </div>
-
     <div class="cart-drawer-panel-content">
       {%- comment -%} Header {%- endcomment -%}
       <div class="flex items-center justify-between border-b border-border px-4 py-4">
@@ -75,7 +70,7 @@
           </div>
         </div>
         <a
-          href="/checkout"
+          href="{{ routes.checkout_url }}"
           class="relative block w-full rounded bg-primary py-3 text-center text-sm font-medium text-primary-foreground transition-all duration-200 hover:shadow-md"
           data-cart-checkout
         >

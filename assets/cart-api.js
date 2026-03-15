@@ -2,24 +2,24 @@
  * Cart API layer.
  * Single-request architecture: mutation + sections in one POST.
  * Dispatches CART_EVENTS on completion.
- * Aborts stale in-flight requests when a new one fires.
+ * Aborts stale in-flight requests per operation type (add vs change).
  */
 const CartAPI = (() => {
   const rootUrl = () => window.Shopify?.routes?.root || '/';
-  let currentController = null;
+  const controllers = { add: null, change: null };
 
-  const post = (url, body) => {
-    if (currentController) currentController.abort();
-    currentController = new AbortController();
+  const post = (url, body, type) => {
+    if (controllers[type]) controllers[type].abort();
+    controllers[type] = new AbortController();
 
     return fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
-      signal: currentController.signal,
+      signal: controllers[type].signal,
     })
       .then((response) => {
-        currentController = null;
+        controllers[type] = null;
         if (!response.ok) {
           return response.json().then((err) => {
             throw new Error(err.description || 'Cart request failed');
@@ -39,7 +39,7 @@ const CartAPI = (() => {
     return post(`${rootUrl()}cart/add.js`, {
       items: formData.items,
       sections,
-    })
+    }, 'add')
       .then((data) => {
         cartDispatch(CART_EVENTS.apiSuccess, {
           source: 'add-to-cart',
@@ -69,7 +69,7 @@ const CartAPI = (() => {
       id: itemKey,
       quantity,
       sections,
-    })
+    }, 'change')
       .then((data) => {
         cartDispatch(CART_EVENTS.apiSuccess, {
           source: 'change-item',

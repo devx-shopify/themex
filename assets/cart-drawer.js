@@ -1,8 +1,9 @@
 /**
  * Cart Drawer Web Component.
- * Handles drawer UI, section rendering, loading overlay, and quantity changes.
- * Uses event delegation for quantity buttons (survives full panel replacement).
- * Debounces rapid quantity clicks (300ms) to batch into a single API call.
+ * Optimistic UI: quantity + count badge update instantly on click.
+ * Server-authoritative: section re-render reconciles prices, discounts, totals.
+ * Uses event delegation for all panel interactions (survives innerHTML replacement).
+ * Tracks pending quantities to accumulate rapid clicks correctly.
  */
 class CartDrawer extends HTMLElement {
   constructor() {
@@ -10,20 +11,22 @@ class CartDrawer extends HTMLElement {
 
     this.overlay = this.querySelector('[data-cart-overlay]');
     this.panel = this.querySelector('[data-cart-panel]');
-    this.closeButton = this.querySelector('[data-cart-close]');
     this.isOpen = false;
     this.debounceTimers = {};
+    this.pendingQuantities = {};
+    this.animatingRemovals = new Set();
+    this.pendingRender = null;
 
     this.handleOverlayClick = this.handleOverlayClick.bind(this);
     this.handleEscapeKey = this.handleEscapeKey.bind(this);
     this.closeDrawer = this.closeDrawer.bind(this);
     this.handleApiSuccess = this.handleApiSuccess.bind(this);
+    this.handleApiError = this.handleApiError.bind(this);
     this.handlePanelClick = this.handlePanelClick.bind(this);
     this.handleCartTriggerClick = this.handleCartTriggerClick.bind(this);
   }
 
   connectedCallback() {
-    this.closeButton?.addEventListener('click', this.closeDrawer);
     this.overlay?.addEventListener('click', this.handleOverlayClick);
     this.panel?.addEventListener('click', this.handlePanelClick);
     document.addEventListener('keydown', this.handleEscapeKey);
@@ -32,11 +35,11 @@ class CartDrawer extends HTMLElement {
     this.unsubscribers = [
       cartListen(CART_EVENTS.drawerOpen, () => this.openDrawer()),
       cartListen(CART_EVENTS.apiSuccess, this.handleApiSuccess),
+      cartListen(CART_EVENTS.apiError, this.handleApiError),
     ];
   }
 
   disconnectedCallback() {
-    this.closeButton?.removeEventListener('click', this.closeDrawer);
     this.overlay?.removeEventListener('click', this.handleOverlayClick);
     this.panel?.removeEventListener('click', this.handlePanelClick);
     document.removeEventListener('keydown', this.handleEscapeKey);
@@ -103,30 +106,56 @@ class CartDrawer extends HTMLElement {
     }, 300);
   }
 
-  /* -- Loading Overlay -- */
-
-  showLoading() {
-    const loader = this.querySelector('[data-cart-loading]');
-    loader?.classList.remove('hidden');
-  }
-
-  hideLoading() {
-    const loader = this.querySelector('[data-cart-loading]');
-    loader?.classList.add('hidden');
-  }
-
   /* -- Section Rendering -- */
 
   handleApiSuccess(event) {
     const { source, sections } = event.detail;
     if (source !== 'add-to-cart' && source !== 'change-item') return;
 
-    const newCartDrawerHTML = sections?.['cart-drawer'];
-    if (newCartDrawerHTML) {
-      this.renderSection(newCartDrawerHTML);
+    const newHTML = sections?.['cart-drawer'];
+    if (!newHTML) return;
+
+    if (this.animatingRemovals.size > 0) {
+      this.pendingRender = newHTML;
+      return;
     }
 
-    this.hideLoading();
+    this.renderSection(newHTML);
+    this.pendingQuantities = {};
+  }
+
+  handleApiError(event) {
+    const { source } = event.detail;
+    if (source !== 'add-to-cart' && source !== 'change-item') return;
+
+    let countDelta = 0;
+
+    for (const [key, { original, current }] of Object.entries(this.pendingQuantities)) {
+      countDelta += current - original;
+
+      const item = this.panel?.querySelector(`[data-key="${key}"]`);
+      if (!item) continue;
+
+      const qtyDisplay = item.querySelector('[data-item-quantity]');
+      if (qtyDisplay) qtyDisplay.textContent = original;
+
+      item.classList.remove('cart-item-removing');
+      item.style.removeProperty('max-height');
+
+      const loader = item.querySelector('[data-cart-item-loader]');
+      if (loader) {
+        loader.classList.add('opacity-0', 'pointer-events-none');
+        loader.classList.remove('opacity-100');
+      }
+    }
+
+    if (countDelta !== 0) {
+      CartCount.update(CartCount.getCurrent() - countDelta);
+    }
+
+    this.pendingQuantities = {};
+    this.animatingRemovals.clear();
+    this.pendingRender = null;
   }
 
   renderSection(html) {
@@ -136,33 +165,106 @@ class CartDrawer extends HTMLElement {
     const newPanel = tempDiv.querySelector('[data-cart-panel]');
     if (!newPanel || !this.panel) return;
 
+    const itemsContainer = this.panel.querySelector('[data-cart-items]');
+    const scrollTop = itemsContainer?.scrollTop ?? 0;
+
     this.panel.innerHTML = newPanel.innerHTML;
 
-    this.closeButton = this.querySelector('[data-cart-close]');
-    this.closeButton?.addEventListener('click', this.closeDrawer);
+    const newItemsContainer = this.panel.querySelector('[data-cart-items]');
+    if (newItemsContainer) newItemsContainer.scrollTop = scrollTop;
   }
 
-  /* -- Event Delegation for Quantity Changes (debounced) -- */
+  /* -- Event Delegation -- */
 
   handlePanelClick(event) {
-    const quantityButton = event.target.closest('[data-quantity]');
+    const closeButton = event.target.closest('[data-cart-close]');
+    if (closeButton) {
+      this.closeDrawer();
+      return;
+    }
+
+    const quantityButton = event.target.closest('[data-action]');
     if (!quantityButton) return;
 
     const item = quantityButton.closest('[data-key]');
     if (!item) return;
 
     const key = item.dataset.key;
-    const quantity = parseInt(quantityButton.dataset.quantity);
+    const action = quantityButton.dataset.action;
 
-    if (!key || isNaN(quantity)) return;
+    if (!key || !action) return;
 
-    this.showLoading();
+    this.handleQuantityChange(key, action, item);
+  }
+
+  handleQuantityChange(key, action, itemEl) {
+    const qtyDisplay = itemEl.querySelector('[data-item-quantity]');
+    const currentQty = this.pendingQuantities[key]?.current
+      ?? (parseInt(qtyDisplay?.textContent) || 0);
+
+    if (!this.pendingQuantities[key]) {
+      this.pendingQuantities[key] = {
+        original: currentQty,
+        current: currentQty,
+      };
+    }
+
+    const newQty = action === 'increment' ? currentQty + 1 : currentQty - 1;
+    this.pendingQuantities[key].current = newQty;
+
+    if (newQty <= 0) {
+      this.handleItemRemoval(key, itemEl);
+    } else {
+      if (qtyDisplay) qtyDisplay.textContent = newQty;
+
+      const loader = itemEl.querySelector('[data-cart-item-loader]');
+      if (loader) {
+        loader.classList.remove('opacity-0', 'pointer-events-none');
+        loader.classList.add('opacity-100');
+      }
+    }
+
+    const countDelta = action === 'increment' ? 1 : -1;
+    CartCount.update(CartCount.getCurrent() + countDelta);
 
     clearTimeout(this.debounceTimers[key]);
     this.debounceTimers[key] = setTimeout(() => {
       delete this.debounceTimers[key];
-      CartAPI.changeItem(key, quantity);
+      CartAPI.changeItem(key, Math.max(0, this.pendingQuantities[key].current));
     }, 300);
+  }
+
+  handleItemRemoval(key, itemEl) {
+    if (this.animatingRemovals.has(key)) return;
+
+    this.animatingRemovals.add(key);
+
+    // Set explicit max-height for smooth collapse transition
+    itemEl.style.maxHeight = `${itemEl.offsetHeight}px`;
+
+    requestAnimationFrame(() => {
+      itemEl.classList.add('cart-item-removing');
+    });
+
+    const onDone = () => {
+      itemEl.removeEventListener('transitionend', handleTransition);
+      clearTimeout(safetyTimer);
+      this.animatingRemovals.delete(key);
+
+      if (this.pendingRender && this.animatingRemovals.size === 0) {
+        const html = this.pendingRender;
+        this.pendingRender = null;
+        this.renderSection(html);
+        this.pendingQuantities = {};
+      }
+    };
+
+    const handleTransition = (e) => {
+      if (e.propertyName === 'transform') onDone();
+    };
+
+    itemEl.addEventListener('transitionend', handleTransition);
+    const safetyTimer = setTimeout(onDone, 400);
   }
 }
 
