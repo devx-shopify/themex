@@ -14,12 +14,7 @@
     "color_success": "#16A34A",
     "show_discount_badge": true,
     "show_sold_out_badge": true,
-    "sections": {
-      "cart-drawer": {
-        "type": "cart-drawer",
-        "settings": {}
-      }
-    },
+    "sections": {},
     "content_for_index": []
   }
 }
