@@ -95,12 +95,13 @@ class ProductForm extends HTMLElement {
     const quantity = parseInt(quantityInput.value) || 1;
 
     this.setButtonLoading();
-    cartDispatch(CART_EVENTS.drawerOpen);
 
     CartAPI.addItem({
       items: [{ id: variantId, quantity }],
       sections: CART_DEFAULT_SECTIONS,
-    });
+    }).then(() => {
+      cartDispatch(CART_EVENTS.drawerOpen);
+    }).catch(() => {});
   }
 }
 

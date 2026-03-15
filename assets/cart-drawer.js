@@ -12,6 +12,7 @@ class CartDrawer extends HTMLElement {
     this.overlay = this.querySelector('[data-cart-overlay]');
     this.panel = this.querySelector('[data-cart-panel]');
     this.isOpen = false;
+    this.closeTimer = null;
     this.debounceTimers = {};
     this.pendingQuantities = {};
     this.animatingRemovals = new Set();
@@ -45,6 +46,7 @@ class CartDrawer extends HTMLElement {
     document.removeEventListener('keydown', this.handleEscapeKey);
     document.removeEventListener('click', this.handleCartTriggerClick);
 
+    if (this.closeTimer) clearTimeout(this.closeTimer);
     for (const timer of Object.values(this.debounceTimers)) clearTimeout(timer);
 
     if (this.unsubscribers) {
@@ -75,6 +77,11 @@ class CartDrawer extends HTMLElement {
   }
 
   openDrawer() {
+    if (this.closeTimer) {
+      clearTimeout(this.closeTimer);
+      this.closeTimer = null;
+    }
+
     this.isOpen = true;
     if (!this.overlay || !this.panel) return;
 
@@ -100,7 +107,8 @@ class CartDrawer extends HTMLElement {
     this.panel.classList.remove('translate-x-0');
     this.panel.classList.add('translate-x-full');
 
-    setTimeout(() => {
+    this.closeTimer = setTimeout(() => {
+      this.closeTimer = null;
       this.overlay.classList.add('hidden');
       document.body.classList.remove('overflow-hidden');
     }, 300);
