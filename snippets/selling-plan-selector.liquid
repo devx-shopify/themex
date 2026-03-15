@@ -1,0 +1,77 @@
+{% doc %}
+  Selling Plan Selector
+
+  Renders radio buttons for one-time purchase vs subscription selling plans.
+  Updates the hidden selling_plan input in the parent product-form.
+
+  @param {object} product - Product object with selling_plan_groups (required)
+{% enddoc %}
+
+{%- liquid
+  assign product = product | default: blank
+
+  unless product != blank
+    break
+  endunless
+
+  unless product.selling_plan_groups.size > 0
+    break
+  endunless
+-%}
+
+<fieldset class="selling-plan-selector" data-selling-plan-selector>
+  <legend class="mb-2 text-sm font-medium">
+    {{ 'products.purchase_options' | t | default: 'Purchase options' }}
+  </legend>
+
+  <div class="space-y-2">
+    {%- comment -%} One-time purchase option {%- endcomment -%}
+    <label class="flex cursor-pointer items-center gap-3 rounded border border-border px-4 py-3 transition-colors has-[:checked]:border-foreground has-[:checked]:bg-foreground/5">
+      <input
+        type="radio"
+        name="selling_plan_radio_{{ product.id }}"
+        value=""
+        checked
+        class="accent-foreground"
+        data-selling-plan-radio
+      >
+      <span class="text-sm">{{ 'cart.one_time_purchase' | t }}</span>
+    </label>
+
+    {%- comment -%} Selling plan options {%- endcomment -%}
+    {%- for group in product.selling_plan_groups -%}
+      {%- for plan in group.selling_plans -%}
+        {%- liquid
+          assign plan_price_adjustment = plan.price_adjustments | first
+          assign adjustment_label = ''
+
+          if plan_price_adjustment.value_type == 'percentage'
+            assign adjustment_label = plan_price_adjustment.value | append: '% ' | append: 'cart.selling_plan_discount' | t
+          elsif plan_price_adjustment.value_type == 'fixed_amount'
+            assign saving_amount = plan_price_adjustment.value | money
+            assign adjustment_label = 'cart.selling_plan_save' | t: amount: saving_amount
+          elsif plan_price_adjustment.value_type == 'price'
+            assign adjustment_label = plan_price_adjustment.value | money
+          endif
+        -%}
+        <label class="flex cursor-pointer items-center gap-3 rounded border border-border px-4 py-3 transition-colors has-[:checked]:border-foreground has-[:checked]:bg-foreground/5">
+          <input
+            type="radio"
+            name="selling_plan_radio_{{ product.id }}"
+            value="{{ plan.id }}"
+            class="accent-foreground"
+            data-selling-plan-radio
+          >
+          <div class="flex flex-col">
+            <span class="text-sm">{{ plan.name }}</span>
+            {%- if adjustment_label != blank -%}
+              <span class="text-xs text-success">{{ adjustment_label }}</span>
+            {%- endif -%}
+          </div>
+        </label>
+      {%- endfor -%}
+    {%- endfor -%}
+  </div>
+</fieldset>
+
+<script src="{{ 'selling-plan-selector.js' | asset_url }}" defer></script>

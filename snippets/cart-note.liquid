@@ -1,0 +1,28 @@
+{% doc %}
+  Cart Note
+
+  Renders a textarea for cart order notes.
+  Used in both cart drawer and cart page.
+
+  @param {string} [note] - Current cart note value
+  @param {string} [context] - Unique context for ID (e.g., 'drawer', 'page')
+{% enddoc %}
+
+{%- assign note_id = 'cart-note' -%}
+{%- if context != blank -%}
+  {%- assign note_id = 'cart-note-' | append: context -%}
+{%- endif -%}
+
+<div class="cart-note">
+  <label for="{{ note_id }}" class="mb-1.5 block text-sm font-medium">
+    {{ 'cart.note' | t }}
+  </label>
+  <textarea
+    id="{{ note_id }}"
+    name="note"
+    class="w-full resize-none rounded border border-border bg-transparent px-3 py-2 text-sm placeholder:text-muted focus:border-foreground focus:outline-none"
+    rows="3"
+    placeholder="{{ 'cart.note_placeholder' | t }}"
+    data-cart-note
+  >{{ note }}</textarea>
+</div>

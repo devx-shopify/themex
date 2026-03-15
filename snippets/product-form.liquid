@@ -1,10 +1,10 @@
 {% doc %}
   Product Form
 
-  Renders the add-to-cart form with quantity selector and submit button.
-  Standard form submission — redirects to cart page on add.
+  Renders the add-to-cart form with quantity selector, selling plan selector, and submit button.
+  AJAX add-to-cart via product-form.js Web Component. Falls back to standard form POST without JS.
 
-  @param {product} product - Product object (required)
+  @param {object} product - Product object (required)
 
   @example
   {% render 'product-form', product: product %}
@@ -30,8 +30,17 @@
     id="product-form-{{ product.id }}"
     action="{{ routes.cart_add_url }}"
     method="post"
+    data-product-form
   >
     <input type="hidden" name="id" value="{{ current_variant_id }}">
+    <input type="hidden" name="selling_plan" value="" data-selling-plan-input>
+
+    {%- comment -%} Selling plan selector {%- endcomment -%}
+    {%- if product.selling_plan_groups.size > 0 -%}
+      <div class="mb-4">
+        {% render 'selling-plan-selector', product: product %}
+      </div>
+    {%- endif -%}
 
     {%- comment -%} Quantity selector {%- endcomment -%}
     <div class="mb-4">
@@ -71,14 +80,22 @@
     {%- comment -%} Add to cart button {%- endcomment -%}
     <button
       type="submit"
-      class="product-form__submit flex w-full items-center justify-center gap-2 rounded bg-foreground px-6 py-3.5 text-sm font-medium text-background transition-all duration-200 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
-      {%- unless selected_variant.available %} disabled{% endunless -%}
+      class="product-form__submit relative flex w-full items-center justify-center gap-2 rounded bg-foreground px-6 py-3.5 text-sm font-medium text-background transition-all duration-200 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
+      {%- unless selected_variant.available %}
+        disabled
+      {% endunless -%}
     >
-      {%- if selected_variant.available == false -%}
-        {{ 'products.sold_out' | t }}
-      {%- else -%}
-        {{ 'products.add_to_cart' | t }}
-      {%- endif -%}
+      <span data-button-text>
+        {%- if selected_variant.available == false -%}
+          {{ 'products.sold_out' | t }}
+        {%- else -%}
+          {{ 'products.add_to_cart' | t }}
+        {%- endif -%}
+      </span>
+      <div class="absolute inset-0 hidden items-center justify-center" data-button-loader>
+        <div class="loader text-background"></div>
+      </div>
     </button>
+    <div data-form-error class="mt-2 text-sm text-error" hidden></div>
   </form>
 </product-form>

@@ -52,7 +52,16 @@
     "update_cart_error": "Failed to update cart. Please try again.",
     "item_removed": "Item removed from cart.",
     "taxes_and_shipping_at_checkout": "Taxes and shipping calculated at checkout.",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "note": "Order note",
+    "note_placeholder": "Add a note to your order...",
+    "continue_shopping": "Continue shopping",
+    "shop_now": "Shop now",
+    "cart_error": "Something went wrong. Please try again.",
+    "one_time_purchase": "One-time purchase",
+    "subscribe_and_save": "Subscribe & Save",
+    "selling_plan_discount": "off",
+    "selling_plan_save": "Save {{ amount }}"
   },
   "customers": {
     "login": {
@@ -125,12 +134,6 @@
       "province": "Province / State",
       "phone": "Phone"
     },
-    "reset_password": {
-      "title": "Reset your password",
-      "email": "Email",
-      "submit": "Submit",
-      "success": "We've sent you an email with a link to update your password."
-    },
     "activate_account": {
       "title": "Activate account",
       "description": "Create your password to activate your account.",
@@ -141,6 +144,7 @@
     },
     "reset_password": {
       "title": "Reset your password",
+      "email": "Email",
       "password": "New password",
       "password_confirm": "Confirm new password",
       "submit": "Reset password",
@@ -174,7 +178,8 @@
     "quantity": "Quantity",
     "colors_available": "{{ count }} colors available",
     "description": "Description",
-    "view_product": "View product"
+    "view_product": "View product",
+    "purchase_options": "Purchase options"
   },
   "gift_card": {
     "add_to_apple_wallet": "Add to Apple Wallet",

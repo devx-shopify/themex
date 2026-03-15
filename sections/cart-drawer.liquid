@@ -1,0 +1,105 @@
+{%- comment -%} HTML {%- endcomment -%}
+<cart-drawer
+  class="cart-drawer"
+  data-section-id="{{ section.id }}"
+  aria-hidden="true"
+  role="dialog"
+  aria-modal="true"
+  aria-label="{{ 'cart.shopping_cart' | t }}"
+  hidden
+>
+  {%- comment -%} Overlay backdrop {%- endcomment -%}
+  <div
+    class="cart-drawer__overlay fixed inset-0 z-[80] bg-black/50 opacity-0 transition-opacity duration-300"
+    data-cart-overlay
+  ></div>
+
+  {%- comment -%} Drawer panel {%- endcomment -%}
+  <div
+    class="cart-drawer__panel fixed inset-y-0 right-0 z-[80] flex w-full max-w-md translate-x-full flex-col bg-background transition-transform duration-300"
+    data-cart-panel
+  >
+    {%- comment -%} Drawer header {%- endcomment -%}
+    <div class="flex items-center justify-between border-b border-border px-5 py-4">
+      <h2 class="text-lg font-medium">
+        {{ 'cart.shopping_cart' | t }}
+        {%- if cart.item_count > 0 -%}
+          <span class="text-sm font-normal text-muted">({{ cart.item_count }})</span>
+        {%- endif -%}
+      </h2>
+      <button
+        type="button"
+        class="flex items-center justify-center text-muted transition-colors hover:text-foreground"
+        data-cart-close
+        aria-label="{{ 'cart.close' | t }}"
+      >
+        {% render 'icon-close', size: 20 %}
+      </button>
+    </div>
+
+    {%- if cart.item_count > 0 -%}
+      {%- comment -%} Cart items {%- endcomment -%}
+      <div class="flex-1 overflow-y-auto px-5" data-cart-items>
+        {%- for item in cart.items -%}
+          {% render 'cart-line-item', item: item, line_index: forloop.index %}
+        {%- endfor -%}
+      </div>
+
+      {%- comment -%} Cart note {%- endcomment -%}
+      <div class="border-t border-border px-5 py-3">
+        {% render 'cart-note', note: cart.note, context: 'drawer' %}
+      </div>
+
+      {%- comment -%} Cart footer {%- endcomment -%}
+      <div class="border-t border-border px-5 py-4" data-cart-footer>
+        {%- comment -%} Cart level discounts {%- endcomment -%}
+        {%- if cart.cart_level_discount_applications.size > 0 -%}
+          <ul class="mb-3">
+            {%- for discount in cart.cart_level_discount_applications -%}
+              <li class="flex items-center justify-between text-sm text-success">
+                <span class="flex items-center gap-1">
+                  {% render 'icon-discount', size: 14 %}
+                  {{ discount.title }}
+                </span>
+                <span>-{{ discount.total_allocated_amount | money }}</span>
+              </li>
+            {%- endfor -%}
+          </ul>
+        {%- endif -%}
+
+        {%- comment -%} Subtotal {%- endcomment -%}
+        <div class="mb-1 flex items-center justify-between">
+          <span class="text-sm font-medium">{{ 'cart.subtotal' | t }}</span>
+          <span class="text-base font-semibold">{{ cart.total_price | money }}</span>
+        </div>
+
+        {%- comment -%} Checkout button {%- endcomment -%}
+        <a
+          href="{{ routes.cart_url | append: '/checkout' }}"
+          class="mb-2 flex w-full items-center justify-center rounded bg-foreground px-6 py-3 text-sm font-medium text-background transition-all duration-200 hover:shadow-md"
+        >
+          {{ 'cart.checkout' | t }}
+        </a>
+      </div>
+
+    {%- else -%}
+      {%- comment -%} Empty state {%- endcomment -%}
+      <div class="flex flex-1 flex-col items-center justify-center gap-4 px-5 text-center" data-cart-empty>
+        <p class="text-muted">{{ 'cart.empty_cart' | t }}</p>
+        <a
+          href="{{ routes.collections_url }}"
+          class="rounded bg-foreground px-6 py-3 text-sm font-medium text-background transition-all duration-200 hover:shadow-md"
+        >
+          {{ 'cart.shop_now' | t }}
+        </a>
+      </div>
+    {%- endif -%}
+  </div>
+</cart-drawer>
+
+{% schema %}
+{
+  "name": "Cart Drawer",
+  "class": "cart-drawer-section"
+}
+{% endschema %}

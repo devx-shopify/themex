@@ -1,0 +1,108 @@
+{%- comment -%} HTML {%- endcomment -%}
+<div class="cart-page page-width py-10 lg:py-16" data-section-id="{{ section.id }}" data-cart-page>
+  {%- if cart.item_count > 0 -%}
+    <h1 class="mb-8 text-3xl font-bold lg:text-4xl">
+      {{ 'cart.shopping_cart' | t }}
+      <span class="text-lg font-normal text-muted">({{ cart.item_count }})</span>
+    </h1>
+
+    <div class="grid gap-8 lg:grid-cols-3 lg:gap-12">
+      {%- comment -%} Cart items {%- endcomment -%}
+      <div class="lg:col-span-2" data-cart-items>
+        <div class="divide-y divide-border">
+          {%- for item in cart.items -%}
+            {% render 'cart-line-item', item: item, line_index: forloop.index %}
+          {%- endfor -%}
+        </div>
+
+        {%- if section.settings.cart_enable_note -%}
+          <div class="mt-6">
+            {% render 'cart-note', note: cart.note, context: 'page' %}
+          </div>
+        {%- endif -%}
+      </div>
+
+      {%- comment -%} Order summary {%- endcomment -%}
+      <div class="lg:sticky lg:top-24 lg:self-start" data-cart-summary>
+        <div class="rounded-lg border border-border p-6">
+          <h2 class="mb-4 text-lg font-semibold">{{ 'cart.subtotal' | t }}</h2>
+
+          {%- comment -%} Cart level discounts {%- endcomment -%}
+          {%- if cart.cart_level_discount_applications.size > 0 -%}
+            <ul class="mb-3 space-y-1">
+              {%- for discount in cart.cart_level_discount_applications -%}
+                <li class="flex items-center justify-between text-sm text-success">
+                  <span class="flex items-center gap-1">
+                    {% render 'icon-discount', size: 14 %}
+                    {{ discount.title }}
+                  </span>
+                  <span>-{{ discount.total_allocated_amount | money }}</span>
+                </li>
+              {%- endfor -%}
+            </ul>
+          {%- endif -%}
+
+          <div class="mb-1 flex items-center justify-between border-t border-border pt-3">
+            <span class="font-medium">{{ 'cart.subtotal' | t }}</span>
+            <span class="text-xl font-semibold">{{ cart.total_price | money }}</span>
+          </div>
+
+          <p class="mb-6 text-xs text-muted">
+            {{ 'cart.taxes_and_shipping_at_checkout' | t }}
+          </p>
+
+          <a
+            href="{{ routes.cart_url | append: '/checkout' }}"
+            class="mb-3 flex w-full items-center justify-center rounded bg-foreground px-6 py-3.5 text-sm font-medium text-background transition-all duration-200 hover:shadow-md"
+          >
+            {{ 'cart.checkout' | t }}
+          </a>
+
+          <a
+            href="{{ routes.collections_url }}"
+            class="block w-full py-2 text-center text-sm text-muted underline transition-colors hover:text-foreground"
+          >
+            {{ 'cart.continue_shopping' | t }}
+          </a>
+        </div>
+      </div>
+    </div>
+
+  {%- else -%}
+    {%- comment -%} Empty state {%- endcomment -%}
+    <div class="flex flex-col items-center justify-center gap-4 py-20 text-center">
+      <h1 class="text-3xl font-bold lg:text-4xl">{{ 'cart.shopping_cart' | t }}</h1>
+      <p class="text-muted">{{ 'cart.empty_cart' | t }}</p>
+      <a
+        href="{{ routes.collections_url }}"
+        class="mt-2 rounded bg-foreground px-6 py-3 text-sm font-medium text-background transition-all duration-200 hover:shadow-md"
+      >
+        {{ 'cart.shop_now' | t }}
+      </a>
+    </div>
+  {%- endif -%}
+</div>
+
+{%- comment -%} JS {%- endcomment -%}
+<script src="{{ 'cart.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "Cart",
+  "class": "cart-section",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "cart_enable_note",
+      "label": "Enable order notes",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "name": "Cart"
+    }
+  ]
+}
+{% endschema %}

@@ -737,6 +737,10 @@ video {
   z-index: 80;
 }
 
+.z-20 {
+  z-index: 20;
+}
+
 .col-span-1 {
   grid-column: span 1 / span 1;
 }
@@ -1238,6 +1242,10 @@ video {
           user-select: all;
 }
 
+.resize-none {
+  resize: none;
+}
+
 .resize-y {
   resize: vertical;
 }
@@ -1619,6 +1627,10 @@ video {
 
 .bg-white\/30 {
   background-color: rgb(255 255 255 / 0.3);
+}
+
+.bg-background\/70 {
+  background-color: rgb(var(--color-background) / 0.7);
 }
 
 .bg-gradient-to-t {
@@ -2039,6 +2051,10 @@ video {
   accent-color: rgb(var(--color-primary) / 1);
 }
 
+.accent-foreground {
+  accent-color: rgb(var(--color-foreground) / 1);
+}
+
 .opacity-0 {
   opacity: 0;
 }
@@ -2146,6 +2162,16 @@ video {
           appearance: textfield;
 }
 
+.placeholder\:text-muted::-moz-placeholder {
+  --tw-text-opacity: 1;
+  color: rgb(var(--color-muted) / var(--tw-text-opacity, 1));
+}
+
+.placeholder\:text-muted::placeholder {
+  --tw-text-opacity: 1;
+  color: rgb(var(--color-muted) / var(--tw-text-opacity, 1));
+}
+
 .placeholder\:opacity-50::-moz-placeholder {
   opacity: 0.5;
 }
@@ -2222,6 +2248,11 @@ video {
 .hover\:text-primary:hover {
   --tw-text-opacity: 1;
   color: rgb(var(--color-primary) / var(--tw-text-opacity, 1));
+}
+
+.hover\:text-error:hover {
+  --tw-text-opacity: 1;
+  color: rgb(var(--color-error) / var(--tw-text-opacity, 1));
 }
 
 .hover\:underline:hover {
@@ -2326,6 +2357,15 @@ video {
 
 .group\/nav:hover .group-hover\/nav\:opacity-100 {
   opacity: 1;
+}
+
+.has-\[\:checked\]\:border-foreground:has(:checked) {
+  --tw-border-opacity: 1;
+  border-color: rgb(var(--color-foreground) / var(--tw-border-opacity, 1));
+}
+
+.has-\[\:checked\]\:bg-foreground\/5:has(:checked) {
+  background-color: rgb(var(--color-foreground) / 0.05);
 }
 
 @media (min-width: 640px) {

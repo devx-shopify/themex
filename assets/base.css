@@ -134,6 +134,41 @@ input[type='search']::-webkit-search-decoration {
   transform: rotate(-45deg);
 }
 
+/* Cart drawer */
+cart-drawer {
+  display: contents;
+}
+
+cart-drawer[hidden] .cart-drawer__overlay,
+cart-drawer[hidden] .cart-drawer__panel {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+cart-drawer .cart-line-item__loading.flex {
+  display: flex;
+}
+
+.loader {
+  width: 4px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  color: currentColor;
+  box-shadow: 19px 0 0 7px, 38px 0 0 3px, 57px 0 0 0;
+  transform: translateX(-38px);
+  animation: loader-dots 0.5s infinite alternate linear;
+}
+
+@keyframes loader-dots {
+  50% {
+    box-shadow: 19px 0 0 3px, 38px 0 0 7px, 57px 0 0 3px;
+  }
+
+  100% {
+    box-shadow: 19px 0 0 0, 38px 0 0 3px, 57px 0 0 7px;
+  }
+}
+
 /* Visually hidden (screen reader only) */
 .sr-only {
   position: absolute;

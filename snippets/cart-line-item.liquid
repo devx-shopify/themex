@@ -1,0 +1,156 @@
+{% doc %}
+  Cart Line Item
+
+  Renders a single cart line item with image, details, quantity stepper, and remove button.
+  Used in both cart drawer and cart page.
+
+  @param {object} item - Cart line item object (required)
+  @param {number} line_index - 1-based line index for API calls (required)
+{% enddoc %}
+
+{%- liquid
+  assign item = item | default: blank
+  assign line_index = line_index | default: 1
+
+  unless item != blank
+    break
+  endunless
+
+  assign has_compare_price = false
+  if item.original_price > item.final_price
+    assign has_compare_price = true
+  endif
+
+  assign variant_title_is_default = false
+  if item.variant_title == 'Default Title'
+    assign variant_title_is_default = true
+  endif
+-%}
+
+<div
+  class="cart-line-item relative flex gap-4 py-4"
+  id="CartItem-{{ line_index }}"
+  data-line-index="{{ line_index }}"
+>
+  {%- comment -%} Loading overlay {%- endcomment -%}
+  <div
+    class="cart-line-item__loading absolute inset-0 z-10 hidden items-center justify-center bg-background/70"
+    data-line-loading="{{ line_index }}"
+  >
+    <div class="loader"></div>
+  </div>
+
+  {%- comment -%} Product image {%- endcomment -%}
+  <a
+    href="{{ item.url }}"
+    class="flex-shrink-0"
+    aria-label="{{ item.product.title | escape }}"
+  >
+    {%- if item.image != blank -%}
+      <img
+        src="{{ item.image | image_url: width: 160 }}"
+        alt="{{ item.image.alt | default: item.product.title | escape }}"
+        width="80"
+        height="{{ 80 | divided_by: item.image.aspect_ratio | round }}"
+        loading="lazy"
+        class="h-20 w-20 rounded border border-border object-cover"
+      >
+    {%- endif -%}
+  </a>
+  <div class="flex items-center justify-between w-full">
+    {%- comment -%} Item details {%- endcomment -%}
+    <div class="flex flex-1 flex-col gap-1">
+      <a href="{{ item.url }}" class="text-sm font-medium leading-tight hover:underline">
+        {{ item.product.title }}
+      </a>
+
+      {%- unless variant_title_is_default -%}
+        <p class="text-xs text-muted">{{ item.variant_title }}</p>
+      {%- endunless -%}
+
+      {%- comment -%} Line item properties {%- endcomment -%}
+      {%- if item.properties.size > 0 -%}
+        <dl class="mt-0.5 text-xs text-muted">
+          {%- for property in item.properties -%}
+            {%- liquid
+              assign property_first_char = property.first | slice: 0
+              if property_first_char == '_' or property.last == blank
+                continue
+              endif
+            -%}
+            <div class="flex gap-1">
+              <dt>{{ property.first }}:</dt>
+              <dd>{{ property.last }}</dd>
+            </div>
+          {%- endfor -%}
+        </dl>
+      {%- endif -%}
+
+      {%- comment -%} Selling plan name {%- endcomment -%}
+      {%- if item.selling_plan_allocation != blank and item.selling_plan_allocation.selling_plan.name != 'Default' -%}
+        <p class="text-xs text-muted">
+          {{ item.selling_plan_allocation.selling_plan.name }}
+        </p>
+      {%- endif -%}
+
+      {%- comment -%} Price {%- endcomment -%}
+      <div class="flex items-center gap-2">
+        <span class="text-sm font-medium">
+          {{ item.final_price | money }}
+        </span>
+        {%- if has_compare_price and item.original_price > item.final_price -%}
+          <s class="text-xs text-muted">
+            {{ item.original_price | money }}
+          </s>
+        {%- endif -%}
+      </div>
+
+      {%- comment -%} Line item discounts {%- endcomment -%}
+      {%- if item.line_level_discount_allocations.size > 0 -%}
+        <ul class="mt-1">
+          {%- for discount in item.line_level_discount_allocations -%}
+            <li class="flex items-center gap-1 text-xs">
+              {% render 'icon-discount', size: 12 %}
+              {{ discount.discount_application.title }}
+            </li>
+          {%- endfor -%}
+        </ul>
+      {%- endif -%}
+    </div>
+
+    <div class="inline-flex items-center rounded border border-border">
+      <button
+        type="button"
+        class="flex h-6 w-8 items-center justify-center text-muted transition-colors hover:text-foreground{% if item.quantity == 1 %} hover:text-error{% endif %}"
+        data-quantity-minus
+        data-line-index="{{ line_index }}"
+        aria-label="{%- if item.quantity == 1 -%}{{ 'cart.remove' | t }}: {{ item.product.title | escape }}{%- else -%}{{ 'cart.decrease' | t: product: item.product.title }}{%- endif -%}"
+      >
+        {%- if item.quantity == 1 -%}
+          {% render 'icon-delete', size: 14 %}
+        {%- else -%}
+          {% render 'icon-minus', size: 14 %}
+        {%- endif -%}
+      </button>
+      <input
+        type="number"
+        value="{{ item.quantity }}"
+        min="0"
+        max="99"
+        class="h-6 w-8 border-x border-border bg-transparent text-center text-xs [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+        data-quantity-input
+        data-line-index="{{ line_index }}"
+        aria-label="{{ 'cart.quantity_input_label' | t: product: item.product.title }}"
+      >
+      <button
+        type="button"
+        class="flex h-6 w-8 items-center justify-center text-muted transition-colors hover:text-foreground"
+        data-quantity-plus
+        data-line-index="{{ line_index }}"
+        aria-label="{{ 'cart.increase' | t: product: item.product.title }}"
+      >
+        {% render 'icon-plus', size: 14 %}
+      </button>
+    </div>
+  </div>
+</div>

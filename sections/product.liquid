@@ -24,7 +24,26 @@
         {%- endfor -%}
       ],
       "options": {{ product.options_with_values | json }},
-      "featured_image": {{ product.featured_image | image_url: width: 160 | default: '' | json }}
+      "featured_image": {{ product.featured_image | image_url: width: 160 | default: '' | json }},
+      "sellingPlanGroups": [
+        {%- for group in product.selling_plan_groups -%}
+          {
+            "id": {{ group.id | json }},
+            "name": {{ group.name | json }},
+            "appId": {{ group.app_id | json }},
+            "sellingPlans": [
+              {%- for plan in group.selling_plans -%}
+                {
+                  "id": {{ plan.id | json }},
+                  "name": {{ plan.name | json }},
+                  "description": {{ plan.description | json }},
+                  "priceAdjustments": {{ plan.price_adjustments | json }}
+                }{%- unless forloop.last -%},{%- endunless -%}
+              {%- endfor -%}
+            ]
+          }{%- unless forloop.last -%},{%- endunless -%}
+        {%- endfor -%}
+      ]
     }
   </script>
 

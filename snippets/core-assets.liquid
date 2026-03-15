@@ -8,4 +8,8 @@
 {{ 'base.css' | asset_url | stylesheet_tag: preload: true }}
 {{ 'tailwind.css' | asset_url | stylesheet_tag: preload: true }}
 
+<script src="{{ 'pubsub.js' | asset_url }}" defer></script>
+<script src="{{ 'cart-api.js' | asset_url }}" defer></script>
+<script src="{{ 'cart-drawer.js' | asset_url }}" defer></script>
+<script src="{{ 'product-form.js' | asset_url }}" defer></script>
 <script src="{{ 'product-card.js' | asset_url }}" defer></script>
