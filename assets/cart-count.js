@@ -30,16 +30,20 @@ const CartCount = (() => {
 
   document.addEventListener('DOMContentLoaded', () => {
     cartListen(CART_EVENTS.apiSuccess, (e) => {
-      const sections = e.detail.sections;
-      if (!sections?.['cart-item-count']) return;
+      const { source, cartData, sections } = e.detail;
 
-      const temp = document.createElement('div');
-      temp.innerHTML = sections['cart-item-count'];
-      const newCountElement = temp.querySelector('[data-cart-count]');
+      if (source === 'change-item' && cartData?.item_count != null) {
+        updateAllBadges(cartData.item_count);
+        return;
+      }
 
-      if (newCountElement) {
-        const count = parseInt(newCountElement.getAttribute('data-cart-count')) || 0;
-        updateAllBadges(count);
+      if (source === 'add-to-cart' && sections?.['cart-drawer']) {
+        const temp = document.createElement('div');
+        temp.innerHTML = sections['cart-drawer'];
+        const countEl = temp.querySelector('[data-cart-heading-count]');
+        if (countEl) {
+          updateAllBadges(parseInt(countEl.textContent) || 0);
+        }
       }
     });
   });

@@ -12,14 +12,19 @@ const CartAPI = (() => {
     if (controllers[type]) controllers[type].abort();
     controllers[type] = new AbortController();
 
+    const start = performance.now();
+    const endpoint = url.split('/').pop();
+    console.log(`[CartAPI] ${endpoint} started | sections: ${body.sections || 'none'}`);
+
     return fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify(body),
       signal: controllers[type].signal,
     })
       .then((response) => {
         controllers[type] = null;
+        console.log(`[CartAPI] ${endpoint} | ${Math.round(performance.now() - start)}ms | status: ${response.status}`);
         if (!response.ok) {
           return response.json().then((err) => {
             throw new Error(err.description || 'Cart request failed');
@@ -39,6 +44,7 @@ const CartAPI = (() => {
     return post(`${rootUrl()}cart/add.js`, {
       items: formData.items,
       sections,
+      sections_url: window.location.pathname,
     }, 'add')
       .then((data) => {
         cartDispatch(CART_EVENTS.apiSuccess, {
@@ -69,6 +75,7 @@ const CartAPI = (() => {
       id: itemKey,
       quantity,
       sections,
+      sections_url: window.location.pathname,
     }, 'change')
       .then((data) => {
         cartDispatch(CART_EVENTS.apiSuccess, {
