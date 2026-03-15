@@ -41,7 +41,9 @@
       {%- comment -%} Cart items {%- endcomment -%}
       <div class="flex-1 overflow-y-auto px-5" data-cart-items>
         {%- for item in cart.items -%}
-          {% render 'cart-line-item', item: item, line_index: forloop.index %}
+          <div class="py-4 border-b border-border">
+            {% render 'cart-line-item', item: item, line_index: forloop.index %}
+          </div>
         {%- endfor -%}
       </div>
 
