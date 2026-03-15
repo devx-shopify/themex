@@ -173,21 +173,19 @@
       {% render 'icon-account', size: 20 %}
     </a>
 
-    {%- if template.name != 'cart' -%}
-      <button
-        type="button"
-        class="relative flex items-center justify-center opacity-70 transition-opacity duration-200 hover:opacity-100"
-        data-cart-trigger
-        aria-label="{{ 'accessibility.cart' | t }}"
-      >
-        {% render 'icon-cart', size: 20 %}
+    <a
+      href="{{ routes.cart_url }}"
+      class="relative flex items-center justify-center opacity-70 transition-opacity duration-200 hover:opacity-100"
+      aria-label="{{ 'accessibility.cart' | t }}"
+    >
+      {% render 'icon-cart', size: 20 %}
+      {%- if cart.item_count > 0 -%}
         <span
-          class="cart-item-count absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground{% if cart.item_count == 0 %} hidden{% endif %}"
-          data-cart-count="{{ cart.item_count }}"
+          class="cart-item-count absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground"
         >
-          {%- if cart.item_count > 0 -%}{{ cart.item_count }}{%- endif -%}
+          {{ cart.item_count }}
         </span>
-      </button>
-    {%- endif -%}
+      {%- endif -%}
+    </a>
   </div>
 </div>

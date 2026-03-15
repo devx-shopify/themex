@@ -48,22 +48,20 @@
         {% render 'icon-search', size: 20 %}
       </button>
 
-      {%- if template.name != 'cart' -%}
-        <button
-          type="button"
-          class="relative"
-          data-cart-trigger
-          aria-label="{{ 'accessibility.cart' | t }}"
-        >
-          {% render 'icon-cart', size: 20 %}
+      <a
+        href="{{ routes.cart_url }}"
+        class="relative"
+        aria-label="{{ 'accessibility.cart' | t }}"
+      >
+        {% render 'icon-cart', size: 20 %}
+        {%- if cart.item_count > 0 -%}
           <span
-            class="cart-item-count absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground{% if cart.item_count == 0 %} hidden{% endif %}"
-            data-cart-count="{{ cart.item_count }}"
+            class="cart-item-count absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground"
           >
-            {%- if cart.item_count > 0 -%}{{ cart.item_count }}{%- endif -%}
+            {{ cart.item_count }}
           </span>
-        </button>
-      {%- endif -%}
+        {%- endif -%}
+      </a>
     </div>
   </div>
 

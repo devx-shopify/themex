@@ -2,7 +2,7 @@
   Product Form
 
   Renders the add-to-cart form with quantity selector and submit button.
-  Uses traditional AJAX cart with section rendering (not optimistic).
+  Standard form submission — redirects to cart page on add.
 
   @param {product} product - Product object (required)
 
@@ -32,13 +32,6 @@
     method="post"
   >
     <input type="hidden" name="id" value="{{ current_variant_id }}">
-
-    {%- comment -%} Error message container {%- endcomment -%}
-    <div
-      class="product-form__error mb-3 hidden rounded border border-error/20 bg-error/5 px-4 py-2 text-sm text-error"
-      data-form-error
-      role="alert"
-    ></div>
 
     {%- comment -%} Quantity selector {%- endcomment -%}
     <div class="mb-4">
@@ -81,16 +74,11 @@
       class="product-form__submit flex w-full items-center justify-center gap-2 rounded bg-foreground px-6 py-3.5 text-sm font-medium text-background transition-all duration-200 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
       {%- unless selected_variant.available %} disabled{% endunless -%}
     >
-      <span data-button-text>
-        {%- if selected_variant.available == false -%}
-          {{ 'products.sold_out' | t }}
-        {%- else -%}
-          {{ 'products.add_to_cart' | t }}
-        {%- endif -%}
-      </span>
-      <span class="hidden" data-button-loading>
-        {% render 'icon-spinner', size: 20 %}
-      </span>
+      {%- if selected_variant.available == false -%}
+        {{ 'products.sold_out' | t }}
+      {%- else -%}
+        {{ 'products.add_to_cart' | t }}
+      {%- endif -%}
     </button>
   </form>
 </product-form>
