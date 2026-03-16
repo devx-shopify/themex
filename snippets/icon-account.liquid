@@ -1,12 +1,23 @@
 {% doc %}
   Account Icon
 
-  @param {string} class - Additional CSS classes (optional)
+  @param {string} [class] - Additional CSS classes (optional)
   @param {number} size - Icon size in pixels (default: 20)
 {% enddoc %}
 
 {%- assign icon_size = size | default: 20 -%}
-<svg class="{{ class }}" width="{{ icon_size }}" height="{{ icon_size }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<svg
+  class="{{ class }}"
+  width="{{ icon_size }}"
+  height="{{ icon_size }}"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true"
+>
   <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
   <circle cx="12" cy="7" r="4"/>
 </svg>

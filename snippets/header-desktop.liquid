@@ -43,7 +43,9 @@
           <a
             href="{{ link.url }}"
             class="relative flex items-center gap-1 py-2 text-sm font-medium opacity-70 transition-opacity duration-200 hover:opacity-100"
-            {%- if link.links.size > 0 %} aria-expanded="false" aria-haspopup="true"{% endif -%}
+            {%- if link.links.size > 0 %}
+              aria-expanded="false" aria-haspopup="true"
+            {% endif -%}
           >
             {{ link.title }}
             {%- if link.links.size > 0 -%}
@@ -102,11 +104,16 @@
                       >
                         {% render 'image',
                           image: mega_menu_block.settings.image_1,
-                          class_name: 'h-full w-full object-cover transition-transform duration-300 group-hover/img:scale-105'
+                          class_name: 'h-full w-full object-cover transition-transform duration-300 group-hover/img:scale-105',
+                          alt: mega_menu_block.settings.image_heading_1,
+                          width: 200,
+                          height: 200
                         %}
                         {%- if mega_menu_block.settings.image_heading_1 != blank -%}
                           <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-3">
-                            <span class="text-sm font-medium text-white">{{ mega_menu_block.settings.image_heading_1 }}</span>
+                            <span class="text-sm font-medium text-white">
+                              {{- mega_menu_block.settings.image_heading_1 -}}
+                            </span>
                           </div>
                         {%- endif -%}
                       </a>
@@ -119,11 +126,16 @@
                       >
                         {% render 'image',
                           image: mega_menu_block.settings.image_2,
-                          class_name: 'h-full w-full object-cover transition-transform duration-300 group-hover/img:scale-105'
+                          class_name: 'h-full w-full object-cover transition-transform duration-300 group-hover/img:scale-105',
+                          alt: mega_menu_block.settings.image_heading_2,
+                          width: 200,
+                          height: 200
                         %}
                         {%- if mega_menu_block.settings.image_heading_2 != blank -%}
                           <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-3">
-                            <span class="text-sm font-medium text-white">{{ mega_menu_block.settings.image_heading_2 }}</span>
+                            <span class="text-sm font-medium text-white">
+                              {{- mega_menu_block.settings.image_heading_2 -}}
+                            </span>
                           </div>
                         {%- endif -%}
                       </a>
@@ -185,7 +197,9 @@
         data-cart-count="{{ cart.item_count }}"
         aria-live="polite"
         aria-atomic="true"
-        {% if cart.item_count == 0 %}hidden{% endif %}
+        {% if cart.item_count == 0 %}
+          hidden
+        {% endif %}
       >
         {{ cart.item_count }}
       </span>

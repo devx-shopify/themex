@@ -5,17 +5,18 @@
   lazy loading, and optional mobile image.
 
   @param {image} image - Desktop image object (required)
-  @param {image} mobile_image - Mobile image, falls back to image (optional)
-  @param {string} class_name - CSS classes (default: 'w-full h-auto')
   @param {string} alt - Alt text, falls back to image.alt (optional)
-  @param {string} height - Image height attribute (optional)
-  @param {boolean} lazy - Set to false for eager loading (default: true)
-  @param {number} multiplier - Width multiplier for auto-calculations (default: 1.5)
-  @param {number} quality - Compression quality 0-100 (default: 80)
-  @param {string} responsive_widths - Comma-separated breakpoints e.g. "768:800,1024:1200" (optional)
-  @param {number} base_width - Desktop width for legacy mode (default: 1440)
-  @param {number} mobile_width - Mobile width for legacy mode (default: 768)
-  @param {number} breakpoint - Mobile/desktop switch point (default: 768)
+  @param {number} width - Image width attribute (optional)
+  @param {number} height - Image height attribute (optional)
+  @param {image} [mobile_image] - Mobile image, falls back to image (optional)
+  @param {string} [class_name] - CSS classes (default: 'w-full h-auto')
+  @param {boolean} [lazy] - Set to false for eager loading (default: true)
+  @param {number} [multiplier] - Width multiplier for auto-calculations (default: 1.5)
+  @param {number} [quality] - Compression quality 0-100 (default: 80)
+  @param {string} [responsive_widths] - Comma-separated breakpoints e.g. "768:800,1024:1200" (optional)
+  @param {number} [base_width] - Desktop width for legacy mode (default: 1440)
+  @param {number} [mobile_width] - Mobile width for legacy mode (default: 768)
+  @param {number} [breakpoint] - Mobile/desktop switch point (default: 768)
 
   @example
   {% render 'image', image: section.settings.image, lazy: false %}
@@ -121,7 +122,7 @@
     <img
       src="{{ img_src }}"
       alt="{{ alt }}"
-      width="{{ rendered_width }}"
+      width="{{ width }}"
       height="{{ height }}"
       loading="{{ loading }}"
       fetchpriority="{{ fetchpriority }}"
