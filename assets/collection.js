@@ -188,8 +188,8 @@ class CollectionSection {
     if (grid) grid.classList.add("opacity-50", "pointer-events-none");
     if (loader) {
       loader.classList.remove("hidden");
-      loader.classList.add("flex");
     }
+    document.body.classList.add("overflow-hidden");
 
     const fetchUrl = new URL(url);
     fetchUrl.searchParams.set("sections", this.sectionId);
@@ -213,8 +213,8 @@ class CollectionSection {
       if (grid) grid.classList.remove("opacity-50", "pointer-events-none");
       if (loader) {
         loader.classList.add("hidden");
-        loader.classList.remove("flex");
       }
+      document.body.classList.remove("overflow-hidden");
     }
   }
 
@@ -258,6 +258,7 @@ class CollectionSection {
       currentProducts.innerHTML = newProducts.innerHTML;
       currentProducts.classList.remove("opacity-50", "pointer-events-none");
     }
+    document.body.classList.remove("overflow-hidden");
 
     const newDrawerDoc = doc.querySelector("[data-filter-drawer]");
     if (newDrawerDoc && this.filterDrawer) {
