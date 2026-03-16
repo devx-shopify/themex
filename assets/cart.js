@@ -3,7 +3,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!sectionContainer) return;
 
   const sectionId = sectionContainer.dataset.sectionId;
-  const debounceTimers = {};
   let noteTimer = null;
 
   const getSectionHtml = (sectionHtml) => {
@@ -38,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  const handleQuantityChange = (button, delta) => {
+  const handleQuantityChange = async (button, delta) => {
     const line = parseInt(button.dataset.lineIndex, 10);
     const input = sectionContainer.querySelector(`[data-quantity-input][data-line-index="${line}"]`);
     if (!input) return;
@@ -47,18 +46,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const newQty = Math.max(0, Math.min(99, currentQty + delta));
     if (newQty === currentQty) return;
 
-    clearTimeout(debounceTimers[line]);
-    debounceTimers[line] = setTimeout(async () => {
-      showLineLoading(line);
-      try {
-        const data = await CartAPI.change(line, newQty, [sectionId]);
-        renderSection(data);
-        publish(PUB_SUB_EVENTS.cartUpdate, { source: 'cart-page', cartData: data });
-      } catch (error) {
-        hideLineLoading(line);
-        publish(PUB_SUB_EVENTS.cartError, { source: 'cart-page', error });
-      }
-    }, 300);
+    showLineLoading(line);
+    try {
+      const data = await CartAPI.change(line, newQty, [sectionId]);
+      renderSection(data);
+      publish(PUB_SUB_EVENTS.cartUpdate, { source: 'cart-page', cartData: data });
+    } catch (error) {
+      hideLineLoading(line);
+      publish(PUB_SUB_EVENTS.cartError, { source: 'cart-page', error });
+    }
   };
 
   const handleRemove = async (button) => {

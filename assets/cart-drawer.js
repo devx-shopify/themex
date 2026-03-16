@@ -5,7 +5,6 @@ class CartDrawer extends HTMLElement {
     super();
     this.previousActiveElement = null;
     this.isOpen = false;
-    this.debounceTimers = {};
     this.noteTimer = null;
     this.focusTrapHandler = null;
   }
@@ -180,10 +179,7 @@ class CartDrawer extends HTMLElement {
     const newQty = Math.max(0, Math.min(99, currentQty + delta));
     if (newQty === currentQty) return;
 
-    clearTimeout(this.debounceTimers[line]);
-    this.debounceTimers[line] = setTimeout(() => {
-      this.updateQuantity(line, newQty);
-    }, 300);
+    this.updateQuantity(line, newQty);
   }
 
   async updateQuantity(line, quantity) {
