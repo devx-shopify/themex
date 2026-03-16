@@ -46,11 +46,6 @@
         {%- endfor -%}
       </div>
 
-      {%- comment -%} Cart note {%- endcomment -%}
-      <div class="border-t border-border px-5 py-3">
-        {% render 'cart-note', note: cart.note, context: 'drawer' %}
-      </div>
-
       {%- comment -%} Cart footer {%- endcomment -%}
       <div class="border-t border-border px-5 py-4" data-cart-footer>
         {%- comment -%} Cart level discounts {%- endcomment -%}
