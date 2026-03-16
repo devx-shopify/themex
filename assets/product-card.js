@@ -1,51 +1,41 @@
 document.addEventListener('DOMContentLoaded', () => {
-  document.addEventListener('click', (e) => {
-    const swatch = e.target.closest('.product-card__swatch');
-    if (!swatch) return;
+  if (typeof subscribe === 'undefined' || typeof PUB_SUB_EVENTS === 'undefined') return;
 
-    const card = swatch.closest('[data-product-card]');
-    if (!card) return;
+  subscribe(PUB_SUB_EVENTS.variantChange, (data) => {
+    const { productId, variant } = data;
+    if (!productId || !variant) return;
 
-    const image = card.querySelector('[data-product-card-image]');
-    const link = card.querySelector('[data-product-card-link]');
-    const titleLink = card.querySelector('[data-product-card-title-link]');
-    const priceEl = card.querySelector('[data-product-card-price]');
-    const comparePriceEl = card.querySelector('[data-product-card-compare-price]');
+    const cards = document.querySelectorAll(`[data-product-card][data-product-id="${productId}"]`);
+    if (!cards.length) return;
 
-    const allSwatches = card.querySelectorAll('.product-card__swatch');
-    allSwatches.forEach((s) => {
-      s.classList.remove('border-foreground', 'ring-2', 'ring-foreground/20');
-      s.classList.add('border-border');
-      s.setAttribute('aria-pressed', 'false');
-    });
-    swatch.classList.remove('border-border');
-    swatch.classList.add('border-foreground', 'ring-2', 'ring-foreground/20');
-    swatch.setAttribute('aria-pressed', 'true');
+    cards.forEach((card) => {
+      const image = card.querySelector('[data-product-card-image]');
+      const titleLink = card.querySelector('[data-product-card-title-link]');
+      const priceEl = card.querySelector('[data-product-card-price]');
+      const comparePriceEl = card.querySelector('[data-product-card-compare-price]');
 
-    const newImage = swatch.dataset.swatchImage;
-    if (image && newImage) {
-      image.src = newImage;
-    }
-
-    const newUrl = swatch.dataset.swatchUrl;
-    if (newUrl) {
-      if (link) link.href = newUrl;
-      if (titleLink) titleLink.href = newUrl;
-    }
-
-    const newPrice = swatch.dataset.swatchPrice;
-    if (priceEl && newPrice) {
-      priceEl.textContent = newPrice;
-    }
-
-    const newComparePrice = swatch.dataset.swatchComparePrice;
-    if (comparePriceEl) {
-      if (newComparePrice) {
-        comparePriceEl.textContent = newComparePrice;
-        comparePriceEl.classList.remove('hidden');
-      } else {
-        comparePriceEl.classList.add('hidden');
+      if (image && variant.image) {
+        image.src = variant.image;
       }
-    }
+
+      if (titleLink) {
+        const url = new URL(titleLink.href);
+        url.searchParams.set('variant', variant.id);
+        titleLink.href = url.toString();
+      }
+
+      if (priceEl) {
+        priceEl.textContent = variant.price_formatted;
+      }
+
+      if (comparePriceEl) {
+        if (variant.compare_at_price > variant.price) {
+          comparePriceEl.textContent = variant.compare_at_price_formatted;
+          comparePriceEl.classList.remove('hidden');
+        } else {
+          comparePriceEl.classList.add('hidden');
+        }
+      }
+    });
   });
 });

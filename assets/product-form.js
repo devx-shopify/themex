@@ -8,6 +8,41 @@ class ProductForm extends HTMLElement {
 
     this.form.addEventListener('submit', (event) => this.onSubmit(event));
     this.initQuantityStepper();
+    this.initVariantSubscriber();
+  }
+
+  disconnectedCallback() {
+    this.unsubscribeVariant?.();
+  }
+
+  initVariantSubscriber() {
+    if (typeof subscribe === 'undefined' || typeof PUB_SUB_EVENTS === 'undefined') return;
+
+    this.unsubscribeVariant = subscribe(PUB_SUB_EVENTS.variantChange, (data) => {
+      if (data.productId !== this.dataset.productId) return;
+
+      const variantInput = this.form.querySelector('input[name="id"]');
+      const buttonText = this.submitButton?.querySelector('[data-button-text]');
+
+      if (data.variant) {
+        if (variantInput) variantInput.value = data.variant.id;
+
+        if (this.submitButton && buttonText) {
+          if (data.variant.available) {
+            this.submitButton.disabled = false;
+            buttonText.textContent = window.theme?.strings?.addToCart ?? 'Add to cart';
+          } else {
+            this.submitButton.disabled = true;
+            buttonText.textContent = window.theme?.strings?.soldOut ?? 'Sold out';
+          }
+        }
+      } else {
+        if (this.submitButton && buttonText) {
+          this.submitButton.disabled = true;
+          buttonText.textContent = window.theme?.strings?.unavailable ?? 'Unavailable';
+        }
+      }
+    });
   }
 
   initQuantityStepper() {

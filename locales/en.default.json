@@ -179,7 +179,8 @@
     "colors_available": "{{ count }} colors available",
     "description": "Description",
     "view_product": "View product",
-    "purchase_options": "Purchase options"
+    "purchase_options": "Purchase options",
+    "add_to_cart_with_price": "Add to cart — {{ price }}"
   },
   "gift_card": {
     "add_to_apple_wallet": "Add to Apple Wallet",

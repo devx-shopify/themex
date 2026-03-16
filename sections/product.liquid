@@ -2,51 +2,7 @@
   assign current_variant = product.selected_or_first_available_variant
 -%}
 
-<section class="product-section page-width py-10 lg:py-16">
-  {%- comment -%} Variant data for JS {%- endcomment -%}
-  <script type="application/json" id="product-variant-data">
-    {
-      "productId": {{ product.id | json }},
-      "variants": [
-        {%- for variant in product.variants -%}
-          {
-            "id": {{ variant.id | json }},
-            "title": {{ variant.title | json }},
-            "available": {{ variant.available | json }},
-            "price": {{ variant.price | json }},
-            "compare_at_price": {{ variant.compare_at_price | default: 0 | json }},
-            "price_formatted": {{ variant.price | money | json }},
-            "compare_at_price_formatted": {{ variant.compare_at_price | money | json }},
-            "featured_media_id": {{ variant.featured_media.id | default: 'null' }},
-            "image": {{ variant.featured_image | image_url: width: 160 | default: '' | json }},
-            "options": {{ variant.options | json }}
-          }{%- unless forloop.last -%},{%- endunless -%}
-        {%- endfor -%}
-      ],
-      "options": {{ product.options_with_values | json }},
-      "featured_image": {{ product.featured_image | image_url: width: 160 | default: '' | json }},
-      "sellingPlanGroups": [
-        {%- for group in product.selling_plan_groups -%}
-          {
-            "id": {{ group.id | json }},
-            "name": {{ group.name | json }},
-            "appId": {{ group.app_id | json }},
-            "sellingPlans": [
-              {%- for plan in group.selling_plans -%}
-                {
-                  "id": {{ plan.id | json }},
-                  "name": {{ plan.name | json }},
-                  "description": {{ plan.description | json }},
-                  "priceAdjustments": {{ plan.price_adjustments | json }}
-                }{%- unless forloop.last -%},{%- endunless -%}
-              {%- endfor -%}
-            ]
-          }{%- unless forloop.last -%},{%- endunless -%}
-        {%- endfor -%}
-      ]
-    }
-  </script>
-
+<section class="product-section page-width py-10 lg:py-16" data-product-id="{{ product.id }}" data-product-section>
   <div class="grid gap-8 lg:grid-cols-2 lg:gap-12">
     {%- comment -%} Product media {%- endcomment -%}
     <div class="product-media">
@@ -123,102 +79,50 @@
                 {{ current_variant.price | money }}
               </span>
 
-              {%- if current_variant.compare_at_price > current_variant.price -%}
-                <s class="text-base text-muted" data-product-compare-price>
+              <s
+                class="text-base text-muted{% unless current_variant.compare_at_price > current_variant.price %} hidden{% endunless %}"
+                data-product-compare-price
+              >
+                {%- if current_variant.compare_at_price > current_variant.price -%}
                   {{ current_variant.compare_at_price | money }}
-                </s>
+                {%- endif -%}
+              </s>
 
-                {%- assign discount = current_variant.compare_at_price
-                  | minus: current_variant.price
-                  | times: 100.0
-                  | divided_by: current_variant.compare_at_price
-                  | round
-                -%}
-                <span class="rounded bg-error/10 px-2 py-0.5 text-xs font-medium text-error" data-product-discount>
+              {%- liquid
+                assign discount = 0
+                if current_variant.compare_at_price > current_variant.price
+                  assign discount = current_variant.compare_at_price | minus: current_variant.price | times: 100.0 | divided_by: current_variant.compare_at_price | round
+                endif
+              -%}
+              <span
+                class="rounded bg-error/10 px-2 py-0.5 text-xs font-medium text-error{% unless current_variant.compare_at_price > current_variant.price %} hidden{% endunless %}"
+                data-product-discount
+              >
+                {%- if current_variant.compare_at_price > current_variant.price -%}
                   {{ discount }}% off
-                </span>
-              {%- endif -%}
+                {%- endif -%}
+              </span>
             </div>
 
           {%- when 'variant_selector' -%}
             {%- if product.has_only_default_variant == false -%}
-              <div class="mb-6 space-y-5" {{ block.shopify_attributes }}>
-                {%- for option in product.options_with_values -%}
-                  {%- liquid
-                    assign is_color = false
-                    assign option_name_lower = option.name | downcase
-                    assign option_index = forloop.index0
-                    if option_name_lower == 'color' or option_name_lower == 'colour'
-                      assign is_color = true
-                    endif
-                  -%}
-                  <div data-option-index="{{ option_index }}">
-                    <label class="mb-2.5 block text-sm font-medium">
-                      {{ option.name }}:
-                      <span class="font-normal text-muted" data-selected-option="{{ option_index }}">
-                        {{ option.selected_value }}
-                      </span>
-                    </label>
-                    <div class="flex flex-wrap gap-2">
-                      {%- for value in option.values -%}
-                        {%- if is_color -%}
-                          {%- liquid
-                            assign color_variant = null
-                            for v in product.variants
-                              case option_index
-                                when 0
-                                  assign v_opt = v.option1
-                                when 1
-                                  assign v_opt = v.option2
-                                when 2
-                                  assign v_opt = v.option3
-                              endcase
-                              if v_opt == value
-                                assign color_variant = v
-                                break
-                              endif
-                            endfor
-                          -%}
-                          <button
-                            type="button"
-                            class="variant-option variant-option--color relative h-12 w-12 overflow-hidden rounded-lg border-2 transition-all{% if value == option.selected_value %} border-foreground ring-2 ring-foreground/20{% else %} border-border hover:border-foreground{% endif %}"
-                            data-option-value="{{ value }}"
-                            data-option-index="{{ option_index }}"
-                            aria-label="{{ value }}"
-                            aria-pressed="{% if value == option.selected_value %}true{% else %}false{% endif %}"
-                            title="{{ value }}"
-                          >
-                            {%- if color_variant.featured_image -%}
-                              <img
-                                src="{{ color_variant.featured_image | image_url: width: 96 }}"
-                                alt="{{ value }}"
-                                width="48"
-                                height="48"
-                                loading="lazy"
-                                class="h-full w-full object-cover"
-                              >
-                            {%- else -%}
-                              <span
-                                class="absolute inset-0 rounded-full"
-                                style="background-color: rgb(var(--color-muted) / 0.3); background-color: {{ value | handleize | replace: '-', '' }};"
-                              ></span>
-                            {%- endif -%}
-                          </button>
-                        {%- else -%}
-                          <button
-                            type="button"
-                            class="variant-option rounded border px-4 py-2 text-sm transition-colors{% if value == option.selected_value %} border-foreground bg-foreground text-background{% else %} border-border hover:border-foreground{% endif %}"
-                            data-option-value="{{ value }}"
-                            data-option-index="{{ option_index }}"
-                            aria-pressed="{% if value == option.selected_value %}true{% else %}false{% endif %}"
-                          >
-                            {{ value }}
-                          </button>
-                        {%- endif -%}
-                      {%- endfor -%}
-                    </div>
-                  </div>
-                {%- endfor -%}
+              <div class="mb-6" {{ block.shopify_attributes }}>
+                {%- liquid
+                  assign product_options_string = ''
+                  for option in product.options_with_values
+                    unless forloop.first
+                      assign product_options_string = product_options_string | append: ','
+                    endunless
+                    assign product_options_string = product_options_string | append: option.name
+                  endfor
+                -%}
+                {% render 'variant-selector',
+                  product: product,
+                  options: product_options_string,
+                  swatch_size: 'lg',
+                  show_labels: true,
+                  color_display: 'image'
+                %}
               </div>
             {%- endif -%}
 

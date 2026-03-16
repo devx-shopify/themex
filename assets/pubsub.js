@@ -2,6 +2,7 @@ const PUB_SUB_EVENTS = {
   cartAdd: 'cart:add',
   cartUpdate: 'cart:update',
   cartError: 'cart:error',
+  variantChange: 'variant:change',
 };
 
 const subscribers = {};

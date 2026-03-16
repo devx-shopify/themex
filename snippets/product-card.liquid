@@ -1,13 +1,13 @@
 {% doc %}
   Product Card
 
-  Renders a product card with image, title, price, and optional color swatches.
+  Renders a product card with image, title, price, variant selector, and add-to-cart button.
   Entire card is clickable via stretched-link pattern on the title.
 
   @param {product} card_product - Product object (required)
-  @param {boolean} show_vendor - Display vendor name (default: false)
-  @param {boolean} lazy_load - Enable lazy loading (default: true)
-  @param {string} card_class - Additional CSS classes (optional)
+  @param {boolean} [show_vendor] - Display vendor name (default: false)
+  @param {boolean} [lazy_load] - Enable lazy loading (default: true)
+  @param {string} [card_class] - Additional CSS classes (optional)
 
   @example
   {% render 'product-card', card_product: product %}
@@ -24,20 +24,6 @@
   assign lazy_load = lazy_load | default: true
   assign card_class = card_class | default: ''
 
-  assign color_display = settings.product_color_display | default: 'swatch'
-  assign color_option = null
-  if card_product.options_with_values.size > 0
-    assign color_option = card_product.options_with_values | where: 'name', 'Color' | first
-    if color_option == blank
-      assign color_option = card_product.options_with_values | where: 'name', 'Colour' | first
-    endif
-  endif
-
-  assign color_count = 0
-  if color_option != blank
-    assign color_count = color_option.values.size
-  endif
-
   assign selected_variant = card_product.selected_or_first_available_variant
   assign card_image = selected_variant.featured_image | default: card_product.featured_image
 -%}
@@ -45,6 +31,7 @@
 <div
   class="product-card group/card relative flex h-full w-full flex-col overflow-hidden rounded-sm border border-border transition-all duration-300 hover:shadow-md {{ card_class }}"
   data-product-card
+  data-product-id="{{ card_product.id }}"
 >
   <div
     class="product-card__image relative aspect-[4/5] overflow-hidden bg-muted/5"
@@ -86,52 +73,31 @@
       <span class="text-sm font-medium" data-product-card-price>
         {{ card_product.price | money }}
       </span>
-      {%- if card_product.compare_at_price > card_product.price -%}
-        <s class="text-xs text-muted" data-product-card-compare-price>
+      <s
+        class="text-xs text-muted{% unless card_product.compare_at_price > card_product.price %} hidden{% endunless %}"
+        data-product-card-compare-price
+      >
+        {%- if card_product.compare_at_price > card_product.price -%}
           {{ card_product.compare_at_price | money }}
-        </s>
-      {%- endif -%}
+        {%- endif -%}
+      </s>
     </div>
 
-    {%- if color_display == 'count' and color_count > 1 -%}
-      <p class="text-xs text-muted">
-        {{ 'products.colors_available' | t: count: color_count }}
-      </p>
-    {%- elsif color_display == 'swatch' and color_count > 0 -%}
-      <div class="relative z-10 flex items-center gap-1.5" aria-label="Available colors">
-        {%- for color_value in color_option.values limit: 5 -%}
-          {%- assign swatch_variant = null -%}
-          {%- for variant in card_product.variants -%}
-            {%- if variant.options contains color_value -%}
-              {%- assign swatch_variant = variant -%}
-              {%- break -%}
-            {%- endif -%}
-          {%- endfor -%}
+    {%- comment -%} Variant selector + Add to cart {%- endcomment -%}
+    <div class="relative z-10 space-y-2">
+      {%- unless card_product.has_only_default_variant -%}
+        {% render 'variant-selector',
+          product: card_product,
+          options: 'color',
+          swatch_size: 'sm',
+          show_labels: false,
+          option_limit: 5,
+          show_overflow_count: true,
+          color_display: 'image'
+        %}
+      {%- endunless -%}
 
-          <button
-            type="button"
-            class="product-card__swatch h-5 w-5 rounded-full border-2 transition-all{% if forloop.first %} border-foreground ring-2 ring-foreground/20{% else %} border-border hover:border-foreground{% endif %}{% unless swatch_variant.available %} opacity-40{% endunless %}"
-            title="{{ color_value }}"
-            aria-label="{{ color_value }}"
-            style="background-color: rgb(var(--color-muted) / 0.3); background-color: {{ color_value | handleize | replace: '-', '' }};"
-            data-swatch-variant-id="{{ swatch_variant.id }}"
-            data-swatch-image="{% if swatch_variant.featured_image %}{{ swatch_variant.featured_image | image_url: width: 500 }}{% endif %}"
-            data-swatch-url="{{ card_product.url }}?variant={{ swatch_variant.id }}"
-            data-swatch-price="{{ swatch_variant.price | money }}"
-            {%- if swatch_variant.compare_at_price > swatch_variant.price %}
-              data-swatch-compare-price="{{ swatch_variant.compare_at_price | money }}"
-            {%- endif %}
-            {%- if forloop.first %}
-              aria-pressed="true"
-            {% else %}
-              aria-pressed="false"
-            {% endif %}
-          ></button>
-        {%- endfor -%}
-        {%- if color_count > 5 -%}
-          <span class="text-xs text-muted">+{{ color_count | minus: 5 }}</span>
-        {%- endif -%}
-      </div>
-    {%- endif -%}
+      {% render 'add-to-cart-button', product: card_product %}
+    </div>
   </div>
 </div>

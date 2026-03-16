@@ -1,0 +1,78 @@
+{% doc %}
+  Add to Cart Button
+
+  Lightweight add-to-cart form that wraps in the existing <product-form> Web Component.
+  Works standalone or alongside a variant-selector — communicates via variant:change PubSub event.
+
+  @param {product} product - Product object (required)
+  @param {number} [variant_id] - Override variant ID (default: first available variant)
+  @param {string} [button_class] - Additional CSS classes for the button
+  @param {string} [button_text] - Custom button text (default: "Add to cart" from locale)
+  @param {boolean} [show_price] - Show price inside button (default: false)
+
+  @example
+  {% render 'add-to-cart-button', product: product %}
+{% enddoc %}
+
+{%- liquid
+  assign product = product | default: blank
+
+  unless product != blank
+    break
+  endunless
+
+  assign selected_variant = product.selected_or_first_available_variant
+  assign atc_variant_id = variant_id | default: selected_variant.id
+  assign atc_button_class = button_class | default: ''
+  assign atc_button_text = button_text | default: null
+  assign show_price = show_price | default: false
+
+  assign atc_variant = selected_variant
+  if variant_id != blank
+    for variant in product.variants
+      if variant.id == variant_id
+        assign atc_variant = variant
+        break
+      endif
+    endfor
+  endif
+-%}
+
+<product-form
+  class="block"
+  data-product-id="{{ product.id }}"
+>
+  <form
+    action="{{ routes.cart_add_url }}"
+    method="post"
+    data-product-form
+  >
+    <input type="hidden" name="id" value="{{ atc_variant_id }}">
+    <input type="hidden" name="quantity" value="1">
+
+    <button
+      type="submit"
+      class="relative flex w-full items-center justify-center gap-2 rounded bg-foreground px-4 py-2.5 text-sm font-medium text-background transition-all duration-200 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50 {{ atc_button_class }}"
+      {%- unless atc_variant.available %}
+        disabled
+      {% endunless -%}
+    >
+      <span data-button-text>
+        {%- if atc_variant.available == false -%}
+          {{ 'products.sold_out' | t }}
+        {%- elsif atc_button_text != null -%}
+          {{ atc_button_text }}
+        {%- elsif show_price -%}
+          {%- assign atc_price_formatted = atc_variant.price | money -%}
+          {{ 'products.add_to_cart_with_price' | t: price: atc_price_formatted }}
+        {%- else -%}
+          {{ 'products.add_to_cart' | t }}
+        {%- endif -%}
+      </span>
+      <div class="absolute inset-0 hidden items-center justify-center" data-button-loader>
+        <div class="loader text-background"></div>
+      </div>
+    </button>
+    <div data-form-error class="mt-2 text-sm text-error" hidden></div>
+  </form>
+</product-form>

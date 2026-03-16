@@ -1,0 +1,200 @@
+{% doc %}
+  Variant Selector
+
+  Renders configurable variant option buttons for any product context.
+  Wraps in a <variant-selector> Web Component that handles option clicks,
+  variant resolution, availability states, and publishes variant:change events.
+
+  @param {product} product - Product object (required)
+  @param {string} [options] - Comma-separated option names to display (default: 'color')
+  @param {string} [swatch_size] - Swatch size: 'sm' (20px), 'md' (32px), 'lg' (48px) (default: 'md')
+  @param {boolean} [show_labels] - Show "Option: Value" labels (default: true)
+  @param {number} [option_limit] - Max values shown per option (default: all)
+  @param {boolean} [show_overflow_count] - Show "+N" after limit (default: false)
+  @param {string} [color_display] - Color swatch style: 'image' or 'swatch' (default: 'swatch')
+  @param {string} [pill_style] - Non-color button style: 'outline' or 'filled' (default: 'outline')
+
+  @example
+  {% render 'variant-selector', product: product, options: 'color,size', swatch_size: 'lg', show_labels: true %}
+{% enddoc %}
+
+{%- liquid
+  assign product = product | default: blank
+
+  unless product != blank
+    break
+  endunless
+
+  if product.has_only_default_variant
+    break
+  endif
+
+  assign options_param = options | default: 'color'
+  assign swatch_size = swatch_size | default: 'md'
+  assign show_labels = show_labels | default: true
+  assign option_limit = option_limit | default: null
+  assign show_overflow_count = show_overflow_count | default: false
+  assign color_display = color_display | default: 'swatch'
+  assign pill_style = pill_style | default: 'outline'
+
+  assign selected_variant = product.selected_or_first_available_variant
+  assign selected_options = selected_variant.options
+
+  assign options_list = options_param | downcase | split: ','
+
+  assign swatch_class = 'h-8 w-8'
+  if swatch_size == 'sm'
+    assign swatch_class = 'h-5 w-5'
+  elsif swatch_size == 'lg'
+    assign swatch_class = 'h-12 w-12'
+  endif
+-%}
+
+<variant-selector
+  class="block"
+  data-product-id="{{ product.id }}"
+>
+  {%- comment -%} Slim variant data for JS {%- endcomment -%}
+  <script type="application/json" data-variant-data>
+    {
+      "variants": [
+        {%- for variant in product.variants -%}
+          {
+            "id": {{ variant.id | json }},
+            "available": {{ variant.available | json }},
+            "options": {{ variant.options | json }},
+            "price": {{ variant.price | json }},
+            "compare_at_price": {{ variant.compare_at_price | default: 0 | json }},
+            "price_formatted": {{ variant.price | money | json }},
+            "compare_at_price_formatted": {% if variant.compare_at_price %}{{ variant.compare_at_price | money | json }}{% else %}null{% endif %},
+            "image": {{ variant.featured_image | image_url: width: 500 | default: '' | json }},
+            "featured_media_id": {% if variant.featured_media %}{{ variant.featured_media.id | json }}{% else %}null{% endif %},
+            "title": {{ variant.title | json }}
+          }{%- unless forloop.last -%},{%- endunless -%}
+        {%- endfor -%}
+      ],
+      "options": {{ product.options_with_values | json }}
+    }
+  </script>
+
+  <div class="space-y-5">
+    {%- for option in product.options_with_values -%}
+      {%- liquid
+        assign option_name_lower = option.name | downcase | strip
+        assign option_index = forloop.index0
+        assign should_render = false
+
+        for opt in options_list
+          assign opt_stripped = opt | strip
+          if option_name_lower == opt_stripped
+            assign should_render = true
+            break
+          endif
+        endfor
+
+        unless should_render
+          continue
+        endunless
+
+        assign is_color = false
+        if option_name_lower == 'color' or option_name_lower == 'colour'
+          assign is_color = true
+        endif
+
+        assign option_values_count = option.values | size
+      -%}
+
+      <div data-option-group="{{ option_index }}">
+        {%- if show_labels -%}
+          <label class="mb-2.5 block text-sm font-medium">
+            {{ option.name }}:
+            <span class="font-normal text-muted" data-selected-option="{{ option_index }}">
+              {{ selected_options[option_index] }}
+            </span>
+          </label>
+        {%- endif -%}
+
+        <div class="flex flex-wrap gap-2">
+          {%- for value in option.values -%}
+            {%- liquid
+              comment
+                forloop.index is 1-based — option_limit: 5 shows values 1-5 then breaks at 6
+              endcomment
+              if option_limit != null and forloop.index > option_limit
+                break
+              endif
+
+              assign is_selected = false
+              if value == selected_options[option_index]
+                assign is_selected = true
+              endif
+            -%}
+
+            {%- if is_color -%}
+              {%- liquid
+                assign color_variant = null
+                for v in product.variants
+                  case option_index
+                    when 0
+                      assign v_opt = v.option1
+                    when 1
+                      assign v_opt = v.option2
+                    when 2
+                      assign v_opt = v.option3
+                  endcase
+                  if v_opt == value
+                    assign color_variant = v
+                    break
+                  endif
+                endfor
+              -%}
+              <button
+                type="button"
+                class="variant-option variant-option--color relative {{ swatch_class }} overflow-hidden rounded-lg border-2 transition-all{% if is_selected %} border-foreground ring-2 ring-foreground/20{% else %} border-border hover:border-foreground{% endif %}"
+                data-option-value="{{ value }}"
+                data-option-index="{{ option_index }}"
+                data-is-color="true"
+                aria-label="{{ value }}"
+                aria-pressed="{% if is_selected %}true{% else %}false{% endif %}"
+                title="{{ value }}"
+              >
+                {%- if color_display == 'image' and color_variant.featured_image -%}
+                  <img
+                    src="{{ color_variant.featured_image | image_url: width: 96 }}"
+                    alt="{{ value | escape }}"
+                    width="48"
+                    height="48"
+                    loading="lazy"
+                    class="h-full w-full object-cover"
+                  >
+                {%- else -%}
+                  <span
+                    class="absolute inset-0"
+                    style="background-color: rgb(var(--color-muted) / 0.3); background-color: {{ value | handleize | replace: '-', '' }};"
+                  ></span>
+                {%- endif -%}
+              </button>
+
+            {%- else -%}
+              <button
+                type="button"
+                class="variant-option rounded border px-4 py-2 text-sm transition-colors{% if is_selected %} border-foreground bg-foreground text-background{% elsif pill_style == 'filled' %} border-foreground/20 bg-foreground/5 hover:border-foreground{% else %} border-border hover:border-foreground{% endif %}"
+                data-option-value="{{ value }}"
+                data-option-index="{{ option_index }}"
+                data-pill-style="{{ pill_style }}"
+                aria-pressed="{% if is_selected %}true{% else %}false{% endif %}"
+              >
+                {{ value }}
+              </button>
+            {%- endif -%}
+          {%- endfor -%}
+
+          {%- if show_overflow_count and option_limit != null and option_values_count > option_limit -%}
+            {%- assign overflow_count = option_values_count | minus: option_limit -%}
+            <span class="flex items-center text-xs text-muted">+{{ overflow_count }}</span>
+          {%- endif -%}
+        </div>
+      </div>
+    {%- endfor -%}
+  </div>
+</variant-selector>
