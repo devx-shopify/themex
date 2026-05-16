@@ -13,6 +13,7 @@
     ]
   },
   "enabledPlugins": {
-    "shopify-theme-standards@shopify-standards": true
+    "shopify-theme-standards@shopify-standards": true,
+    "shopify-theme-toolkit@my-plugins": true
   }
 }
