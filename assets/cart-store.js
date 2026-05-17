@@ -1,4 +1,4 @@
-let CartStore = {
+const CartStore = {
   state: null,
   pendingOps: 0,
 
@@ -42,8 +42,6 @@ let CartStore = {
     };
   },
 
-  // confirmedLine: the line whose API call just completed — remove it from _pendingLines
-  // before reconcile so its DOM is updated, while other still-pending lines are skipped.
   confirm(serverCartData, confirmedLine) {
     this.state = serverCartData;
     if (confirmedLine !== undefined) this._pendingLines.delete(confirmedLine);
@@ -53,7 +51,7 @@ let CartStore = {
   },
 
   rollback(rollbackFn) {
-    rollbackFn(); // rollback fn also calls _pendingLines.delete via the closure
+    rollbackFn();
     this.pendingOps--;
     this._notify();
   },
@@ -108,20 +106,16 @@ let CartStore = {
     const priceEls = new Map(
       [...document.querySelectorAll('[data-cart-line-price]')].map((el) => [el.dataset.cartLinePrice, el])
     );
-    const unitPriceEls = new Map(
-      [...document.querySelectorAll('[data-cart-line-unit-price]')].map((el) => [el.dataset.cartLineUnitPrice, el])
-    );
     const discountEls = new Map(
       [...document.querySelectorAll('[data-cart-line-discount]')].map((el) => [el.dataset.cartLineDiscount, el])
     );
 
     items.forEach((item, i) => {
       const n = String(i + 1);
-      const lineNum = i + 1;
 
-      // Skip DOM updates for lines that still have in-flight ops — their optimistic
-      // values are correct and we must not let this intermediate server response overwrite them.
-      if (this._pendingLines.has(lineNum)) return;
+      // Skip lines with in-flight ops — their optimistic values must not be overwritten
+      // by an intermediate server response from a different line's API call.
+      if (this._pendingLines.has(i + 1)) return;
 
       const qtyEl = qtyEls.get(n);
       if (qtyEl && qtyEl.value !== String(item.quantity)) qtyEl.value = item.quantity;
@@ -130,12 +124,6 @@ let CartStore = {
       if (priceEl) {
         const formatted = this.formatMoney(item.final_line_price);
         if (priceEl.textContent !== formatted) priceEl.textContent = formatted;
-      }
-
-      const unitPriceEl = unitPriceEls.get(n);
-      if (unitPriceEl) {
-        const formatted = this.formatMoney(item.final_price);
-        if (unitPriceEl.textContent !== formatted) unitPriceEl.textContent = formatted;
       }
 
       const discountEl = discountEls.get(n);

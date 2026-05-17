@@ -1,4 +1,5 @@
 const FOCUSABLE_SELECTORS = 'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+const TRANSITION_DURATION = 300;
 
 class CartDrawer extends HTMLElement {
   constructor() {
@@ -41,13 +42,12 @@ class CartDrawer extends HTMLElement {
     document.addEventListener('click', this.handleCartTrigger);
 
     this.addEventListener('click', (event) => {
-      if (!event.target.closest('[data-cart-checkout]')) return;
+      const btn = event.target.closest('[data-cart-checkout]');
+      if (!btn) return;
       if (CartStore.pendingOps > 0) {
         this._checkoutPending = true;
-        // Show spinner only when checkout was explicitly requested with ops in-flight
-        const btn = this.querySelector('[data-cart-checkout]');
         const spinner = this.querySelector('[data-checkout-spinner]');
-        if (btn) btn.disabled = true;
+        btn.disabled = true;
         if (spinner) spinner.hidden = false;
       } else {
         window.location.href = this._checkoutUrl;
@@ -98,7 +98,7 @@ class CartDrawer extends HTMLElement {
     setTimeout(() => {
       this.hidden = true;
       this.previousActiveElement?.focus();
-    }, 300);
+    }, TRANSITION_DURATION);
   }
 
   trapFocus() {
@@ -180,7 +180,6 @@ class CartDrawer extends HTMLElement {
       if (item) priceEl.textContent = CartStore.formatMoney(newQty * item.final_price);
     }
 
-    // Optimistically toggle delete/minus icon (fixes Bug 4)
     const minusBtnEl = this.querySelector(`[data-quantity-minus][data-line-index="${line}"]`);
     if (minusBtnEl) {
       const deleteIcon = minusBtnEl.querySelector('[data-icon-delete]');
@@ -201,7 +200,8 @@ class CartDrawer extends HTMLElement {
     try {
       const data = await CartAPI.change(line, pending.finalQty);
       CartStore.confirm(data, line);
-    } catch (_) {
+    } catch (error) {
+      console.error('[CartDrawer] qty change failed:', error);
       CartStore.rollback(pending.stateRollback);
       this._showLineError(line);
     }
@@ -220,7 +220,8 @@ class CartDrawer extends HTMLElement {
     try {
       const data = await CartAPI.change(line, 0);
       CartStore.confirm(data, line);
-    } catch (_) {
+    } catch (error) {
+      console.error('[CartDrawer] remove failed:', error);
       rowWrapper.hidden = false;
       CartStore.rollback(stateRollback);
       this._showLineError(line);
@@ -241,8 +242,6 @@ class CartDrawer extends HTMLElement {
     const checkoutBtn = this.querySelector('[data-cart-checkout]');
     const spinnerEl = this.querySelector('[data-checkout-spinner]');
 
-    // Spinner is only shown when checkout was explicitly clicked with pending ops (Bug 5).
-    // Normal cart ops (qty changes, removes) must not affect checkout button appearance.
     if (checkoutBtn && pendingOps === 0) {
       checkoutBtn.disabled = false;
       checkoutBtn.removeAttribute('aria-disabled');
@@ -257,10 +256,8 @@ class CartDrawer extends HTMLElement {
 
     const isEmpty = state.item_count === 0;
 
-    // Toggle visibility when ops are done, OR immediately when cart becomes empty
-    // (so the empty state shows optimistically on last-item removal).
-    // If the remove API fails, rollback restores item_count and _onStoreChange
-    // fires again at pendingOps=0 to show items again.
+    // Also toggle immediately when isEmpty — empty state shows optimistically on last-item remove.
+    // Rollback restores item_count and re-fires _onStoreChange at pendingOps=0 if the API fails.
     if (pendingOps === 0 || isEmpty) {
       const itemsEl = this.querySelector('[data-cart-items]');
       const footerEl = this.querySelector('[data-cart-footer]');
@@ -271,7 +268,6 @@ class CartDrawer extends HTMLElement {
       if (emptyEl) emptyEl.hidden = !isEmpty;
     }
 
-    // Always update counts — these are purely additive and safe at any time
     const headerCount = this.querySelector('[data-cart-header-count]');
     if (headerCount) {
       headerCount.textContent = state.item_count > 0 ? `(${state.item_count})` : '';

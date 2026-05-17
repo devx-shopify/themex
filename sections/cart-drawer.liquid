@@ -7,18 +7,15 @@
   aria-label="{{ 'cart.shopping_cart' | t }}"
   hidden
 >
-  {%- comment -%} Overlay backdrop {%- endcomment -%}
   <div
     class="cart-drawer__overlay fixed inset-0 z-[999] bg-black/50 opacity-0 transition-opacity duration-300"
     data-cart-overlay
   ></div>
 
-  {%- comment -%} Drawer panel {%- endcomment -%}
   <div
     class="cart-drawer__panel fixed inset-y-0 right-0 z-[999] flex w-full max-w-md translate-x-full flex-col bg-background transition-transform duration-300"
     data-cart-panel
   >
-    {%- comment -%} Drawer header {%- endcomment -%}
     <div class="flex items-center justify-between border-b border-border px-5 py-4">
       <h2 class="text-lg font-medium">
         {{ 'cart.shopping_cart' | t }}
@@ -34,9 +31,9 @@
       </button>
     </div>
 
-    {%- comment -%} Cart items — hidden when cart is empty {%- endcomment -%}
     <div class="flex-1 overflow-y-auto px-5" data-cart-items{% if cart.item_count == 0 %} hidden{% endif %}>
-      {%- comment -%} Skeleton loading state — inside items container so it replaces in place when the first item morphs in {%- endcomment -%}
+      {%- comment -%} Skeleton is first child so it occupies the same position as the first item card.
+          Server renders it hidden when cart has items; the morph transition replaces it in-place. {%- endcomment -%}
       <div
         class="animate-pulse py-4 border-b border-border"
         data-cart-skeleton
@@ -59,9 +56,7 @@
       {%- endfor -%}
     </div>
 
-    {%- comment -%} Cart footer — hidden when cart is empty {%- endcomment -%}
     <div class="border-t border-border px-5 py-4" data-cart-footer{% if cart.item_count == 0 %} hidden{% endif %}>
-      {%- comment -%} Cart level discounts {%- endcomment -%}
       {%- if cart.cart_level_discount_applications.size > 0 -%}
         <ul class="mb-3">
           {%- for discount in cart.cart_level_discount_applications -%}
@@ -70,19 +65,17 @@
                 {% render 'icon-discount', size: 14 %}
                 {{ discount.title }}
               </span>
-              <span>-{{ discount.total_allocated_amount | money }}</span>
+              <span>-{{ discount.total_allocated_amount | money_with_currency }}</span>
             </li>
           {%- endfor -%}
         </ul>
       {%- endif -%}
 
-      {%- comment -%} Subtotal {%- endcomment -%}
       <div class="mb-1 flex items-center justify-between">
         <span class="text-sm font-medium">{{ 'cart.subtotal' | t }}</span>
         <span class="text-base font-semibold" data-cart-total>{{ cart.total_price | money }}</span>
       </div>
 
-      {%- comment -%} Checkout button {%- endcomment -%}
       <button
         type="button"
         data-cart-checkout
@@ -94,7 +87,6 @@
       </button>
     </div>
 
-    {%- comment -%} Empty state — hidden when cart has items {%- endcomment -%}
     <div class="flex flex-1 flex-col items-center justify-center gap-4 px-5 text-center" data-cart-empty{% if cart.item_count > 0 %} hidden{% endif %}>
       <p class="text-muted">{{ 'cart.empty_cart' | t }}</p>
       <a

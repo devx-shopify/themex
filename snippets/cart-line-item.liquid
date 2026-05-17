@@ -4,7 +4,7 @@
   Renders a single cart line item with image, details, quantity stepper, and remove button.
   Used in both cart drawer and cart page.
 
-  @param {object} item - Cart line item object (required)
+  @param {line_item} item - Cart line item object (required)
   @param {number} line_index - 1-based line index for API calls (required)
 {% enddoc %}
 
@@ -33,15 +33,6 @@
   data-line-index="{{ line_index }}"
   data-cart-line="{{ line_index }}"
 >
-  {%- comment -%} Loading overlay {%- endcomment -%}
-  <div
-    class="cart-line-item__loading absolute inset-0 z-10 hidden items-center justify-center bg-background/70"
-    data-line-loading="{{ line_index }}"
-  >
-    <div class="loader"></div>
-  </div>
-
-  {%- comment -%} Product image {%- endcomment -%}
   <a
     href="{{ item.url }}"
     class="flex-shrink-0"
@@ -59,7 +50,6 @@
     {%- endif -%}
   </a>
   <div class="flex items-center justify-between gap-2 w-full">
-    {%- comment -%} Item details {%- endcomment -%}
     <div class="flex flex-1 flex-col gap-1">
       <a href="{{ item.url }}" class="text-sm font-medium leading-tight hover:underline">
         {{ item.product.title }}
@@ -69,7 +59,6 @@
         <p class="text-xs text-muted">{{ item.variant_title }}</p>
       {%- endunless -%}
 
-      {%- comment -%} Line item properties {%- endcomment -%}
       {%- if item.properties.size > 0 -%}
         <dl class="mt-0.5 text-xs text-muted">
           {%- for property in item.properties -%}
@@ -87,26 +76,23 @@
         </dl>
       {%- endif -%}
 
-      {%- comment -%} Selling plan name {%- endcomment -%}
       {%- if item.selling_plan_allocation != blank and item.selling_plan_allocation.selling_plan.name != 'Default' -%}
         <p class="text-xs text-muted">
           {{ item.selling_plan_allocation.selling_plan.name }}
         </p>
       {%- endif -%}
 
-      {%- comment -%} Price {%- endcomment -%}
       <div class="flex items-center gap-2">
         <span class="text-sm font-medium" data-cart-line-price="{{ line_index }}">
           {{ item.final_line_price | money }}
         </span>
-        {%- if has_compare_price and item.original_price > item.final_price -%}
+        {%- if has_compare_price -%}
           <s class="text-xs text-muted">
             {{ item.original_price | money }}
           </s>
         {%- endif -%}
       </div>
 
-      {%- comment -%} Line item discounts {%- endcomment -%}
       {%- if item.line_level_discount_allocations.size > 0 -%}
         <ul class="mt-1" data-cart-line-discount="{{ line_index }}">
           {%- for discount in item.line_level_discount_allocations -%}
@@ -118,7 +104,6 @@
         </ul>
       {%- endif -%}
 
-      {%- comment -%} Inline error shown on API failure {%- endcomment -%}
       <p
         class="text-xs text-error mt-1"
         data-cart-line-error="{{ line_index }}"
@@ -144,7 +129,6 @@
         min="0"
         max="99"
         class="h-6 w-8 border-x border-border bg-transparent text-center text-xs [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-        data-quantity-input
         data-line-index="{{ line_index }}"
         data-cart-line-qty="{{ line_index }}"
         aria-label="{{ 'cart.quantity_input_label' | t: product: item.product.title }}"

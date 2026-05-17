@@ -35,7 +35,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (item) priceEl.textContent = CartStore.formatMoney(newQty * item.final_price);
     }
 
-    // Optimistically toggle delete/minus icon (fixes Bug 4)
     const minusBtnEl = cartPage.querySelector(`[data-quantity-minus][data-line-index="${line}"]`);
     if (minusBtnEl) {
       const deleteIcon = minusBtnEl.querySelector('[data-icon-delete]');
@@ -54,7 +53,8 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const data = await CartAPI.change(line, pending.finalQty);
       CartStore.confirm(data, line);
-    } catch (_) {
+    } catch (error) {
+      console.error('[Cart] qty change failed:', error);
       CartStore.rollback(pending.stateRollback);
       _showLineError(line);
     }
@@ -70,7 +70,8 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const data = await CartAPI.change(line, 0);
       CartStore.confirm(data, line);
-    } catch (_) {
+    } catch (error) {
+      console.error('[Cart] remove failed:', error);
       rowWrapper.hidden = false;
       CartStore.rollback(stateRollback);
       _showLineError(line);
@@ -103,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const _handleNoteChange = (textarea) => {
     clearTimeout(_noteTimer);
     _noteTimer = setTimeout(async () => {
-      try { await CartAPI.update({ note: textarea.value }); } catch (_) {}
+      try { await CartAPI.update({ note: textarea.value }); } catch (error) { console.error('[Cart] note update failed:', error); }
     }, 500);
   };
 
