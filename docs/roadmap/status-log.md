@@ -4,7 +4,7 @@
 
 | PRD | File | Status | Started | Completed |
 |-----|------|--------|---------|-----------|
-| 1 — CartStore | `1-cart-store.md` | Not Started | — | — |
+| 1 — CartStore | `1-cart-store.md` | Completed | 2026-05-16 | 2026-05-17 |
 | 2 — Cart Drawer | `2-cart-drawer-optimistic.md` | Not Started | — | — |
 | 3 — Add to Cart | `3-add-to-cart-optimistic.md` | Not Started | — | — |
 | 4 — Cart Page | `4-cart-page-optimistic.md` | Not Started | — | — |
@@ -13,23 +13,28 @@
 
 ## PRD 1 — CartStore
 
-**Status:** Not Started
-**File:** `assets/cart-store.js` (new)
+**Status:** Completed
+**File:** `assets/cart-store.js` (new), `snippets/core-assets.liquid` (modified)
 
 ### Notes
-_Add notes here as work progresses — decisions made, deviations from PRD, blockers._
+- Used `let CartStore = { ... }` + explicit `window.CartStore = CartStore` assignment to satisfy both the JS standards (no `var`) and the PRD requirement (`window.CartStore` accessible)
+- `formatMoney()` reads from `#shop-money-format` JSON tag only — `window.Shopify.money_format` does not exist in this theme
+- `optimistic()` uses `JSON.parse(JSON.stringify(item))` for a true deep clone snapshot
+- `reconcile()` uses `Map` lookups built from `querySelectorAll` instead of per-item `querySelector` calls
+- `cart-store.js` loads after `cart-api.js` and before `cart-drawer.js` in `core-assets.liquid`
+- `updateCartCount()` in `cart-api.js` intentionally left untouched — PRD 2 will consolidate
 
 ### Acceptance Criteria
-- [ ] `CartStore.init()` populates state from `/cart.js`
-- [ ] `CartStore.optimistic(2, 4)` reflects in state immediately
-- [ ] Rollback function restores exact prior state
-- [ ] `pendingOps` is 0 at rest, 1 in-flight, 0 after confirm/rollback
-- [ ] `subscribe()` fires immediately on registration and on every change
-- [ ] `debounce(1, fn, 250)` called 5× in 100ms fires fn exactly once
-- [ ] `reconcile()` updates price when server returns a different value
-- [ ] `formatMoney(2999)` returns correct string for store's money format
-- [ ] `CartStore` accessible as global from other scripts
-- [ ] `init()` called twice does not double-fetch or double-notify
+- [x] `CartStore.init()` populates state from `/cart.js`
+- [x] `CartStore.optimistic(2, 4)` reflects in state immediately
+- [x] Rollback function restores exact prior state (deep clone)
+- [x] `pendingOps` is 0 at rest, 1 in-flight, 0 after confirm/rollback
+- [x] `subscribe()` fires immediately on registration and on every change
+- [x] `debounce(1, fn, 250)` called 5× in 100ms fires fn exactly once
+- [x] `reconcile()` updates price when server returns a different value
+- [x] `formatMoney(2999)` returns correct string for store's money format
+- [x] `CartStore` accessible as global from other scripts (`window.CartStore = CartStore`)
+- [x] `init()` called twice does not double-fetch or double-notify
 
 ---
 
@@ -104,3 +109,4 @@ _Add notes here as work progresses._
 | Date | PRD | Entry |
 |------|-----|-------|
 | 2026-05-16 | — | Roadmap created, all PRDs written, execution not started |
+| 2026-05-17 | 1 | PRD 1 CartStore completed — `assets/cart-store.js` created, `snippets/core-assets.liquid` updated |

@@ -9,6 +9,8 @@
     "shopify": "shopify theme dev"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.3",
+    "@playwright/test": "^1.60.0",
     "autoprefixer": "^10.4.16",
     "postcss": "^8.4.32",
     "prettier": "^3.6.2",

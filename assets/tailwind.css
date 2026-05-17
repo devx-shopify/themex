@@ -598,10 +598,6 @@ video {
   pointer-events: none;
 }
 
-.pointer-events-auto {
-  pointer-events: auto;
-}
-
 .invisible {
   visibility: hidden;
 }
@@ -629,11 +625,6 @@ video {
 .inset-x-0 {
   left: 0px;
   right: 0px;
-}
-
-.inset-x-5 {
-  left: 1.25rem;
-  right: 1.25rem;
 }
 
 .inset-y-0 {
@@ -670,10 +661,6 @@ video {
   bottom: 1rem;
 }
 
-.bottom-5 {
-  bottom: 1.25rem;
-}
-
 .left-0 {
   left: 0px;
 }
@@ -692,10 +679,6 @@ video {
 
 .right-1\.5 {
   right: 0.375rem;
-}
-
-.right-5 {
-  right: 1.25rem;
 }
 
 .top-0 {
@@ -1473,11 +1456,6 @@ video {
   border-color: currentColor;
 }
 
-.border-error {
-  --tw-border-opacity: 1;
-  border-color: rgb(var(--color-error) / var(--tw-border-opacity, 1));
-}
-
 .border-error\/20 {
   border-color: rgb(var(--color-error) / 0.2);
 }
@@ -2199,6 +2177,11 @@ video {
   color: rgb(var(--color-accent) / var(--tw-text-opacity, 1));
 }
 
+.hover\:text-error:hover {
+  --tw-text-opacity: 1;
+  color: rgb(var(--color-error) / var(--tw-text-opacity, 1));
+}
+
 .hover\:text-error\/80:hover {
   color: rgb(var(--color-error) / 0.8);
 }
@@ -2216,11 +2199,6 @@ video {
 .hover\:text-primary:hover {
   --tw-text-opacity: 1;
   color: rgb(var(--color-primary) / var(--tw-text-opacity, 1));
-}
-
-.hover\:text-error:hover {
-  --tw-text-opacity: 1;
-  color: rgb(var(--color-error) / var(--tw-text-opacity, 1));
 }
 
 .hover\:underline:hover {
