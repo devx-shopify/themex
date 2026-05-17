@@ -35,6 +35,15 @@ document.addEventListener('DOMContentLoaded', () => {
       if (item) priceEl.textContent = CartStore.formatMoney(newQty * item.final_price);
     }
 
+    // Optimistically toggle delete/minus icon (fixes Bug 4)
+    const minusBtnEl = cartPage.querySelector(`[data-quantity-minus][data-line-index="${line}"]`);
+    if (minusBtnEl) {
+      const deleteIcon = minusBtnEl.querySelector('[data-icon-delete]');
+      const minusIcon = minusBtnEl.querySelector('[data-icon-minus]');
+      if (deleteIcon) deleteIcon.hidden = newQty !== 1;
+      if (minusIcon) minusIcon.hidden = newQty === 1;
+    }
+
     CartStore.debounce(line, () => _fireQtyChange(line), 250);
   };
 
@@ -44,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
     _pendingQty.delete(line);
     try {
       const data = await CartAPI.change(line, pending.finalQty);
-      CartStore.confirm(data);
+      CartStore.confirm(data, line);
     } catch (_) {
       CartStore.rollback(pending.stateRollback);
       _showLineError(line);
@@ -55,13 +64,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!CartStore.state) return;
     const row = cartPage.querySelector(`[data-cart-line="${line}"]`);
     if (!row) return;
-    row.hidden = true;
+    const rowWrapper = row.parentElement || row;
+    rowWrapper.hidden = true;
     const stateRollback = CartStore.optimistic(line, 0);
     try {
       const data = await CartAPI.change(line, 0);
-      CartStore.confirm(data);
+      CartStore.confirm(data, line);
     } catch (_) {
-      row.hidden = false;
+      rowWrapper.hidden = false;
       CartStore.rollback(stateRollback);
       _showLineError(line);
     }

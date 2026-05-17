@@ -1,3 +1,10 @@
+/* Ensure [hidden] always wins over Tailwind utility display classes (flex, grid, block, etc.)
+   Tailwind preflight sets [hidden] { display: none } without !important, so utility classes
+   defined later in the cascade override it. */
+[hidden] {
+  display: none !important;
+}
+
 /* Reset — https://www.joshwcomeau.com/css/custom-css-reset/ */
 *,
 *::before,

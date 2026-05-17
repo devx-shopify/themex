@@ -130,16 +130,13 @@
     <div class="inline-flex items-center rounded border border-border">
       <button
         type="button"
-        class="flex h-6 w-8 items-center justify-center text-muted transition-colors hover:text-foreground{% if item.quantity == 1 %} hover:text-error{% endif %}"
+        class="flex h-6 w-8 items-center justify-center text-muted transition-colors hover:text-foreground"
         data-quantity-minus
         data-line-index="{{ line_index }}"
         aria-label="{%- if item.quantity == 1 -%}{{ 'cart.remove' | t }}: {{ item.product.title | escape }}{%- else -%}{{ 'cart.decrease' | t: product: item.product.title }}{%- endif -%}"
       >
-        {%- if item.quantity == 1 -%}
-          {% render 'icon-delete', size: 14 %}
-        {%- else -%}
-          {% render 'icon-minus', size: 14 %}
-        {%- endif -%}
+        <span data-icon-delete{% unless item.quantity == 1 %} hidden{% endunless %} class="hover:text-error">{% render 'icon-delete', size: 14 %}</span>
+        <span data-icon-minus{% if item.quantity == 1 %} hidden{% endif %}>{% render 'icon-minus', size: 14 %}</span>
       </button>
       <input
         type="number"

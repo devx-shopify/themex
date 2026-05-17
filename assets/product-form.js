@@ -79,31 +79,63 @@ class ProductForm extends HTMLElement {
     const sections = sectionId ? [sectionId] : [];
     const formData = new FormData(this.form);
 
+    const wasEmpty = (CartStore.state?.item_count ?? 0) === 0;
     cartDrawer?.open();
 
+    // Direct DOM: always hide empty state and show items container immediately on ATC.
+    // Do NOT rely on CartStore.state being non-null — init may still be in flight.
+    const emptyEl = cartDrawer?.querySelector('[data-cart-empty]');
+    const itemsEl = cartDrawer?.querySelector('[data-cart-items]');
+    const skeletonEl = cartDrawer?.querySelector('[data-cart-skeleton]');
+    if (emptyEl) emptyEl.hidden = true;
+    // Show items container (for empty cart, also reveals the skeleton inside)
+    if (wasEmpty && itemsEl) itemsEl.hidden = false;
+    // Always show skeleton — for empty cart it's revealed by showing itemsEl above;
+    // for non-empty cart it was server-rendered hidden so we explicitly un-hide it.
+    if (skeletonEl) skeletonEl.hidden = false;
+
+    // Optimistic CartStore update for count badges
+    if (CartStore.state) {
+      CartStore.state = { ...CartStore.state, item_count: CartStore.state.item_count + 1 };
+    }
     CartStore.pendingOps++;
     CartStore._notify();
 
     try {
       const data = await CartAPI.add(formData, sections);
 
+      // Morph ONLY items + footer — never the whole drawer (preserves panel translate state)
       if (sectionId && data.sections?.[sectionId] && cartDrawer) {
         const tempEl = document.createElement('div');
         tempEl.innerHTML = data.sections[sectionId];
-        const newCartDrawer = tempEl.querySelector('cart-drawer');
-        if (newCartDrawer) {
-          Idiomorph.morph(cartDrawer, newCartDrawer, { morphStyle: 'innerHTML' });
+
+        const newItemsEl = tempEl.querySelector('[data-cart-items]');
+        const existingItemsEl = cartDrawer.querySelector('[data-cart-items]');
+        if (newItemsEl && existingItemsEl) {
+          Idiomorph.morph(existingItemsEl, newItemsEl, { morphStyle: 'outerHTML' });
         }
+
+        const newFooterEl = tempEl.querySelector('[data-cart-footer]');
+        const existingFooterEl = cartDrawer.querySelector('[data-cart-footer]');
+        if (newFooterEl && existingFooterEl) {
+          Idiomorph.morph(existingFooterEl, newFooterEl, { morphStyle: 'outerHTML' });
+        }
+        // Skeleton is inside [data-cart-items] — the morph hides it and shows the item
+        // in the same position (server renders skeleton hidden when cart.item_count > 0)
       }
 
-      const existingItem = CartStore.state?.items?.find((item) => item.variant_id === data.variant_id);
-      const oldLineQty = existingItem?.quantity ?? 0;
-      const newCount = (CartStore.state?.item_count ?? 0) - oldLineQty + (data.quantity ?? 1);
-      CartStore.state = { ...(CartStore.state ?? {}), item_count: newCount };
+      // Fetch full cart state so CartStore.state.items is authoritative for qty/delete ops
+      const cartData = await CartAPI.get();
+      CartStore.state = cartData;
       CartStore.pendingOps--;
-      CartStore._notify();
-      updateCartCount(newCount);
+      CartStore._notify(); // pendingOps=0 — _onStoreChange sets final visibility
+      updateCartCount(cartData.item_count);
     } catch (error) {
+      // Rollback optimistic count and restore empty state if cart is still empty
+      if (CartStore.state) {
+        CartStore.state = { ...CartStore.state, item_count: Math.max(0, CartStore.state.item_count - 1) };
+      }
+      if (wasEmpty && emptyEl) emptyEl.hidden = false;
       cartDrawer?.close();
       CartStore.pendingOps--;
       CartStore._notify();
@@ -111,6 +143,9 @@ class ProductForm extends HTMLElement {
       this.showError(message);
     } finally {
       this.setLoading(false);
+      // Safety net: hide skeleton if morph didn't run (no sections configured) or on error
+      const finalSkeletonEl = cartDrawer?.querySelector('[data-cart-skeleton]');
+      if (finalSkeletonEl) finalSkeletonEl.hidden = true;
     }
   }
 

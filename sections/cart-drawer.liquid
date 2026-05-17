@@ -34,25 +34,24 @@
       </button>
     </div>
 
-    {%- comment -%} Skeleton loading state — visible while adding first item {%- endcomment -%}
-    <div
-      class="animate-pulse border-b border-border px-5 py-4"
-      data-cart-skeleton
-      {% if cart.item_count > 0 %}hidden{% endif %}
-    >
-      <div class="flex gap-4">
-        <div class="h-20 w-20 flex-shrink-0 rounded bg-muted/10"></div>
-        <div class="flex flex-1 flex-col gap-2 py-1">
-          <div class="h-4 w-2/3 rounded bg-muted/10"></div>
-          <div class="h-3 w-1/3 rounded bg-muted/10"></div>
-          <div class="h-4 w-1/4 rounded bg-muted/10"></div>
-        </div>
-        <div class="h-6 w-20 flex-shrink-0 rounded bg-muted/10"></div>
-      </div>
-    </div>
-
     {%- comment -%} Cart items — hidden when cart is empty {%- endcomment -%}
     <div class="flex-1 overflow-y-auto px-5" data-cart-items{% if cart.item_count == 0 %} hidden{% endif %}>
+      {%- comment -%} Skeleton loading state — inside items container so it replaces in place when the first item morphs in {%- endcomment -%}
+      <div
+        class="animate-pulse py-4 border-b border-border"
+        data-cart-skeleton
+        {% if cart.item_count > 0 %}hidden{% endif %}
+      >
+        <div class="flex gap-4">
+          <div class="h-20 w-20 flex-shrink-0 rounded bg-muted/10"></div>
+          <div class="flex flex-1 flex-col gap-2 py-1">
+            <div class="h-4 w-2/3 rounded bg-muted/10"></div>
+            <div class="h-3 w-1/3 rounded bg-muted/10"></div>
+            <div class="h-4 w-1/4 rounded bg-muted/10"></div>
+          </div>
+          <div class="h-6 w-20 flex-shrink-0 rounded bg-muted/10"></div>
+        </div>
+      </div>
       {%- for item in cart.items -%}
         <div class="py-4 border-b border-border">
           {% render 'cart-line-item', item: item, line_index: forloop.index %}

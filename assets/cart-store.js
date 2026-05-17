@@ -6,6 +6,7 @@ let CartStore = {
   _timers: {},
   _initialized: false,
   _moneyFormat: null,
+  _pendingLines: new Set(),
 
   _notify() {
     for (const fn of this._subscribers) fn(this.state, this.pendingOps);
@@ -26,24 +27,33 @@ let CartStore = {
   optimistic(lineIndex, newQty) {
     const item = this.state.items[lineIndex - 1];
     const prior = JSON.parse(JSON.stringify(item));
+    const priorItemCount = this.state.item_count;
+    const qtyDelta = newQty - item.quantity;
     item.quantity = newQty;
     item.final_line_price = newQty * item.final_price;
+    this.state.item_count = Math.max(0, this.state.item_count + qtyDelta);
+    this._pendingLines.add(lineIndex);
     this.pendingOps++;
     this._notify();
     return () => {
       this.state.items[lineIndex - 1] = prior;
+      this.state.item_count = priorItemCount;
+      this._pendingLines.delete(lineIndex);
     };
   },
 
-  confirm(serverCartData) {
+  // confirmedLine: the line whose API call just completed — remove it from _pendingLines
+  // before reconcile so its DOM is updated, while other still-pending lines are skipped.
+  confirm(serverCartData, confirmedLine) {
     this.state = serverCartData;
+    if (confirmedLine !== undefined) this._pendingLines.delete(confirmedLine);
     this.reconcile(serverCartData);
     this.pendingOps--;
     this._notify();
   },
 
   rollback(rollbackFn) {
-    rollbackFn();
+    rollbackFn(); // rollback fn also calls _pendingLines.delete via the closure
     this.pendingOps--;
     this._notify();
   },
@@ -107,6 +117,11 @@ let CartStore = {
 
     items.forEach((item, i) => {
       const n = String(i + 1);
+      const lineNum = i + 1;
+
+      // Skip DOM updates for lines that still have in-flight ops — their optimistic
+      // values are correct and we must not let this intermediate server response overwrite them.
+      if (this._pendingLines.has(lineNum)) return;
 
       const qtyEl = qtyEls.get(n);
       if (qtyEl && qtyEl.value !== String(item.quantity)) qtyEl.value = item.quantity;
@@ -128,10 +143,21 @@ let CartStore = {
         const hasDiscount = (item.line_level_discount_allocations || []).length > 0;
         if (discountEl.hidden === hasDiscount) discountEl.hidden = !hasDiscount;
       }
+
+      const minusBtn = document.querySelector(`[data-quantity-minus][data-line-index="${n}"]`);
+      if (minusBtn) {
+        const deleteIcon = minusBtn.querySelector('[data-icon-delete]');
+        const minusIcon = minusBtn.querySelector('[data-icon-minus]');
+        if (deleteIcon) deleteIcon.hidden = item.quantity !== 1;
+        if (minusIcon) minusIcon.hidden = item.quantity === 1;
+      }
     });
 
     for (const el of document.querySelectorAll('[data-cart-line]')) {
-      if (parseInt(el.dataset.cartLine, 10) > items.length) el.remove();
+      if (parseInt(el.dataset.cartLine, 10) > items.length) {
+        // Remove the wrapper div (parent) so padding + border disappear with the item
+        (el.parentElement || el).remove();
+      }
     }
   },
 };

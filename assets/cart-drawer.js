@@ -44,6 +44,11 @@ class CartDrawer extends HTMLElement {
       if (!event.target.closest('[data-cart-checkout]')) return;
       if (CartStore.pendingOps > 0) {
         this._checkoutPending = true;
+        // Show spinner only when checkout was explicitly requested with ops in-flight
+        const btn = this.querySelector('[data-cart-checkout]');
+        const spinner = this.querySelector('[data-checkout-spinner]');
+        if (btn) btn.disabled = true;
+        if (spinner) spinner.hidden = false;
       } else {
         window.location.href = this._checkoutUrl;
       }
@@ -175,6 +180,15 @@ class CartDrawer extends HTMLElement {
       if (item) priceEl.textContent = CartStore.formatMoney(newQty * item.final_price);
     }
 
+    // Optimistically toggle delete/minus icon (fixes Bug 4)
+    const minusBtnEl = this.querySelector(`[data-quantity-minus][data-line-index="${line}"]`);
+    if (minusBtnEl) {
+      const deleteIcon = minusBtnEl.querySelector('[data-icon-delete]');
+      const minusIcon = minusBtnEl.querySelector('[data-icon-minus]');
+      if (deleteIcon) deleteIcon.hidden = newQty !== 1;
+      if (minusIcon) minusIcon.hidden = newQty === 1;
+    }
+
     CartStore.debounce(line, () => this._fireQtyChange(line), 250);
   }
 
@@ -186,7 +200,7 @@ class CartDrawer extends HTMLElement {
 
     try {
       const data = await CartAPI.change(line, pending.finalQty);
-      CartStore.confirm(data);
+      CartStore.confirm(data, line);
     } catch (_) {
       CartStore.rollback(pending.stateRollback);
       this._showLineError(line);
@@ -199,14 +213,15 @@ class CartDrawer extends HTMLElement {
     const row = this.querySelector(`[data-cart-line="${line}"]`);
     if (!row) return;
 
-    row.hidden = true;
+    const rowWrapper = row.parentElement || row;
+    rowWrapper.hidden = true;
     const stateRollback = CartStore.optimistic(line, 0);
 
     try {
       const data = await CartAPI.change(line, 0);
-      CartStore.confirm(data);
+      CartStore.confirm(data, line);
     } catch (_) {
-      row.hidden = false;
+      rowWrapper.hidden = false;
       CartStore.rollback(stateRollback);
       this._showLineError(line);
     }
@@ -226,38 +241,46 @@ class CartDrawer extends HTMLElement {
     const checkoutBtn = this.querySelector('[data-cart-checkout]');
     const spinnerEl = this.querySelector('[data-checkout-spinner]');
 
-    if (checkoutBtn) {
-      if (pendingOps > 0) {
-        checkoutBtn.disabled = true;
-        checkoutBtn.setAttribute('aria-disabled', 'true');
-        checkoutBtn.setAttribute('aria-busy', 'true');
-        if (spinnerEl) spinnerEl.hidden = false;
-      } else {
-        checkoutBtn.disabled = false;
-        checkoutBtn.removeAttribute('aria-disabled');
-        checkoutBtn.removeAttribute('aria-busy');
-        if (spinnerEl) spinnerEl.hidden = true;
+    // Spinner is only shown when checkout was explicitly clicked with pending ops (Bug 5).
+    // Normal cart ops (qty changes, removes) must not affect checkout button appearance.
+    if (checkoutBtn && pendingOps === 0) {
+      checkoutBtn.disabled = false;
+      checkoutBtn.removeAttribute('aria-disabled');
+      checkoutBtn.removeAttribute('aria-busy');
+      if (spinnerEl) spinnerEl.hidden = true;
 
-        if (this._checkoutPending) {
-          this._checkoutPending = false;
-          window.location.href = this._checkoutUrl;
-        }
+      if (this._checkoutPending) {
+        this._checkoutPending = false;
+        window.location.href = this._checkoutUrl;
       }
     }
 
     const isEmpty = state.item_count === 0;
-    const itemsEl = this.querySelector('[data-cart-items]');
-    const footerEl = this.querySelector('[data-cart-footer]');
-    const emptyEl = this.querySelector('[data-cart-empty]');
 
-    if (itemsEl) itemsEl.hidden = isEmpty;
-    if (footerEl) footerEl.hidden = isEmpty;
-    if (emptyEl) emptyEl.hidden = !isEmpty;
+    // Toggle visibility when ops are done, OR immediately when cart becomes empty
+    // (so the empty state shows optimistically on last-item removal).
+    // If the remove API fails, rollback restores item_count and _onStoreChange
+    // fires again at pendingOps=0 to show items again.
+    if (pendingOps === 0 || isEmpty) {
+      const itemsEl = this.querySelector('[data-cart-items]');
+      const footerEl = this.querySelector('[data-cart-footer]');
+      const emptyEl = this.querySelector('[data-cart-empty]');
 
+      if (itemsEl) itemsEl.hidden = isEmpty;
+      if (footerEl) footerEl.hidden = isEmpty;
+      if (emptyEl) emptyEl.hidden = !isEmpty;
+    }
+
+    // Always update counts — these are purely additive and safe at any time
     const headerCount = this.querySelector('[data-cart-header-count]');
     if (headerCount) {
       headerCount.textContent = state.item_count > 0 ? `(${state.item_count})` : '';
       headerCount.hidden = isEmpty;
+    }
+
+    for (const el of document.querySelectorAll('[data-cart-count]')) {
+      el.textContent = state.item_count;
+      el.hidden = isEmpty;
     }
   }
 }
