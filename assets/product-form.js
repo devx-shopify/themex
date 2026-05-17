@@ -74,25 +74,41 @@ class ProductForm extends HTMLElement {
     this.setLoading(true);
     this.hideError();
 
-    const formData = new FormData(this.form);
-    const sectionId = document.querySelector('cart-drawer')?.dataset?.sectionId;
+    const cartDrawer = document.querySelector('cart-drawer');
+    const sectionId = cartDrawer?.dataset?.sectionId;
     const sections = sectionId ? [sectionId] : [];
+    const formData = new FormData(this.form);
+
+    cartDrawer?.open();
+
+    CartStore.pendingOps++;
+    CartStore._notify();
 
     try {
       const data = await CartAPI.add(formData, sections);
-      const cart = await CartAPI.get();
-      data.item_count = cart.item_count;
-      publish(PUB_SUB_EVENTS.cartAdd, {
-        source: 'product-form',
-        productId: this.dataset.productId,
-        sections: data.sections,
-        item_count: cart.item_count,
-      });
-      updateCartCount(cart.item_count);
+
+      if (sectionId && data.sections?.[sectionId] && cartDrawer) {
+        const tempEl = document.createElement('div');
+        tempEl.innerHTML = data.sections[sectionId];
+        const newCartDrawer = tempEl.querySelector('cart-drawer');
+        if (newCartDrawer) {
+          Idiomorph.morph(cartDrawer, newCartDrawer, { morphStyle: 'innerHTML' });
+        }
+      }
+
+      const existingItem = CartStore.state?.items?.find((item) => item.variant_id === data.variant_id);
+      const oldLineQty = existingItem?.quantity ?? 0;
+      const newCount = (CartStore.state?.item_count ?? 0) - oldLineQty + (data.quantity ?? 1);
+      CartStore.state = { ...(CartStore.state ?? {}), item_count: newCount };
+      CartStore.pendingOps--;
+      CartStore._notify();
+      updateCartCount(newCount);
     } catch (error) {
+      cartDrawer?.close();
+      CartStore.pendingOps--;
+      CartStore._notify();
       const message = error?.description ?? error?.message ?? window.theme?.strings?.cartError ?? 'Something went wrong.';
       this.showError(message);
-      publish(PUB_SUB_EVENTS.cartError, { source: 'product-form', error });
     } finally {
       this.setLoading(false);
     }

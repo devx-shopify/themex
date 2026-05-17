@@ -14,6 +14,14 @@ In Shopify themes, `const`/`let` at the top level of a classic `<script defer>` 
 
 `CartStore.optimistic()` increments `pendingOps` by 1 each call, but `CartStore.confirm()` only decrements it by 1 regardless of how many optimistic calls preceded it. Calling `optimistic()` on every rapid click and then a single `confirm()` permanently leaves `pendingOps` elevated, which disables the checkout button forever. The correct pattern for rapid-click handlers: use a per-line `Map` (e.g., `_pendingQty`) to track whether an optimistic call has already been made for a given line in the current debounce window. Only call `optimistic()` on the first click; for subsequent clicks update the map's `finalQty` only. This keeps `pendingOps` balanced — one `optimistic()` per `confirm()`/`rollback()`.
 
+### `CartStore._notify()` Must Not Be Called With Stale State When Subscribers Act on That State
+
+**Type:** Mistake & Fix
+**Category:** JavaScript
+**Date:** 2026-05-17
+
+Calling `CartStore._notify()` broadcasts `CartStore.state` synchronously to all subscribers. If `CartStore.state` is not updated before `_notify()` fires, subscribers like `_onStoreChange` act on stale data — for example, reporting `isEmpty = true` when the cart actually has items, then re-hiding DOM elements that were just correctly shown by a morph. The pattern "`pendingOps--; _notify()`" is only safe when `CartStore.state` accurately reflects the current cart. When the add endpoint returns a LineItem (not a Cart), state cannot be updated without a second API call — so `_notify()` should be omitted from the success path entirely, or state must be updated from an alternate source before notifying.
+
 ### `window.Shopify.money_format` Does Not Exist in This Theme
 **Type:** Codebase Context
 **Category:** JavaScript

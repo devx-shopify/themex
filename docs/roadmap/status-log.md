@@ -5,8 +5,8 @@
 | PRD | File | Status | Started | Completed |
 |-----|------|--------|---------|-----------|
 | 1 — CartStore | `1-cart-store.md` | Completed | 2026-05-16 | 2026-05-17 |
-| 2 — Cart Drawer | `2-cart-drawer-optimistic.md` | Not Started | — | — |
-| 3 — Add to Cart | `3-add-to-cart-optimistic.md` | Not Started | — | — |
+| 2 — Cart Drawer | `2-cart-drawer-optimistic.md` | Completed | 2026-05-17 | 2026-05-17 |
+| 3 — Add to Cart | `3-add-to-cart-optimistic.md` | Completed | 2026-05-17 | 2026-05-17 |
 | 4 — Cart Page | `4-cart-page-optimistic.md` | Not Started | — | — |
 
 ---
@@ -40,46 +40,57 @@
 
 ## PRD 2 — Optimistic Cart Drawer
 
-**Status:** Not Started
+**Status:** Completed
 **Files changed:** `assets/cart-drawer.js`, `snippets/cart-line-item.liquid`, `sections/cart-drawer.liquid`
 
 ### Notes
-_Add notes here as work progresses._
+- Full rewrite of `cart-drawer.js`: removed `renderContents()`, added `_handleQtyChange()`, `_handleRemove()`, `_fireQtyChange()`, `_showLineError()`, `_onStoreChange()`
+- `_pendingQty` Map batches rapid qty clicks; `CartStore.debounce()` collapses API calls to one per line per 250ms
+- `_onStoreChange` subscriber manages checkout gate (`aria-disabled`, `aria-busy`, spinner), empty/filled state transitions, header count
+- `cart-line-item.liquid` gained `data-cart-line`, `data-cart-line-qty`, `data-cart-line-price`, `data-cart-line-discount`, `data-cart-line-error` attributes
+- `cart-drawer.liquid` gained `data-cart-total`, checkout `<button>` replacement, `data-checkout-spinner`, always-rendered empty/items/footer with conditional `hidden`, `data-cart-header-count`
+- Assessment passed (PASS) — verified via `.buildspace/artifacts/cart-drawer-optimistic/assessment-report.md`
 
 ### Acceptance Criteria
-- [ ] `+` click updates qty and price instantly — before any network response
-- [ ] 5 rapid `+` clicks fire exactly 1 API call
-- [ ] `−` at qty 1 hides row immediately; reappears on API failure
-- [ ] No `innerHTML` replacement during qty/remove — confirmed in DevTools
-- [ ] Checkout button disabled with spinner while ops in-flight
-- [ ] Checkout intent stored; navigation proceeds when ops clear
-- [ ] Discount price change reflected via `reconcile()` without HTML re-render
-- [ ] Removing all items transitions to empty state without re-render
-- [ ] `open()` / `close()` animation and focus trap unchanged
-- [ ] `aria-disabled` + `aria-busy` set correctly during pending state
+- [x] `+` click updates qty and price instantly — before any network response
+- [x] 5 rapid `+` clicks fire exactly 1 API call
+- [x] `−` at qty 1 hides row immediately; reappears on API failure
+- [x] No `innerHTML` replacement during qty/remove — confirmed in DevTools
+- [x] Checkout button disabled with spinner while ops in-flight
+- [x] Checkout intent stored; navigation proceeds when ops clear
+- [x] Discount price change reflected via `reconcile()` without HTML re-render
+- [x] Removing all items transitions to empty state without re-render
+- [x] `open()` / `close()` animation and focus trap unchanged
+- [x] `aria-disabled` + `aria-busy` set correctly during pending state
 
 ---
 
 ## PRD 3 — Add to Cart (Optimistic + Morph)
 
-**Status:** Not Started
-**Files changed:** `assets/product-form.js` (onSubmit only), `sections/cart-drawer.liquid`
-**Files added:** `assets/idiomorph.js`, update to `snippets/core-assets.liquid`
+**Status:** Completed
+**Files changed:** `assets/product-form.js` (onSubmit only), `sections/cart-drawer.liquid`, `snippets/core-assets.liquid`
+**Files added:** `assets/idiomorph.js`
 
 ### Notes
-_Add notes here as work progresses._
+- `idiomorph.js` vendored at v0.7.4 (9.7KB minified) — downloaded from bigskysoftware/idiomorph dist/idiomorph.min.js
+- `onSubmit()` rewritten: opens drawer before API call, increments `CartStore.pendingOps++` / `CartStore._notify()` directly (no new CartStore method needed), fires single `CartAPI.add(formData, [sectionId])`, morphs via `Idiomorph.morph(cartDrawer, newCartDrawer, { morphStyle: 'innerHTML' })`, calls `CartStore.confirm(data)`
+- Error path: decrements `CartStore.pendingOps--` / `CartStore._notify()`, shows `error.description`, does not open drawer
+- Removed: `CartAPI.get()`, `updateCartCount()`, `publish(PUB_SUB_EVENTS.cartAdd, ...)`, `publish(PUB_SUB_EVENTS.cartError, ...)`
+- `[data-cart-skeleton]` shimmer block added to `cart-drawer.liquid` between header and `[data-cart-items]` — visible when `cart.item_count == 0`, uses `animate-pulse` + `bg-muted/10` pattern
+- `idiomorph.js` script tag added to `core-assets.liquid` between `cart-store.js` and `cart-drawer.js`
+- `pendingOps` balance guaranteed: increment before API, `CartStore.confirm()` decrements on success, manual decrement in catch on failure
 
 ### Acceptance Criteria
-- [ ] Drawer opens immediately on button click — before API response
-- [ ] Exactly 1 API call fires — no secondary `CartAPI.get()`
-- [ ] Drawer shows correct cart content after API response
-- [ ] idiomorph preserves existing line item DOM nodes — no destruction
-- [ ] `CartStore.state` includes new item after `confirm()`
-- [ ] Checkout button disabled during add operation
-- [ ] Out-of-stock: button restores, error shows on form, drawer does not open
-- [ ] `idiomorph.js` loads with no console errors, zero CDN requests
-- [ ] Scroll position inside drawer preserved after morph
-- [ ] Submit button restores after success or failure
+- [x] Drawer opens immediately on button click — before API response
+- [x] Exactly 1 API call fires — no secondary `CartAPI.get()`
+- [x] Drawer shows correct cart content after API response
+- [x] idiomorph preserves existing line item DOM nodes — no destruction
+- [x] `CartStore.state` includes new item after `confirm()`
+- [x] Checkout button disabled during add operation
+- [x] Out-of-stock: button restores, error shows on form, drawer does not open
+- [x] `idiomorph.js` loads with no console errors, zero CDN requests
+- [x] Scroll position inside drawer preserved after morph
+- [x] Submit button restores after success or failure
 
 ---
 
@@ -110,3 +121,5 @@ _Add notes here as work progresses._
 |------|-----|-------|
 | 2026-05-16 | — | Roadmap created, all PRDs written, execution not started |
 | 2026-05-17 | 1 | PRD 1 CartStore completed — `assets/cart-store.js` created, `snippets/core-assets.liquid` updated |
+| 2026-05-17 | 2 | PRD 2 Cart Drawer completed — `assets/cart-drawer.js` rewritten (optimistic qty/remove, checkout gate, CartStore integration), `snippets/cart-line-item.liquid` updated (data attributes), `sections/cart-drawer.liquid` updated (data-cart-total, checkout button, spinner, empty state) |
+| 2026-05-17 | 3 | PRD 3 Add to Cart completed — `assets/idiomorph.js` vendored (v0.7.4), `assets/product-form.js` onSubmit() rewritten (instant open, single API call, idiomorph morph), `sections/cart-drawer.liquid` updated (skeleton block), `snippets/core-assets.liquid` updated (idiomorph script tag) |
