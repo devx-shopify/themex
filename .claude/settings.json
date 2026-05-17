@@ -14,6 +14,7 @@
   },
   "enabledPlugins": {
     "shopify-theme-standards@shopify-standards": true,
-    "shopify-theme-toolkit@my-plugins": true
+    "shopify-theme-toolkit@my-plugins": true,
+    "shopify-theme-toolkit@shopify-standards": true
   }
 }
