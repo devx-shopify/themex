@@ -31,6 +31,7 @@
   class="cart-line-item relative flex gap-4"
   id="CartItem-{{ line_index }}"
   data-line-index="{{ line_index }}"
+  data-cart-line="{{ line_index }}"
 >
   {%- comment -%} Loading overlay {%- endcomment -%}
   <div
@@ -95,7 +96,7 @@
 
       {%- comment -%} Price {%- endcomment -%}
       <div class="flex items-center gap-2">
-        <span class="text-sm font-medium">
+        <span class="text-sm font-medium" data-cart-line-price="{{ line_index }}">
           {{ item.final_line_price | money }}
         </span>
         {%- if has_compare_price and item.original_price > item.final_price -%}
@@ -107,7 +108,7 @@
 
       {%- comment -%} Line item discounts {%- endcomment -%}
       {%- if item.line_level_discount_allocations.size > 0 -%}
-        <ul class="mt-1">
+        <ul class="mt-1" data-cart-line-discount="{{ line_index }}">
           {%- for discount in item.line_level_discount_allocations -%}
             <li class="flex items-center gap-1 text-xs">
               {% render 'icon-discount', size: 12 %}
@@ -116,6 +117,14 @@
           {%- endfor -%}
         </ul>
       {%- endif -%}
+
+      {%- comment -%} Inline error shown on API failure {%- endcomment -%}
+      <p
+        class="text-xs text-error mt-1"
+        data-cart-line-error="{{ line_index }}"
+        data-error-message="{{ 'cart.update_cart_error' | t | escape }}"
+        hidden
+      ></p>
     </div>
 
     <div class="inline-flex items-center rounded border border-border">
@@ -140,6 +149,7 @@
         class="h-6 w-8 border-x border-border bg-transparent text-center text-xs [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
         data-quantity-input
         data-line-index="{{ line_index }}"
+        data-cart-line-qty="{{ line_index }}"
         aria-label="{{ 'cart.quantity_input_label' | t: product: item.product.title }}"
       >
       <button

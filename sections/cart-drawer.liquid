@@ -22,9 +22,7 @@
     <div class="flex items-center justify-between border-b border-border px-5 py-4">
       <h2 class="text-lg font-medium">
         {{ 'cart.shopping_cart' | t }}
-        {%- if cart.item_count > 0 -%}
-          <span class="text-sm font-normal text-muted">({{ cart.item_count }})</span>
-        {%- endif -%}
+        <span class="text-sm font-normal text-muted" data-cart-header-count{% if cart.item_count == 0 %} hidden{% endif %}>{% if cart.item_count > 0 %}({{ cart.item_count }}){% endif %}</span>
       </h2>
       <button
         type="button"
@@ -36,60 +34,60 @@
       </button>
     </div>
 
-    {%- if cart.item_count > 0 -%}
-      {%- comment -%} Cart items {%- endcomment -%}
-      <div class="flex-1 overflow-y-auto px-5" data-cart-items>
-        {%- for item in cart.items -%}
-          <div class="py-4 border-b border-border">
-            {% render 'cart-line-item', item: item, line_index: forloop.index %}
-          </div>
-        {%- endfor -%}
-      </div>
-
-      {%- comment -%} Cart footer {%- endcomment -%}
-      <div class="border-t border-border px-5 py-4" data-cart-footer>
-        {%- comment -%} Cart level discounts {%- endcomment -%}
-        {%- if cart.cart_level_discount_applications.size > 0 -%}
-          <ul class="mb-3">
-            {%- for discount in cart.cart_level_discount_applications -%}
-              <li class="flex items-center justify-between text-sm text-success">
-                <span class="flex items-center gap-1">
-                  {% render 'icon-discount', size: 14 %}
-                  {{ discount.title }}
-                </span>
-                <span>-{{ discount.total_allocated_amount | money }}</span>
-              </li>
-            {%- endfor -%}
-          </ul>
-        {%- endif -%}
-
-        {%- comment -%} Subtotal {%- endcomment -%}
-        <div class="mb-1 flex items-center justify-between">
-          <span class="text-sm font-medium">{{ 'cart.subtotal' | t }}</span>
-          <span class="text-base font-semibold">{{ cart.total_price | money }}</span>
+    {%- comment -%} Cart items — hidden when cart is empty {%- endcomment -%}
+    <div class="flex-1 overflow-y-auto px-5" data-cart-items{% if cart.item_count == 0 %} hidden{% endif %}>
+      {%- for item in cart.items -%}
+        <div class="py-4 border-b border-border">
+          {% render 'cart-line-item', item: item, line_index: forloop.index %}
         </div>
+      {%- endfor -%}
+    </div>
 
-        {%- comment -%} Checkout button {%- endcomment -%}
-        <a
-          href="{{ routes.cart_url | append: '/checkout' }}"
-          class="mb-2 flex w-full items-center justify-center rounded bg-foreground px-6 py-3 text-sm font-medium text-background transition-all duration-200 hover:shadow-md"
-        >
-          {{ 'cart.checkout' | t }}
-        </a>
+    {%- comment -%} Cart footer — hidden when cart is empty {%- endcomment -%}
+    <div class="border-t border-border px-5 py-4" data-cart-footer{% if cart.item_count == 0 %} hidden{% endif %}>
+      {%- comment -%} Cart level discounts {%- endcomment -%}
+      {%- if cart.cart_level_discount_applications.size > 0 -%}
+        <ul class="mb-3">
+          {%- for discount in cart.cart_level_discount_applications -%}
+            <li class="flex items-center justify-between text-sm text-success">
+              <span class="flex items-center gap-1">
+                {% render 'icon-discount', size: 14 %}
+                {{ discount.title }}
+              </span>
+              <span>-{{ discount.total_allocated_amount | money }}</span>
+            </li>
+          {%- endfor -%}
+        </ul>
+      {%- endif -%}
+
+      {%- comment -%} Subtotal {%- endcomment -%}
+      <div class="mb-1 flex items-center justify-between">
+        <span class="text-sm font-medium">{{ 'cart.subtotal' | t }}</span>
+        <span class="text-base font-semibold" data-cart-total>{{ cart.total_price | money }}</span>
       </div>
 
-    {%- else -%}
-      {%- comment -%} Empty state {%- endcomment -%}
-      <div class="flex flex-1 flex-col items-center justify-center gap-4 px-5 text-center" data-cart-empty>
-        <p class="text-muted">{{ 'cart.empty_cart' | t }}</p>
-        <a
-          href="{{ routes.collections_url }}"
-          class="rounded bg-foreground px-6 py-3 text-sm font-medium text-background transition-all duration-200 hover:shadow-md"
-        >
-          {{ 'cart.shop_now' | t }}
-        </a>
-      </div>
-    {%- endif -%}
+      {%- comment -%} Checkout button {%- endcomment -%}
+      <button
+        type="button"
+        data-cart-checkout
+        data-checkout-url="{{ routes.cart_url | append: '/checkout' }}"
+        class="mb-2 flex w-full items-center justify-center gap-2 rounded bg-foreground px-6 py-3 text-sm font-medium text-background transition-all duration-200 hover:shadow-md"
+      >
+        <span data-checkout-text>{{ 'cart.checkout' | t }}</span>
+        <span data-checkout-spinner hidden>{% render 'icon-spinner', size: 16, class: 'text-background' %}</span>
+      </button>
+    </div>
+
+    {%- comment -%} Empty state — hidden when cart has items {%- endcomment -%}
+    <div class="flex flex-1 flex-col items-center justify-center gap-4 px-5 text-center" data-cart-empty{% if cart.item_count > 0 %} hidden{% endif %}>
+      <p class="text-muted">{{ 'cart.empty_cart' | t }}</p>
+      <a
+        href="{{ routes.collections_url }}"
+        class="rounded bg-foreground px-6 py-3 text-sm font-medium text-background transition-all duration-200 hover:shadow-md"
+      >
+        {{ 'cart.shop_now' | t }}
+      </a>
+    </div>
   </div>
 </cart-drawer>
 

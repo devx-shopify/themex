@@ -5,13 +5,17 @@ class CartDrawer extends HTMLElement {
     super();
     this.previousActiveElement = null;
     this.isOpen = false;
-    this.noteTimer = null;
     this.focusTrapHandler = null;
+    this._checkoutPending = false;
+    this._checkoutUrl = '';
+    this._unsubscribe = null;
+    this._pendingQty = new Map();
   }
 
   connectedCallback() {
     this.overlay = this.querySelector('[data-cart-overlay]');
     this.panel = this.querySelector('[data-cart-panel]');
+    this._checkoutUrl = this.querySelector('[data-cart-checkout]')?.dataset.checkoutUrl ?? '';
 
     this.overlay?.addEventListener('click', () => this.close());
 
@@ -37,34 +41,22 @@ class CartDrawer extends HTMLElement {
     document.addEventListener('click', this.handleCartTrigger);
 
     this.addEventListener('click', (event) => {
-      const minusBtn = event.target.closest('[data-quantity-minus]');
-      const plusBtn = event.target.closest('[data-quantity-plus]');
-      const removeBtn = event.target.closest('[data-remove-item]');
-
-      if (minusBtn) {
-        this.handleQuantityChange(minusBtn, -1);
-      } else if (plusBtn) {
-        this.handleQuantityChange(plusBtn, 1);
-      } else if (removeBtn) {
-        const line = parseInt(removeBtn.dataset.lineIndex, 10);
-        this.updateQuantity(line, 0);
+      if (!event.target.closest('[data-cart-checkout]')) return;
+      if (CartStore.pendingOps > 0) {
+        this._checkoutPending = true;
+      } else {
+        window.location.href = this._checkoutUrl;
       }
     });
 
-    this.addEventListener('input', (event) => {
-      if (event.target.closest('[data-cart-note]')) {
-        this.handleNoteChange(event.target);
-      }
-    });
+    this.addEventListener('click', (event) => this._handleQtyRemove(event));
 
-    this.unsubscribeCartAdd = subscribe(PUB_SUB_EVENTS.cartAdd, (data) => {
-      this.renderContents(data);
-      this.open();
-    });
+    this._unsubscribe = CartStore.subscribe(this._onStoreChange.bind(this));
+    CartStore.init();
   }
 
   disconnectedCallback() {
-    this.unsubscribeCartAdd?.();
+    this._unsubscribe?.();
     document.removeEventListener('keydown', this.handleKeydown);
     document.removeEventListener('click', this.handleCartTrigger);
     this.removeTrapFocus();
@@ -141,79 +133,132 @@ class CartDrawer extends HTMLElement {
     }
   }
 
-  renderContents(data) {
-    const sectionId = this.dataset.sectionId;
-    const sectionHtml = data.sections?.[sectionId] ?? data.sections?.['cart-drawer'];
-    if (!sectionHtml) return;
+  _handleQtyRemove(event) {
+    const minusBtn = event.target.closest('[data-quantity-minus]');
+    const plusBtn = event.target.closest('[data-quantity-plus]');
+    if (!minusBtn && !plusBtn) return;
 
-    const parsed = new DOMParser().parseFromString(sectionHtml, 'text/html');
-    const newContent = parsed.querySelector('cart-drawer');
-    if (!newContent) return;
-
-    this.overlay = null;
-    this.panel = null;
-
-    this.innerHTML = newContent.innerHTML;
-
-    this.overlay = this.querySelector('[data-cart-overlay]');
-    this.panel = this.querySelector('[data-cart-panel]');
-
-    this.overlay?.addEventListener('click', () => this.close());
-
-    if (this.isOpen) {
-      this.overlay?.classList.remove('opacity-0');
-      this.overlay?.classList.add('opacity-100');
-      this.panel?.classList.remove('translate-x-full');
-      this.panel?.classList.add('translate-x-0');
-    }
-
-    updateCartCount(data.item_count ?? 0);
-  }
-
-  handleQuantityChange(button, delta) {
-    const line = parseInt(button.dataset.lineIndex, 10);
-    const input = this.querySelector(`[data-quantity-input][data-line-index="${line}"]`);
+    const line = parseInt((minusBtn ?? plusBtn).dataset.lineIndex, 10);
+    const input = this.querySelector(`[data-cart-line-qty="${line}"]`);
     if (!input) return;
 
     const currentQty = parseInt(input.value, 10);
-    const newQty = Math.max(0, Math.min(99, currentQty + delta));
-    if (newQty === currentQty) return;
 
-    this.updateQuantity(line, newQty);
+    if (minusBtn && currentQty === 1) {
+      this._handleRemove(line);
+      return;
+    }
+
+    const delta = plusBtn ? 1 : -1;
+    const newQty = currentQty + delta;
+    if (newQty < 1 || newQty > 99) return;
+
+    this._handleQtyChange(line, newQty);
   }
 
-  async updateQuantity(line, quantity) {
-    const lineItem = this.querySelector(`#CartItem-${line}`);
-    const loadingOverlay = this.querySelector(`[data-line-loading="${line}"]`);
+  _handleQtyChange(line, newQty) {
+    if (!CartStore.state) return;
 
-    if (loadingOverlay) {
-      loadingOverlay.classList.remove('hidden');
-      loadingOverlay.classList.add('flex');
+    if (this._pendingQty.has(line)) {
+      this._pendingQty.get(line).finalQty = newQty;
+    } else {
+      const stateRollback = CartStore.optimistic(line, newQty);
+      this._pendingQty.set(line, { stateRollback, finalQty: newQty });
     }
+
+    const input = this.querySelector(`[data-cart-line-qty="${line}"]`);
+    if (input) input.value = newQty;
+
+    const priceEl = this.querySelector(`[data-cart-line-price="${line}"]`);
+    if (priceEl) {
+      const item = CartStore.state?.items?.[line - 1];
+      if (item) priceEl.textContent = CartStore.formatMoney(newQty * item.final_price);
+    }
+
+    CartStore.debounce(line, () => this._fireQtyChange(line), 250);
+  }
+
+  async _fireQtyChange(line) {
+    const pending = this._pendingQty.get(line);
+    if (!pending) return;
+
+    this._pendingQty.delete(line);
 
     try {
-      const sectionId = this.dataset.sectionId;
-      const data = await CartAPI.change(line, quantity, [sectionId]);
-      this.renderContents(data);
-      publish(PUB_SUB_EVENTS.cartUpdate, { source: 'cart-drawer', cartData: data });
-    } catch (error) {
-      publish(PUB_SUB_EVENTS.cartError, { source: 'cart-drawer', error });
-      if (loadingOverlay) {
-        loadingOverlay.classList.add('hidden');
-        loadingOverlay.classList.remove('flex');
-      }
+      const data = await CartAPI.change(line, pending.finalQty);
+      CartStore.confirm(data);
+    } catch (_) {
+      CartStore.rollback(pending.stateRollback);
+      this._showLineError(line);
     }
   }
 
-  handleNoteChange(textarea) {
-    clearTimeout(this.noteTimer);
-    this.noteTimer = setTimeout(async () => {
-      try {
-        await CartAPI.update({ note: textarea.value });
-      } catch (error) {
-        publish(PUB_SUB_EVENTS.cartError, { source: 'cart-drawer', error });
+  async _handleRemove(line) {
+    if (!CartStore.state) return;
+
+    const row = this.querySelector(`[data-cart-line="${line}"]`);
+    if (!row) return;
+
+    row.hidden = true;
+    const stateRollback = CartStore.optimistic(line, 0);
+
+    try {
+      const data = await CartAPI.change(line, 0);
+      CartStore.confirm(data);
+    } catch (_) {
+      row.hidden = false;
+      CartStore.rollback(stateRollback);
+      this._showLineError(line);
+    }
+  }
+
+  _showLineError(line) {
+    const errEl = this.querySelector(`[data-cart-line-error="${line}"]`);
+    if (!errEl) return;
+    errEl.textContent = errEl.dataset.errorMessage;
+    errEl.hidden = false;
+    setTimeout(() => { errEl.hidden = true; }, 3000);
+  }
+
+  _onStoreChange(state, pendingOps) {
+    if (!state) return;
+
+    const checkoutBtn = this.querySelector('[data-cart-checkout]');
+    const spinnerEl = this.querySelector('[data-checkout-spinner]');
+
+    if (checkoutBtn) {
+      if (pendingOps > 0) {
+        checkoutBtn.disabled = true;
+        checkoutBtn.setAttribute('aria-disabled', 'true');
+        checkoutBtn.setAttribute('aria-busy', 'true');
+        if (spinnerEl) spinnerEl.hidden = false;
+      } else {
+        checkoutBtn.disabled = false;
+        checkoutBtn.removeAttribute('aria-disabled');
+        checkoutBtn.removeAttribute('aria-busy');
+        if (spinnerEl) spinnerEl.hidden = true;
+
+        if (this._checkoutPending) {
+          this._checkoutPending = false;
+          window.location.href = this._checkoutUrl;
+        }
       }
-    }, 500);
+    }
+
+    const isEmpty = state.item_count === 0;
+    const itemsEl = this.querySelector('[data-cart-items]');
+    const footerEl = this.querySelector('[data-cart-footer]');
+    const emptyEl = this.querySelector('[data-cart-empty]');
+
+    if (itemsEl) itemsEl.hidden = isEmpty;
+    if (footerEl) footerEl.hidden = isEmpty;
+    if (emptyEl) emptyEl.hidden = !isEmpty;
+
+    const headerCount = this.querySelector('[data-cart-header-count]');
+    if (headerCount) {
+      headerCount.textContent = state.item_count > 0 ? `(${state.item_count})` : '';
+      headerCount.hidden = isEmpty;
+    }
   }
 }
 
