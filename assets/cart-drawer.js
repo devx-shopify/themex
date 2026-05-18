@@ -275,6 +275,8 @@ class CartDrawer extends HTMLElement {
     const sectionId = this.dataset.sectionId;
     const sections = sectionId ? [sectionId] : [];
 
+    this.panel?.classList.add('cart-loading');
+
     try {
       const data = await CartAPI.change(line, 0, sections);
       if (sectionId && data.sections?.[sectionId]) this._morphSection(data.sections[sectionId]);
@@ -284,6 +286,8 @@ class CartDrawer extends HTMLElement {
       rowWrapper.hidden = false;
       CartStore.rollback(stateRollback);
       this._showLineError(line);
+    } finally {
+      this.panel?.classList.remove('cart-loading');
     }
   }
 
@@ -335,6 +339,9 @@ class CartDrawer extends HTMLElement {
       el.textContent = state.item_count;
       el.hidden = isEmpty;
     }
+
+    const totalEl = this.querySelector('[data-cart-total]');
+    if (totalEl) totalEl.classList.toggle('animate-pulse', pendingOps > 0);
   }
 }
 
