@@ -1,6 +1,11 @@
 <div class="cart-page page-width py-10 lg:py-16" data-section-id="{{ section.id }}" data-cart-page>
   {%- comment -%} Filled state — hidden when cart is empty {%- endcomment -%}
-  <div data-cart-items{% if cart.item_count == 0 %} hidden{% endif %}>
+  <div
+    data-cart-items
+    {% if cart.item_count == 0 %}
+      hidden
+    {% endif %}
+  >
     <h1 class="mb-8 text-3xl font-bold lg:text-4xl">
       {{ 'cart.shopping_cart' | t }}
       <span class="text-lg font-normal text-muted">({{ cart.item_count }})</span>
@@ -31,7 +36,7 @@
           {%- if cart.cart_level_discount_applications.size > 0 -%}
             <ul class="mb-3 space-y-1">
               {%- for discount in cart.cart_level_discount_applications -%}
-                <li class="flex items-center justify-between text-sm text-success">
+                <li class="flex items-center justify-between text-sm">
                   <span class="flex items-center gap-1">
                     {% render 'icon-discount', size: 14 %}
                     {{ discount.title }}
@@ -71,7 +76,13 @@
   </div>
 
   {%- comment -%} Empty state {%- endcomment -%}
-  <div class="flex flex-col items-center justify-center gap-4 py-20 text-center" data-cart-empty{% if cart.item_count > 0 %} hidden{% endif %}>
+  <div
+    class="flex flex-col items-center justify-center gap-4 py-20 text-center"
+    data-cart-empty
+    {% if cart.item_count > 0 %}
+      hidden
+    {% endif %}
+  >
     <h1 class="text-3xl font-bold lg:text-4xl">{{ 'cart.shopping_cart' | t }}</h1>
     <p class="text-muted">{{ 'cart.empty_cart' | t }}</p>
     <a

@@ -71,6 +71,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!CartStore.state) return;
     const row = cartPage.querySelector(`[data-cart-line="${line}"]`);
     if (!row) return;
+
+    for (const [pendingLine, pendingData] of _pendingQty) {
+      CartStore.debounce(pendingLine, () => {}, 0);
+      CartStore.rollback(pendingData.stateRollback);
+    }
+    _pendingQty.clear();
+
     const rowWrapper = row.parentElement || row;
     rowWrapper.hidden = true;
     const stateRollback = CartStore.optimistic(line, 0);
@@ -89,6 +96,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const minusBtn = event.target.closest('[data-quantity-minus]');
     const plusBtn = event.target.closest('[data-quantity-plus]');
     if (!minusBtn && !plusBtn) return;
+
+    if (CartStore.state?.items?.some((item) => item.quantity === 0)) return;
 
     const line = parseInt((minusBtn ?? plusBtn).dataset.lineIndex, 10);
     const input = cartPage.querySelector(`[data-cart-line-qty="${line}"]`);

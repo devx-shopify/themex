@@ -143,6 +143,8 @@ class CartDrawer extends HTMLElement {
     const plusBtn = event.target.closest('[data-quantity-plus]');
     if (!minusBtn && !plusBtn) return;
 
+    if (CartStore.state?.items?.some((item) => item.quantity === 0)) return;
+
     const line = parseInt((minusBtn ?? plusBtn).dataset.lineIndex, 10);
     const input = this.querySelector(`[data-cart-line-qty="${line}"]`);
     if (!input) return;
@@ -257,6 +259,14 @@ class CartDrawer extends HTMLElement {
 
     const row = this.querySelector(`[data-cart-line="${line}"]`);
     if (!row) return;
+
+    // Cancel any debounced qty changes — their line indices will be stale after this
+    // remove causes Shopify to reindex the cart.
+    for (const [pendingLine, pendingData] of this._pendingQty) {
+      CartStore.debounce(pendingLine, () => { }, 0);
+      CartStore.rollback(pendingData.stateRollback);
+    }
+    this._pendingQty.clear();
 
     const rowWrapper = row.parentElement || row;
     rowWrapper.hidden = true;

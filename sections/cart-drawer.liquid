@@ -19,7 +19,15 @@
     <div class="flex items-center justify-between border-b border-border px-5 py-4">
       <h2 class="text-lg font-medium">
         {{ 'cart.shopping_cart' | t }}
-        <span class="text-sm font-normal text-muted" data-cart-header-count{% if cart.item_count == 0 %} hidden{% endif %}>{% if cart.item_count > 0 %}({{ cart.item_count }}){% endif %}</span>
+        <span
+          class="text-sm font-normal text-muted"
+          data-cart-header-count
+          {% if cart.item_count == 0 %}
+            hidden
+          {% endif %}
+        >
+          {%- if cart.item_count > 0 %}({{ cart.item_count }}){% endif -%}
+        </span>
       </h2>
       <button
         type="button"
@@ -31,13 +39,23 @@
       </button>
     </div>
 
-    <div class="flex-1 overflow-y-auto px-5" data-cart-items{% if cart.item_count == 0 %} hidden{% endif %}>
-      {%- comment -%} Skeleton is first child so it occupies the same position as the first item card.
-          Server renders it hidden when cart has items; the morph transition replaces it in-place. {%- endcomment -%}
+    <div
+      class="flex-1 overflow-y-auto px-5"
+      data-cart-items
+      {% if cart.item_count == 0 %}
+        hidden
+      {% endif %}
+    >
+      {%- comment -%}
+        Skeleton is first child so it occupies the same position as the first item card.
+        Server renders it hidden when cart has items; the morph transition replaces it in-place.
+      {%- endcomment -%}
       <div
         class="animate-pulse py-4 border-b border-border"
         data-cart-skeleton
-        {% if cart.item_count > 0 %}hidden{% endif %}
+        {% if cart.item_count > 0 %}
+          hidden
+        {% endif %}
       >
         <div class="flex gap-4">
           <div class="h-20 w-20 flex-shrink-0 rounded bg-muted/10"></div>
@@ -56,11 +74,17 @@
       {%- endfor -%}
     </div>
 
-    <div class="border-t border-border px-5 py-4" data-cart-footer{% if cart.item_count == 0 %} hidden{% endif %}>
+    <div
+      class="border-t border-border px-5 py-4"
+      data-cart-footer
+      {% if cart.item_count == 0 %}
+        hidden
+      {% endif %}
+    >
       {%- if cart.cart_level_discount_applications.size > 0 -%}
         <ul class="mb-3">
           {%- for discount in cart.cart_level_discount_applications -%}
-            <li class="flex items-center justify-between text-sm text-success">
+            <li class="flex items-center justify-between text-sm">
               <span class="flex items-center gap-1">
                 {% render 'icon-discount', size: 14 %}
                 {{ discount.title }}
@@ -87,7 +111,13 @@
       </button>
     </div>
 
-    <div class="flex flex-1 flex-col items-center justify-center gap-4 px-5 text-center" data-cart-empty{% if cart.item_count > 0 %} hidden{% endif %}>
+    <div
+      class="flex flex-1 flex-col items-center justify-center gap-4 px-5 text-center"
+      data-cart-empty
+      {% if cart.item_count > 0 %}
+        hidden
+      {% endif %}
+    >
       <p class="text-muted">{{ 'cart.empty_cart' | t }}</p>
       <a
         href="{{ routes.collections_url }}"

@@ -20,11 +20,6 @@
   if item.original_price > item.final_price
     assign has_compare_price = true
   endif
-
-  assign variant_title_is_default = false
-  if item.variant_title == 'Default Title'
-    assign variant_title_is_default = true
-  endif
 -%}
 
 <div
@@ -55,8 +50,8 @@
         {{ item.product.title }}
       </a>
 
-      {%- unless variant_title_is_default -%}
-        <p class="text-xs text-muted">{{ item.variant_title }}</p>
+      {%- unless item.variant.title == blank or item.variant.title == 'Default Title' -%}
+        <p class="text-xs text-muted">{{ item.variant.title }}</p>
       {%- endunless -%}
 
       {%- if item.properties.size > 0 -%}
@@ -117,8 +112,23 @@
         data-line-index="{{ line_index }}"
         aria-label="{%- if item.quantity == 1 -%}{{ 'cart.remove' | t }}: {{ item.product.title | escape }}{%- else -%}{{ 'cart.decrease' | t: product: item.product.title }}{%- endif -%}"
       >
-        <span data-icon-delete{% unless item.quantity == 1 %} hidden{% endunless %} class="hover:text-error">{% render 'icon-delete', size: 14 %}</span>
-        <span data-icon-minus{% if item.quantity == 1 %} hidden{% endif %}>{% render 'icon-minus', size: 14 %}</span>
+        <span
+          data-icon-delete
+          {% unless item.quantity == 1 %}
+            hidden
+          {% endunless %}
+          class="hover:text-error"
+        >
+          {%- render 'icon-delete', size: 14 -%}
+        </span>
+        <span
+          data-icon-minus
+          {% if item.quantity == 1 %}
+            hidden
+          {% endif %}
+        >
+          {%- render 'icon-minus', size: 14 -%}
+        </span>
       </button>
       <input
         type="number"
