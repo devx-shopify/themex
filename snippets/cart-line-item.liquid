@@ -62,16 +62,13 @@
       {%- if item.properties.size > 0 -%}
         <dl class="mt-0.5 text-xs text-muted">
           {%- for property in item.properties -%}
-            {%- liquid
-              assign property_first_char = property.first | slice: 0
-              if property_first_char == '_' or property.last == blank
-                continue
-              endif
-            -%}
-            <div class="flex gap-1">
-              <dt>{{ property.first }}:</dt>
-              <dd>{{ property.last }}</dd>
-            </div>
+            {%- assign property_first_char = property.first | slice: 0 -%}
+            {%- unless property_first_char == '_' or property.last == blank -%}
+              <div class="flex gap-1">
+                <dt>{{ property.first }}:</dt>
+                <dd>{{ property.last }}</dd>
+              </div>
+            {%- endunless -%}
           {%- endfor -%}
         </dl>
       {%- endif -%}
@@ -87,8 +84,8 @@
           {{ item.final_line_price | money }}
         </span>
         {%- if has_compare_price -%}
-          <s class="text-xs text-muted">
-            {{ item.original_price | money }}
+          <s class="text-xs text-muted" data-cart-line-compare-price="{{ line_index }}">
+            {{ item.original_price | times: item.quantity | money }}
           </s>
         {%- endif -%}
       </div>

@@ -166,6 +166,7 @@ class CartDrawer extends HTMLElement {
 
     if (this._pendingQty.has(line)) {
       this._pendingQty.get(line).finalQty = newQty;
+      CartStore.patchQty(line, newQty);
     } else {
       const stateRollback = CartStore.optimistic(line, newQty);
       this._pendingQty.set(line, { stateRollback, finalQty: newQty });
@@ -180,6 +181,12 @@ class CartDrawer extends HTMLElement {
       if (item) priceEl.textContent = CartStore.formatMoney(newQty * item.final_price);
     }
 
+    const compareEl = this.querySelector(`[data-cart-line-compare-price="${line}"]`);
+    if (compareEl) {
+      const item = CartStore.state?.items?.[line - 1];
+      if (item) compareEl.textContent = CartStore.formatMoney(item.original_price * newQty);
+    }
+
     const minusBtnEl = this.querySelector(`[data-quantity-minus][data-line-index="${line}"]`);
     if (minusBtnEl) {
       const deleteIcon = minusBtnEl.querySelector('[data-icon-delete]');
@@ -191,15 +198,53 @@ class CartDrawer extends HTMLElement {
     CartStore.debounce(line, () => this._fireQtyChange(line), 250);
   }
 
+  _morphSection(sectionHtml) {
+    const doc = new DOMParser().parseFromString(sectionHtml, 'text/html');
+
+    const newItemsEl = doc.querySelector('[data-cart-items]');
+    const existingItemsEl = this.querySelector('[data-cart-items]');
+    if (newItemsEl && existingItemsEl) {
+      Idiomorph.morph(existingItemsEl, newItemsEl, { morphStyle: 'outerHTML' });
+    }
+
+    const newFooterEl = doc.querySelector('[data-cart-footer]');
+    const existingFooterEl = this.querySelector('[data-cart-footer]');
+    if (newFooterEl && existingFooterEl) {
+      Idiomorph.morph(existingFooterEl, newFooterEl, { morphStyle: 'outerHTML' });
+    }
+  }
+
   async _fireQtyChange(line) {
     const pending = this._pendingQty.get(line);
     if (!pending) return;
 
     this._pendingQty.delete(line);
 
+    const sectionId = this.dataset.sectionId;
+    const sections = sectionId ? [sectionId] : [];
+
     try {
-      const data = await CartAPI.change(line, pending.finalQty);
-      CartStore.confirm(data, line);
+      const data = await CartAPI.change(line, pending.finalQty, sections);
+
+      if (sectionId && data.sections?.[sectionId]) {
+        this._morphSection(data.sections[sectionId]);
+
+        for (const [pendingLine, pendingData] of this._pendingQty) {
+          const input = this.querySelector(`[data-cart-line-qty="${pendingLine}"]`);
+          if (input) input.value = pendingData.finalQty;
+
+          const item = data.items?.[pendingLine - 1];
+          if (item) {
+            const priceEl = this.querySelector(`[data-cart-line-price="${pendingLine}"]`);
+            if (priceEl) priceEl.textContent = CartStore.formatMoney(pendingData.finalQty * item.final_price);
+
+            const compareEl = this.querySelector(`[data-cart-line-compare-price="${pendingLine}"]`);
+            if (compareEl) compareEl.textContent = CartStore.formatMoney(item.original_price * pendingData.finalQty);
+          }
+        }
+      }
+
+      CartStore.confirm(data);
     } catch (error) {
       console.error('[CartDrawer] qty change failed:', error);
       CartStore.rollback(pending.stateRollback);
@@ -217,9 +262,13 @@ class CartDrawer extends HTMLElement {
     rowWrapper.hidden = true;
     const stateRollback = CartStore.optimistic(line, 0);
 
+    const sectionId = this.dataset.sectionId;
+    const sections = sectionId ? [sectionId] : [];
+
     try {
-      const data = await CartAPI.change(line, 0);
-      CartStore.confirm(data, line);
+      const data = await CartAPI.change(line, 0, sections);
+      if (sectionId && data.sections?.[sectionId]) this._morphSection(data.sections[sectionId]);
+      CartStore.confirm(data);
     } catch (error) {
       console.error('[CartDrawer] remove failed:', error);
       rowWrapper.hidden = false;
@@ -256,8 +305,6 @@ class CartDrawer extends HTMLElement {
 
     const isEmpty = state.item_count === 0;
 
-    // Also toggle immediately when isEmpty — empty state shows optimistically on last-item remove.
-    // Rollback restores item_count and re-fires _onStoreChange at pendingOps=0 if the API fails.
     if (pendingOps === 0 || isEmpty) {
       const itemsEl = this.querySelector('[data-cart-items]');
       const footerEl = this.querySelector('[data-cart-footer]');

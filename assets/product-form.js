@@ -90,11 +90,7 @@ class ProductForm extends HTMLElement {
     if (wasEmpty && itemsEl) itemsEl.hidden = false;
     if (skeletonEl) skeletonEl.hidden = false;
 
-    if (CartStore.state) {
-      CartStore.state = { ...CartStore.state, item_count: CartStore.state.item_count + 1 };
-    }
-    CartStore.pendingOps++;
-    CartStore._notify();
+    CartStore.addPending();
 
     try {
       const data = await CartAPI.add(formData, sections);
@@ -116,17 +112,11 @@ class ProductForm extends HTMLElement {
       }
 
       const cartData = await CartAPI.get();
-      CartStore.state = cartData;
-      CartStore.pendingOps--;
-      CartStore._notify();
+      CartStore.addConfirm(cartData);
     } catch (error) {
-      if (CartStore.state) {
-        CartStore.state = { ...CartStore.state, item_count: Math.max(0, CartStore.state.item_count - 1) };
-      }
       if (wasEmpty && emptyEl) emptyEl.hidden = false;
       cartDrawer?.close();
-      CartStore.pendingOps--;
-      CartStore._notify();
+      CartStore.addRollback();
       const message = error?.description ?? error?.message ?? window.theme?.strings?.cartError ?? 'Something went wrong.';
       this.showError(message);
     } finally {

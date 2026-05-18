@@ -6,7 +6,6 @@ const CartStore = {
   _timers: {},
   _initialized: false,
   _moneyFormat: null,
-  _pendingLines: new Set(),
 
   _notify() {
     for (const fn of this._subscribers) fn(this.state, this.pendingOps);
@@ -32,19 +31,16 @@ const CartStore = {
     item.quantity = newQty;
     item.final_line_price = newQty * item.final_price;
     this.state.item_count = Math.max(0, this.state.item_count + qtyDelta);
-    this._pendingLines.add(lineIndex);
     this.pendingOps++;
     this._notify();
     return () => {
       this.state.items[lineIndex - 1] = prior;
       this.state.item_count = priorItemCount;
-      this._pendingLines.delete(lineIndex);
     };
   },
 
-  confirm(serverCartData, confirmedLine) {
+  confirm(serverCartData) {
     this.state = serverCartData;
-    if (confirmedLine !== undefined) this._pendingLines.delete(confirmedLine);
     this.reconcile(serverCartData);
     this.pendingOps--;
     this._notify();
@@ -52,6 +48,40 @@ const CartStore = {
 
   rollback(rollbackFn) {
     rollbackFn();
+    this.pendingOps--;
+    this._notify();
+  },
+
+  // Updates a line's quantity in state without changing pendingOps.
+  // Used when debounce batches rapid clicks — the original optimistic call owns the op.
+  patchQty(lineIndex, newQty) {
+    if (!this.state) return;
+    const item = this.state.items[lineIndex - 1];
+    if (!item) return;
+    const delta = newQty - item.quantity;
+    if (delta === 0) return;
+    item.quantity = newQty;
+    item.final_line_price = newQty * item.final_price;
+    this.state.item_count = Math.max(0, this.state.item_count + delta);
+    this._notify();
+  },
+
+  // Add-to-cart lifecycle — separate from optimistic/confirm/rollback because
+  // add operations don't have a line index and the DOM is updated via morph, not reconcile.
+  addPending() {
+    if (this.state) this.state = { ...this.state, item_count: this.state.item_count + 1 };
+    this.pendingOps++;
+    this._notify();
+  },
+
+  addConfirm(cartData) {
+    this.state = cartData;
+    this.pendingOps--;
+    this._notify();
+  },
+
+  addRollback() {
+    if (this.state) this.state = { ...this.state, item_count: Math.max(0, this.state.item_count - 1) };
     this.pendingOps--;
     this._notify();
   },
@@ -78,16 +108,34 @@ const CartStore = {
         this._moneyFormat = '{{amount}}';
       }
     }
-    const amount = (cents / 100).toFixed(2);
-    if (this._moneyFormat.includes('{{amount_no_decimals}}')) {
-      return this._moneyFormat.replace('{{amount_no_decimals}}', Math.round(cents / 100));
+    const fmt = this._moneyFormat;
+    const value = cents / 100;
+
+    // Shopify defines fixed grouping rules per token — not locale-dependent.
+    // group() adds a separator every 3 digits from the right, works for all markets.
+    const group = (str, sep) => str.replace(/\B(?=(\d{3})+(?!\d))/g, sep);
+
+    // Check longest names first to avoid partial substring matches.
+    // {{amount}}                                 → comma thousands, period decimal  e.g. 1,234.56
+    // {{amount_no_decimals}}                     → comma thousands, no decimal      e.g. 1,234
+    // {{amount_with_comma_separator}}            → period thousands, comma decimal  e.g. 1.234,56
+    // {{amount_no_decimals_with_comma_separator}} → period thousands, no decimal   e.g. 1.234
+    if (fmt.includes('{{amount_no_decimals_with_comma_separator}}')) {
+      return fmt.replace('{{amount_no_decimals_with_comma_separator}}', group(String(Math.round(value)), '.'));
     }
-    if (this._moneyFormat.includes('{{amount_with_comma_separator}}')) {
-      return this._moneyFormat.replace('{{amount_with_comma_separator}}', amount.replace('.', ','));
+    if (fmt.includes('{{amount_with_comma_separator}}')) {
+      const [int, dec] = value.toFixed(2).split('.');
+      return fmt.replace('{{amount_with_comma_separator}}', `${group(int, '.')},${dec}`);
     }
-    return this._moneyFormat.replace('{{amount}}', amount);
+    if (fmt.includes('{{amount_no_decimals}}')) {
+      return fmt.replace('{{amount_no_decimals}}', group(String(Math.round(value)), ','));
+    }
+    const [int, dec] = value.toFixed(2).split('.');
+    return fmt.replace('{{amount}}', `${group(int, ',')}.${dec}`);
   },
 
+  // Reconcile handles only what morph cannot: global badges outside the morphed
+  // containers, and stale element removal as a no-sections fallback.
   reconcile(serverCartData) {
     const { item_count, total_price, items } = serverCartData;
 
@@ -100,50 +148,8 @@ const CartStore = {
       if (el.textContent !== totalFormatted) el.textContent = totalFormatted;
     }
 
-    const qtyEls = new Map(
-      [...document.querySelectorAll('[data-cart-line-qty]')].map((el) => [el.dataset.cartLineQty, el])
-    );
-    const priceEls = new Map(
-      [...document.querySelectorAll('[data-cart-line-price]')].map((el) => [el.dataset.cartLinePrice, el])
-    );
-    const discountEls = new Map(
-      [...document.querySelectorAll('[data-cart-line-discount]')].map((el) => [el.dataset.cartLineDiscount, el])
-    );
-
-    items.forEach((item, i) => {
-      const n = String(i + 1);
-
-      // Skip lines with in-flight ops — their optimistic values must not be overwritten
-      // by an intermediate server response from a different line's API call.
-      if (this._pendingLines.has(i + 1)) return;
-
-      const qtyEl = qtyEls.get(n);
-      if (qtyEl && qtyEl.value !== String(item.quantity)) qtyEl.value = item.quantity;
-
-      const priceEl = priceEls.get(n);
-      if (priceEl) {
-        const formatted = this.formatMoney(item.final_line_price);
-        if (priceEl.textContent !== formatted) priceEl.textContent = formatted;
-      }
-
-      const discountEl = discountEls.get(n);
-      if (discountEl) {
-        const hasDiscount = (item.line_level_discount_allocations || []).length > 0;
-        if (discountEl.hidden === hasDiscount) discountEl.hidden = !hasDiscount;
-      }
-
-      const minusBtn = document.querySelector(`[data-quantity-minus][data-line-index="${n}"]`);
-      if (minusBtn) {
-        const deleteIcon = minusBtn.querySelector('[data-icon-delete]');
-        const minusIcon = minusBtn.querySelector('[data-icon-minus]');
-        if (deleteIcon) deleteIcon.hidden = item.quantity !== 1;
-        if (minusIcon) minusIcon.hidden = item.quantity === 1;
-      }
-    });
-
     for (const el of document.querySelectorAll('[data-cart-line]')) {
       if (parseInt(el.dataset.cartLine, 10) > items.length) {
-        // Remove the wrapper div (parent) so padding + border disappear with the item
         (el.parentElement || el).remove();
       }
     }

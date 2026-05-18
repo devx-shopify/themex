@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (_pendingQty.has(line)) {
       _pendingQty.get(line).finalQty = newQty;
+      CartStore.patchQty(line, newQty);
     } else {
       const stateRollback = CartStore.optimistic(line, newQty);
       _pendingQty.set(line, { stateRollback, finalQty: newQty });
@@ -33,6 +34,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (priceEl) {
       const item = CartStore.state?.items?.[line - 1];
       if (item) priceEl.textContent = CartStore.formatMoney(newQty * item.final_price);
+    }
+
+    const compareEl = cartPage.querySelector(`[data-cart-line-compare-price="${line}"]`);
+    if (compareEl) {
+      const item = CartStore.state?.items?.[line - 1];
+      if (item) compareEl.textContent = CartStore.formatMoney(item.original_price * newQty);
     }
 
     const minusBtnEl = cartPage.querySelector(`[data-quantity-minus][data-line-index="${line}"]`);
@@ -52,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
     _pendingQty.delete(line);
     try {
       const data = await CartAPI.change(line, pending.finalQty);
-      CartStore.confirm(data, line);
+      CartStore.confirm(data);
     } catch (error) {
       console.error('[Cart] qty change failed:', error);
       CartStore.rollback(pending.stateRollback);
@@ -69,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const stateRollback = CartStore.optimistic(line, 0);
     try {
       const data = await CartAPI.change(line, 0);
-      CartStore.confirm(data, line);
+      CartStore.confirm(data);
     } catch (error) {
       console.error('[Cart] remove failed:', error);
       rowWrapper.hidden = false;
