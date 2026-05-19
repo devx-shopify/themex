@@ -139,32 +139,25 @@ class VariantSelector extends HTMLElement {
   }
 
   updateAvailability() {
-    const displayedIndices = new Set(
-      this.optionButtons.map((btn) => parseInt(btn.dataset.optionIndex, 10))
-    );
+    const displayedIndices = this.getDisplayedIndices();
 
     this.optionButtons.forEach((btn) => {
       const index = parseInt(btn.dataset.optionIndex, 10);
       const value = btn.dataset.optionValue;
 
-      const testOptions = [...this.selectedOptions];
-      testOptions[index] = value;
+      const candidateSelection = [...this.selectedOptions];
+      candidateSelection[index] = value;
 
-      const variant = this.variants.find((v) =>
+      const available = this.variants.some((v) =>
+        v.available &&
         v.options.every((opt, i) => {
-          if (i === index) return opt === value;
           if (!displayedIndices.has(i)) return true;
-          return opt === testOptions[i];
+          return opt === candidateSelection[i];
         })
       );
 
-      btn.classList.remove('variant-unavailable', 'variant-sold-out');
-
-      if (!variant) {
-        btn.classList.add('variant-unavailable');
-      } else if (!variant.available) {
-        btn.classList.add('variant-sold-out');
-      }
+      btn.toggleAttribute('disabled', !available);
+      btn.classList.toggle('opacity-40', !available);
     });
   }
 }
