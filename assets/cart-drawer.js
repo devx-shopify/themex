@@ -25,15 +25,11 @@ class CartDrawer extends HTMLElement {
     this.overlay?.addEventListener('click', () => this.close());
 
     this.addEventListener('click', (event) => {
-      if (event.target.closest('[data-cart-close]')) {
-        this.close();
-      }
+      if (event.target.closest('[data-cart-close]')) this.close();
     });
 
     this.handleKeydown = (event) => {
-      if (event.key === 'Escape' && this.isOpen) {
-        this.close();
-      }
+      if (event.key === 'Escape' && this.isOpen) this.close();
     };
     document.addEventListener('keydown', this.handleKeydown);
 
@@ -113,12 +109,10 @@ class CartDrawer extends HTMLElement {
     const lastFocusable = focusable[focusable.length - 1];
 
     firstFocusable.focus();
-
     this.removeTrapFocus();
 
     this.focusTrapHandler = (event) => {
       if (event.key !== 'Tab') return;
-
       if (event.shiftKey) {
         if (document.activeElement === firstFocusable) {
           event.preventDefault();
@@ -131,7 +125,6 @@ class CartDrawer extends HTMLElement {
         }
       }
     };
-
     this.panel.addEventListener('keydown', this.focusTrapHandler);
   }
 
@@ -147,16 +140,18 @@ class CartDrawer extends HTMLElement {
     const plusBtn = event.target.closest('[data-quantity-plus]');
     if (!minusBtn && !plusBtn) return;
 
-    if (CartStore.state?.items?.some((item) => item.quantity === 0)) return;
+    const btn = minusBtn ?? plusBtn;
+    const row = btn.closest('[data-item-key]');
+    if (!row) return;
+    const key = row.dataset.itemKey;
 
-    const line = parseInt((minusBtn ?? plusBtn).dataset.lineIndex, 10);
-    const input = this.querySelector(`[data-cart-line-qty="${line}"]`);
+    const input = row.querySelector('[data-cart-line-qty]');
     if (!input) return;
 
     const currentQty = parseInt(input.value, 10);
 
     if (minusBtn && currentQty === 1) {
-      this._handleRemove(line);
+      this._handleRemove(key);
       return;
     }
 
@@ -164,36 +159,36 @@ class CartDrawer extends HTMLElement {
     const newQty = currentQty + delta;
     if (newQty < 1 || newQty > 99) return;
 
-    this._handleQtyChange(line, newQty);
+    this._handleQtyChange(key, newQty);
   }
 
-  _handleQtyChange(line, newQty) {
+  _handleQtyChange(key, newQty) {
     if (!CartStore.state) return;
 
-    if (this._pendingQty.has(line)) {
-      this._pendingQty.get(line).finalQty = newQty;
-      CartStore.patchQty(line, newQty);
+    if (this._pendingQty.has(key)) {
+      this._pendingQty.get(key).finalQty = newQty;
+      CartStore.patchQty(key, newQty);
     } else {
-      const stateRollback = CartStore.optimistic(line, newQty);
-      this._pendingQty.set(line, { stateRollback, finalQty: newQty });
+      const stateRollback = CartStore.optimistic(key, newQty);
+      this._pendingQty.set(key, { stateRollback, finalQty: newQty });
     }
 
-    const input = this.querySelector(`[data-cart-line-qty="${line}"]`);
+    const row = this.querySelector(`[data-item-key="${key}"]`);
+    if (!row) return;
+
+    const input = row.querySelector('[data-cart-line-qty]');
     if (input) input.value = newQty;
 
-    const priceEl = this.querySelector(`[data-cart-line-price="${line}"]`);
-    if (priceEl) {
-      const item = CartStore.state?.items?.[line - 1];
-      if (item) priceEl.textContent = CartStore.formatMoney(newQty * item.final_price);
+    const item = CartStore.state?.items?.find((i) => i.key === key);
+    if (item) {
+      const priceEl = row.querySelector('[data-cart-line-price]');
+      if (priceEl) priceEl.textContent = CartStore.formatMoney(newQty * item.final_price);
+
+      const compareEl = row.querySelector('[data-cart-line-compare-price]');
+      if (compareEl) compareEl.textContent = CartStore.formatMoney(item.original_price * newQty);
     }
 
-    const compareEl = this.querySelector(`[data-cart-line-compare-price="${line}"]`);
-    if (compareEl) {
-      const item = CartStore.state?.items?.[line - 1];
-      if (item) compareEl.textContent = CartStore.formatMoney(item.original_price * newQty);
-    }
-
-    const minusBtnEl = this.querySelector(`[data-quantity-minus][data-line-index="${line}"]`);
+    const minusBtnEl = row.querySelector('[data-quantity-minus]');
     if (minusBtnEl) {
       const deleteIcon = minusBtnEl.querySelector('[data-icon-delete]');
       const minusIcon = minusBtnEl.querySelector('[data-icon-minus]');
@@ -229,7 +224,7 @@ class CartDrawer extends HTMLElement {
     this._flushTimer = null;
     if (this._pendingQty.size === 0) return;
 
-    const snapshot = new Map(this._pendingQty);
+    const snapshot = new Map(this._pendingQty); // key → { stateRollback, finalQty }
     this._pendingQty.clear();
 
     this._queuedMutations++;
@@ -243,10 +238,10 @@ class CartDrawer extends HTMLElement {
     const sectionId = this.dataset.sectionId;
     const sections = sectionId ? [sectionId] : [];
 
-    const updates = (CartStore.state?.items ?? []).map((item, i) => {
-      const line = i + 1;
-      return snapshot.has(line) ? snapshot.get(line).finalQty : item.quantity;
-    });
+
+    const updates = (CartStore.state?.items ?? []).map((item) =>
+      snapshot.has(item.key) ? snapshot.get(item.key).finalQty : item.quantity
+    );
 
     this._executingMutations++;
     try {
@@ -258,20 +253,39 @@ class CartDrawer extends HTMLElement {
 
       CartStore.confirmBatch(data, snapshot.size);
     } catch (error) {
-      console.error('[CartDrawer] batch qty update failed:', error);
-      for (const [line, { stateRollback }] of snapshot) {
+      const apiMessage = error?.description || error?.message || null;
+      for (const [key, { stateRollback }] of snapshot) {
         CartStore.rollback(stateRollback);
-        this._showLineError(line);
+        const item = CartStore.state?.items?.find((i) => i.key === key);
+        if (item) {
+          const row = this.querySelector(`[data-item-key="${key}"]`);
+          if (row) {
+            const input = row.querySelector('[data-cart-line-qty]');
+            if (input) input.value = item.quantity;
+            const priceEl = row.querySelector('[data-cart-line-price]');
+            if (priceEl) priceEl.textContent = CartStore.formatMoney(item.quantity * item.final_price);
+            const compareEl = row.querySelector('[data-cart-line-compare-price]');
+            if (compareEl) compareEl.textContent = CartStore.formatMoney(item.original_price * item.quantity);
+            const minusBtnEl = row.querySelector('[data-quantity-minus]');
+            if (minusBtnEl) {
+              const deleteIcon = minusBtnEl.querySelector('[data-icon-delete]');
+              const minusIcon = minusBtnEl.querySelector('[data-icon-minus]');
+              if (deleteIcon) deleteIcon.hidden = item.quantity !== 1;
+              if (minusIcon) minusIcon.hidden = item.quantity === 1;
+            }
+          }
+        }
+        this._showLineError(key, apiMessage);
       }
     } finally {
       this._executingMutations--;
     }
   }
 
-  _handleRemove(line) {
+  _handleRemove(key) {
     if (!CartStore.state) return;
 
-    const row = this.querySelector(`[data-cart-line="${line}"]`);
+    const row = this.querySelector(`[data-item-key="${key}"]`);
     if (!row) return;
 
     clearTimeout(this._flushTimer);
@@ -281,18 +295,18 @@ class CartDrawer extends HTMLElement {
     }
     this._pendingQty.clear();
 
-    const rowWrapper = row.parentElement || row;
+
+    const parent = row.parentElement;
+    const rowWrapper = parent?.children.length === 1 ? parent : row;
     const rowWrapperParent = rowWrapper.parentElement;
     const rowWrapperNextSibling = rowWrapper.nextSibling;
     rowWrapper.remove();
 
-    const stateRollback = CartStore.optimistic(line, 0);
+    const stateRollback = CartStore.optimistic(key, 0);
 
     const sectionId = this.dataset.sectionId;
     const sections = sectionId ? [sectionId] : [];
 
-    // Loader only if there is already a mutation queued or executing at click time.
-    // A clean delete is fully optimistic — the row is already gone, no loader needed.
     const showLoader = (this._queuedMutations + this._executingMutations) > 0;
     if (showLoader) this.panel?.classList.add('cart-loading');
 
@@ -301,7 +315,14 @@ class CartDrawer extends HTMLElement {
       this._queuedMutations--;
       this._executingMutations++;
       try {
-        const data = await CartAPI.change(line, 0, sections);
+        const currentLine = (CartStore.state?.items?.findIndex((item) => item.key === key) ?? -1) + 1;
+
+        if (currentLine <= 0) {
+          CartStore.settlePendingOp();
+          return;
+        }
+
+        const data = await CartAPI.change(currentLine, 0, sections);
         if (this._queuedMutations === 0 && sectionId && data.sections?.[sectionId]) {
           this._morphSection(data.sections[sectionId]);
         }
@@ -310,7 +331,7 @@ class CartDrawer extends HTMLElement {
         console.error('[CartDrawer] remove failed:', error);
         if (rowWrapperParent) rowWrapperParent.insertBefore(rowWrapper, rowWrapperNextSibling);
         CartStore.rollback(stateRollback);
-        this._showLineError(line);
+        this._showLineError(key, error?.description || error?.message || null);
       } finally {
         this._executingMutations--;
         if (showLoader) this.panel?.classList.remove('cart-loading');
@@ -318,10 +339,19 @@ class CartDrawer extends HTMLElement {
     });
   }
 
-  _showLineError(line) {
-    const errEl = this.querySelector(`[data-cart-line-error="${line}"]`);
+  showError(message) {
+    const errEl = this.querySelector('[data-cart-error]');
     if (!errEl) return;
-    errEl.textContent = errEl.dataset.errorMessage;
+    errEl.textContent = message;
+    errEl.hidden = false;
+    setTimeout(() => { errEl.hidden = true; }, 4000);
+  }
+
+  _showLineError(key, message = null) {
+    const row = this.querySelector(`[data-item-key="${key}"]`);
+    const errEl = row?.querySelector('[data-cart-line-error]');
+    if (!errEl) return;
+    errEl.textContent = message ?? errEl.dataset.errorMessage;
     errEl.hidden = false;
     setTimeout(() => { errEl.hidden = true; }, 3000);
   }
@@ -346,7 +376,7 @@ class CartDrawer extends HTMLElement {
 
     const isEmpty = state.item_count === 0;
 
-    if (pendingOps === 0 || isEmpty) {
+    if (pendingOps === 0 || (isEmpty && CartStore._pendingAdds === 0)) {
       const itemsEl = this.querySelector('[data-cart-items]');
       const footerEl = this.querySelector('[data-cart-footer]');
       const emptyEl = this.querySelector('[data-cart-empty]');

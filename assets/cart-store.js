@@ -3,37 +3,45 @@ const CartStore = {
   pendingOps: 0,
 
   _subscribers: [],
-  _initialized: false,
+  _initPromise: null,
   _moneyFormat: null,
+  _pendingAdds: 0,
 
   _notify() {
     for (const fn of this._subscribers) fn(this.state, this.pendingOps);
   },
 
-  async init() {
-    if (this._initialized) return;
-    this._initialized = true;
-    try {
-      const data = await CartAPI.get();
-      this.state = data;
-      this._notify();
-    } catch (error) {
-      console.error('[CartStore] init failed:', error);
-    }
+  init() {
+    if (this._initPromise) return this._initPromise;
+    this._initPromise = CartAPI.get()
+      .then((data) => {
+        this.state = data;
+        this._notify();
+      })
+      .catch((error) => {
+        console.error('[CartStore] init failed:', error);
+        this._initPromise = null;
+      });
+    return this._initPromise;
   },
 
-  optimistic(lineIndex, newQty) {
-    const item = this.state.items[lineIndex - 1];
-    const prior = JSON.parse(JSON.stringify(item));
+  optimistic(key, newQty) {
+    const itemIndex = this.state.items.findIndex((item) => item.key === key);
+    if (itemIndex === -1) return () => { };
+
+    const item = this.state.items[itemIndex];
+    const priorItems = JSON.parse(JSON.stringify(this.state.items));
     const priorItemCount = this.state.item_count;
     const qtyDelta = newQty - item.quantity;
+
     item.quantity = newQty;
     item.final_line_price = newQty * item.final_price;
     this.state.item_count = Math.max(0, this.state.item_count + qtyDelta);
     this.pendingOps++;
     this._notify();
+
     return () => {
-      this.state.items[lineIndex - 1] = prior;
+      this.state.items = priorItems;
       this.state.item_count = priorItemCount;
     };
   },
@@ -41,7 +49,7 @@ const CartStore = {
   confirm(serverCartData) {
     this.state = serverCartData;
     this.reconcile(serverCartData);
-    this.pendingOps--;
+    this.pendingOps = Math.max(0, this.pendingOps - 1);
     this._notify();
   },
 
@@ -54,13 +62,18 @@ const CartStore = {
 
   rollback(rollbackFn) {
     rollbackFn();
-    this.pendingOps--;
+    this.pendingOps = Math.max(0, this.pendingOps - 1);
     this._notify();
   },
 
-  patchQty(lineIndex, newQty) {
+  settlePendingOp() {
+    this.pendingOps = Math.max(0, this.pendingOps - 1);
+    this._notify();
+  },
+
+  patchQty(key, newQty) {
     if (!this.state) return;
-    const item = this.state.items[lineIndex - 1];
+    const item = this.state.items.find((i) => i.key === key);
     if (!item) return;
     const delta = newQty - item.quantity;
     if (delta === 0) return;
@@ -69,21 +82,25 @@ const CartStore = {
     this.state.item_count = Math.max(0, this.state.item_count + delta);
     this._notify();
   },
+
   addPending() {
     if (this.state) this.state = { ...this.state, item_count: this.state.item_count + 1 };
     this.pendingOps++;
+    this._pendingAdds++;
     this._notify();
   },
 
   addConfirm(cartData) {
     this.state = cartData;
-    this.pendingOps--;
+    this.pendingOps = Math.max(0, this.pendingOps - 1);
+    this._pendingAdds = Math.max(0, this._pendingAdds - 1);
     this._notify();
   },
 
   addRollback() {
     if (this.state) this.state = { ...this.state, item_count: Math.max(0, this.state.item_count - 1) };
-    this.pendingOps--;
+    this.pendingOps = Math.max(0, this.pendingOps - 1);
+    this._pendingAdds = Math.max(0, this._pendingAdds - 1);
     this._notify();
   },
 
@@ -124,7 +141,7 @@ const CartStore = {
   },
 
   reconcile(serverCartData) {
-    const { item_count, total_price, items } = serverCartData;
+    const { item_count, total_price } = serverCartData;
 
     for (const el of document.querySelectorAll('[data-cart-count]')) {
       if (el.textContent !== String(item_count)) el.textContent = item_count;
@@ -133,12 +150,6 @@ const CartStore = {
     const totalFormatted = this.formatMoney(total_price);
     for (const el of document.querySelectorAll('[data-cart-total]')) {
       if (el.textContent !== totalFormatted) el.textContent = totalFormatted;
-    }
-
-    for (const el of document.querySelectorAll('[data-cart-line]')) {
-      if (parseInt(el.dataset.cartLine, 10) > items.length) {
-        (el.parentElement || el).remove();
-      }
     }
   },
 };

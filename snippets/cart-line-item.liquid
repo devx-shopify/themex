@@ -24,7 +24,8 @@
 
 <div
   class="cart-line-item relative flex gap-4"
-  id="CartItem-{{ line_index }}"
+  id="CartItem-{{ item.key | replace: ':', '-' }}"
+  data-item-key="{{ item.key }}"
   data-line-index="{{ line_index }}"
   data-cart-line="{{ line_index }}"
 >
@@ -135,6 +136,7 @@
         value="{{ item.quantity }}"
         min="0"
         max="99"
+        disabled
         class="h-6 w-8 border-x border-border bg-transparent text-center text-xs [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
         data-line-index="{{ line_index }}"
         data-cart-line-qty="{{ line_index }}"

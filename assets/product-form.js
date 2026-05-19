@@ -78,17 +78,34 @@ class ProductForm extends HTMLElement {
     const sectionId = cartDrawer?.dataset?.sectionId;
     const sections = sectionId ? [sectionId] : [];
     const formData = new FormData(this.form);
+    const variantId = parseInt(formData.get('id'), 10);
+
+    await CartStore.init();
 
     const wasEmpty = (CartStore.state?.item_count ?? 0) === 0;
     cartDrawer?.open();
 
-    // Direct DOM — CartStore.state may still be null if init is in-flight
     const emptyEl = cartDrawer?.querySelector('[data-cart-empty]');
     const itemsEl = cartDrawer?.querySelector('[data-cart-items]');
     const skeletonEl = cartDrawer?.querySelector('[data-cart-skeleton]');
     if (emptyEl) emptyEl.hidden = true;
-    if (wasEmpty && itemsEl) itemsEl.hidden = false;
-    if (skeletonEl) skeletonEl.hidden = false;
+
+    let shimmerEl = null;
+
+    if (wasEmpty) {
+      if (itemsEl) itemsEl.hidden = false;
+      if (skeletonEl) skeletonEl.hidden = false;
+    } else {
+      const existingItem = CartStore.state?.items?.find((item) => item.variant_id === variantId);
+      if (existingItem) {
+        const row = cartDrawer?.querySelector(`[data-item-key="${existingItem.key}"]`);
+        const parent = row?.parentElement;
+        shimmerEl = (parent?.children.length === 1 ? parent : row) ?? null;
+        shimmerEl?.classList.add('animate-pulse');
+      } else {
+        if (skeletonEl) skeletonEl.hidden = false;
+      }
+    }
 
     CartStore.addPending();
 
@@ -114,15 +131,18 @@ class ProductForm extends HTMLElement {
       const cartData = await CartAPI.get();
       CartStore.addConfirm(cartData);
     } catch (error) {
-      if (wasEmpty && emptyEl) emptyEl.hidden = false;
-      cartDrawer?.close();
       CartStore.addRollback();
       const message = error?.description ?? error?.message ?? window.theme?.strings?.cartError ?? 'Something went wrong.';
-      this.showError(message);
+      if (cartDrawer) {
+        cartDrawer.showError(message);
+      } else {
+        this.showError(message);
+      }
     } finally {
       this.setLoading(false);
       const finalSkeletonEl = cartDrawer?.querySelector('[data-cart-skeleton]');
       if (finalSkeletonEl) finalSkeletonEl.hidden = true;
+      shimmerEl?.classList.remove('animate-pulse');
     }
   }
 

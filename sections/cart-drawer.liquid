@@ -16,6 +16,8 @@
     class="cart-drawer__panel fixed inset-y-0 right-0 z-[999] flex w-full max-w-md translate-x-full flex-col bg-background transition-transform duration-300"
     data-cart-panel
   >
+    <p class="px-5 py-3 text-sm text-error border-b border-border" data-cart-error hidden></p>
+
     <div class="flex items-center justify-between border-b border-border px-5 py-4">
       <h2 class="text-lg font-medium">
         {{ 'cart.shopping_cart' | t }}
@@ -46,10 +48,6 @@
         hidden
       {% endif %}
     >
-      {%- comment -%}
-        Skeleton is first child so it occupies the same position as the first item card.
-        Server renders it hidden when cart has items; the morph transition replaces it in-place.
-      {%- endcomment -%}
       <div
         class="animate-pulse py-4 border-b border-border"
         data-cart-skeleton
