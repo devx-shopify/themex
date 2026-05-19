@@ -33,59 +33,101 @@
     "settings": [
       {
         "type": "header",
-        "content": "Brand Colors"
+        "content": "Primary Brand"
       },
       {
         "type": "color",
         "id": "color_primary",
-        "label": "Primary",
-        "default": "#0a0a0a"
+        "label": "Teal (primary)",
+        "default": "#0D9488",
+        "info": "Primary buttons, active states, nav highlights, links"
       },
       {
         "type": "color",
         "id": "color_secondary",
-        "label": "Secondary",
-        "default": "#6b7280"
+        "label": "Teal dark",
+        "default": "#0F7269",
+        "info": "Hover states for primary, active nav text"
       },
       {
         "type": "color",
         "id": "color_accent",
-        "label": "Accent",
-        "default": "#737373"
+        "label": "Teal (accent)",
+        "default": "#0D9488",
+        "info": "Secondary buttons, nav hover text, dot indicators"
+      },
+      {
+        "type": "color",
+        "id": "color_primary_light",
+        "label": "Teal light",
+        "default": "#CCEBE9",
+        "info": "Badge/tag backgrounds, selected row highlights, chip fills"
+      },
+      {
+        "type": "color",
+        "id": "color_primary_wash",
+        "label": "Teal wash",
+        "default": "#F0FDFA",
+        "info": "Card backgrounds, callout fills, sidebar active state"
       },
       {
         "type": "header",
-        "content": "Base Colors"
+        "content": "Neutrals"
       },
       {
         "type": "color",
         "id": "color_foreground",
-        "label": "Text",
-        "default": "#0a0a0a"
+        "label": "Near black (headings)",
+        "default": "#111111",
+        "info": "Page titles, primary headings, high-emphasis text"
+      },
+      {
+        "type": "color",
+        "id": "color_body",
+        "label": "Dark grey (body text)",
+        "default": "#1F2937",
+        "info": "Body text, table content, form labels"
+      },
+      {
+        "type": "color",
+        "id": "color_mid",
+        "label": "Mid grey (secondary text)",
+        "default": "#4B5563",
+        "info": "Secondary text, descriptions, placeholder text"
+      },
+      {
+        "type": "color",
+        "id": "color_muted",
+        "label": "Muted grey (captions)",
+        "default": "#9CA3AF",
+        "info": "Captions, timestamps, footer text, breadcrumb separators"
+      },
+      {
+        "type": "color",
+        "id": "color_border",
+        "label": "Border grey",
+        "default": "#E5E7EB",
+        "info": "Card borders, dividers, table rules, input borders"
+      },
+      {
+        "type": "color",
+        "id": "color_background_alt",
+        "label": "Background alt",
+        "default": "#F7F8F9",
+        "info": "Sidebar backgrounds, card fills, alternating table rows"
+      },
+      {
+        "type": "color",
+        "id": "color_background",
+        "label": "Background",
+        "default": "#FFFFFF",
+        "info": "Page background, card backgrounds, input backgrounds"
       },
       {
         "type": "color",
         "id": "color_primary_foreground",
         "label": "Primary button text",
         "default": "#FFFFFF"
-      },
-      {
-        "type": "color",
-        "id": "color_background",
-        "label": "Background",
-        "default": "#FFFFFF"
-      },
-      {
-        "type": "color",
-        "id": "color_border",
-        "label": "Border",
-        "default": "#e5e7eb"
-      },
-      {
-        "type": "color",
-        "id": "color_muted",
-        "label": "Muted text",
-        "default": "#6b7280"
       },
       {
         "type": "header",
@@ -99,9 +141,30 @@
       },
       {
         "type": "color",
+        "id": "color_error_wash",
+        "label": "Error wash",
+        "default": "#FEF2F2",
+        "info": "Error banner backgrounds, destructive alert fills"
+      },
+      {
+        "type": "color",
         "id": "color_success",
         "label": "Success",
         "default": "#16A34A"
+      },
+      {
+        "type": "color",
+        "id": "color_warning",
+        "label": "Warning",
+        "default": "#F97316",
+        "info": "Warning states, pending badges, attention-required indicators"
+      },
+      {
+        "type": "color",
+        "id": "color_info",
+        "label": "Info / AI",
+        "default": "#7C3AED",
+        "info": "Informational badges, AI-generated content indicators"
       }
     ]
   },
