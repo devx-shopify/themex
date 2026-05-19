@@ -11,6 +11,10 @@ class CartDrawer extends HTMLElement {
     this._checkoutUrl = '';
     this._unsubscribe = null;
     this._pendingQty = new Map();
+    this._flushTimer = null;
+    this._mutationChain = Promise.resolve();
+    this._queuedMutations = 0;
+    this._executingMutations = 0;
   }
 
   connectedCallback() {
@@ -197,7 +201,7 @@ class CartDrawer extends HTMLElement {
       if (minusIcon) minusIcon.hidden = newQty === 1;
     }
 
-    CartStore.debounce(line, () => this._fireQtyChange(line), 250);
+    this._scheduleFlush();
   }
 
   _morphSection(sectionHtml) {
@@ -216,79 +220,102 @@ class CartDrawer extends HTMLElement {
     }
   }
 
-  async _fireQtyChange(line) {
-    const pending = this._pendingQty.get(line);
-    if (!pending) return;
+  _scheduleFlush() {
+    clearTimeout(this._flushTimer);
+    this._flushTimer = setTimeout(() => this._flush(), 250);
+  }
 
-    this._pendingQty.delete(line);
+  _flush() {
+    this._flushTimer = null;
+    if (this._pendingQty.size === 0) return;
 
+    const snapshot = new Map(this._pendingQty);
+    this._pendingQty.clear();
+
+    this._queuedMutations++;
+    this._mutationChain = this._mutationChain.then(() => {
+      this._queuedMutations--;
+      return this._executeMutation(snapshot);
+    });
+  }
+
+  async _executeMutation(snapshot) {
     const sectionId = this.dataset.sectionId;
     const sections = sectionId ? [sectionId] : [];
 
+    const updates = (CartStore.state?.items ?? []).map((item, i) => {
+      const line = i + 1;
+      return snapshot.has(line) ? snapshot.get(line).finalQty : item.quantity;
+    });
+
+    this._executingMutations++;
     try {
-      const data = await CartAPI.change(line, pending.finalQty, sections);
+      const data = await CartAPI.update({ updates }, sections);
 
-      if (sectionId && data.sections?.[sectionId]) {
+      if (this._queuedMutations === 0 && sectionId && data.sections?.[sectionId]) {
         this._morphSection(data.sections[sectionId]);
-
-        for (const [pendingLine, pendingData] of this._pendingQty) {
-          const input = this.querySelector(`[data-cart-line-qty="${pendingLine}"]`);
-          if (input) input.value = pendingData.finalQty;
-
-          const item = data.items?.[pendingLine - 1];
-          if (item) {
-            const priceEl = this.querySelector(`[data-cart-line-price="${pendingLine}"]`);
-            if (priceEl) priceEl.textContent = CartStore.formatMoney(pendingData.finalQty * item.final_price);
-
-            const compareEl = this.querySelector(`[data-cart-line-compare-price="${pendingLine}"]`);
-            if (compareEl) compareEl.textContent = CartStore.formatMoney(item.original_price * pendingData.finalQty);
-          }
-        }
       }
 
-      CartStore.confirm(data);
+      CartStore.confirmBatch(data, snapshot.size);
     } catch (error) {
-      console.error('[CartDrawer] qty change failed:', error);
-      CartStore.rollback(pending.stateRollback);
-      this._showLineError(line);
+      console.error('[CartDrawer] batch qty update failed:', error);
+      for (const [line, { stateRollback }] of snapshot) {
+        CartStore.rollback(stateRollback);
+        this._showLineError(line);
+      }
+    } finally {
+      this._executingMutations--;
     }
   }
 
-  async _handleRemove(line) {
+  _handleRemove(line) {
     if (!CartStore.state) return;
 
     const row = this.querySelector(`[data-cart-line="${line}"]`);
     if (!row) return;
 
-    // Cancel any debounced qty changes — their line indices will be stale after this
-    // remove causes Shopify to reindex the cart.
-    for (const [pendingLine, pendingData] of this._pendingQty) {
-      CartStore.debounce(pendingLine, () => { }, 0);
+    clearTimeout(this._flushTimer);
+    this._flushTimer = null;
+    for (const [, pendingData] of this._pendingQty) {
       CartStore.rollback(pendingData.stateRollback);
     }
     this._pendingQty.clear();
 
     const rowWrapper = row.parentElement || row;
-    rowWrapper.hidden = true;
+    const rowWrapperParent = rowWrapper.parentElement;
+    const rowWrapperNextSibling = rowWrapper.nextSibling;
+    rowWrapper.remove();
+
     const stateRollback = CartStore.optimistic(line, 0);
 
     const sectionId = this.dataset.sectionId;
     const sections = sectionId ? [sectionId] : [];
 
-    this.panel?.classList.add('cart-loading');
+    // Loader only if there is already a mutation queued or executing at click time.
+    // A clean delete is fully optimistic — the row is already gone, no loader needed.
+    const showLoader = (this._queuedMutations + this._executingMutations) > 0;
+    if (showLoader) this.panel?.classList.add('cart-loading');
 
-    try {
-      const data = await CartAPI.change(line, 0, sections);
-      if (sectionId && data.sections?.[sectionId]) this._morphSection(data.sections[sectionId]);
-      CartStore.confirm(data);
-    } catch (error) {
-      console.error('[CartDrawer] remove failed:', error);
-      rowWrapper.hidden = false;
-      CartStore.rollback(stateRollback);
-      this._showLineError(line);
-    } finally {
-      this.panel?.classList.remove('cart-loading');
-    }
+    this._queuedMutations++;
+    this._mutationChain = this._mutationChain.then(async () => {
+      this._queuedMutations--;
+      this._executingMutations++;
+      try {
+        const data = await CartAPI.change(line, 0, sections);
+        if (this._queuedMutations === 0 && sectionId && data.sections?.[sectionId]) {
+          this._morphSection(data.sections[sectionId]);
+        }
+        CartStore.confirm(data);
+      } catch (error) {
+        console.error('[CartDrawer] remove failed:', error);
+        if (rowWrapperParent) rowWrapperParent.insertBefore(rowWrapper, rowWrapperNextSibling);
+        CartStore.rollback(stateRollback);
+        this._showLineError(line);
+      } finally {
+        this._executingMutations--;
+        if (showLoader) this.panel?.classList.remove('cart-loading');
+      }
+    });
   }
 
   _showLineError(line) {

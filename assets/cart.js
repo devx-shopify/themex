@@ -6,6 +6,9 @@ document.addEventListener('DOMContentLoaded', () => {
   let _checkoutPending = false;
   const _checkoutUrl = checkoutLink?.href ?? '';
   const _pendingQty = new Map();
+  let _flushTimer = null;
+  let _mutationChain = Promise.resolve();
+  let _queuedMutations = 0;
   let _noteTimer = null;
 
   const _showLineError = (line) => {
@@ -50,46 +53,73 @@ document.addEventListener('DOMContentLoaded', () => {
       if (minusIcon) minusIcon.hidden = newQty === 1;
     }
 
-    CartStore.debounce(line, () => _fireQtyChange(line), 250);
+    clearTimeout(_flushTimer);
+    _flushTimer = setTimeout(_flush, 250);
   };
 
-  const _fireQtyChange = async (line) => {
-    const pending = _pendingQty.get(line);
-    if (!pending) return;
-    _pendingQty.delete(line);
+  const _flush = () => {
+    if (_pendingQty.size === 0) return;
+
+    const snapshot = new Map(_pendingQty);
+    _pendingQty.clear();
+
+    _queuedMutations++;
+    _mutationChain = _mutationChain.then(() => {
+      _queuedMutations--;
+      return _executeMutation(snapshot);
+    });
+  };
+
+  const _executeMutation = async (snapshot) => {
+    const updates = (CartStore.state?.items ?? []).map((item, i) => {
+      const line = i + 1;
+      return snapshot.has(line) ? snapshot.get(line).finalQty : item.quantity;
+    });
+
     try {
-      const data = await CartAPI.change(line, pending.finalQty);
-      CartStore.confirm(data);
+      const data = await CartAPI.update({ updates });
+      CartStore.confirmBatch(data, snapshot.size);
     } catch (error) {
-      console.error('[Cart] qty change failed:', error);
-      CartStore.rollback(pending.stateRollback);
-      _showLineError(line);
+      console.error('[Cart] batch qty update failed:', error);
+      for (const [line, { stateRollback }] of snapshot) {
+        CartStore.rollback(stateRollback);
+        _showLineError(line);
+      }
     }
   };
 
-  const _handleRemove = async (line) => {
+  const _handleRemove = (line) => {
     if (!CartStore.state) return;
     const row = cartPage.querySelector(`[data-cart-line="${line}"]`);
     if (!row) return;
 
-    for (const [pendingLine, pendingData] of _pendingQty) {
-      CartStore.debounce(pendingLine, () => {}, 0);
+    clearTimeout(_flushTimer);
+    _flushTimer = null;
+    for (const [, pendingData] of _pendingQty) {
       CartStore.rollback(pendingData.stateRollback);
     }
     _pendingQty.clear();
 
     const rowWrapper = row.parentElement || row;
-    rowWrapper.hidden = true;
+    const rowWrapperParent = rowWrapper.parentElement;
+    const rowWrapperNextSibling = rowWrapper.nextSibling;
+    rowWrapper.remove();
+
     const stateRollback = CartStore.optimistic(line, 0);
-    try {
-      const data = await CartAPI.change(line, 0);
-      CartStore.confirm(data);
-    } catch (error) {
-      console.error('[Cart] remove failed:', error);
-      rowWrapper.hidden = false;
-      CartStore.rollback(stateRollback);
-      _showLineError(line);
-    }
+
+    _queuedMutations++;
+    _mutationChain = _mutationChain.then(async () => {
+      _queuedMutations--;
+      try {
+        const data = await CartAPI.change(line, 0);
+        CartStore.confirm(data);
+      } catch (error) {
+        console.error('[Cart] remove failed:', error);
+        if (rowWrapperParent) rowWrapperParent.insertBefore(rowWrapper, rowWrapperNextSibling);
+        CartStore.rollback(stateRollback);
+        _showLineError(line);
+      }
+    });
   };
 
   const _handleQtyRemove = (event) => {

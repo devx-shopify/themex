@@ -3,7 +3,6 @@ const CartStore = {
   pendingOps: 0,
 
   _subscribers: [],
-  _timers: {},
   _initialized: false,
   _moneyFormat: null,
 
@@ -46,14 +45,19 @@ const CartStore = {
     this._notify();
   },
 
+  confirmBatch(serverCartData, count) {
+    this.state = serverCartData;
+    this.reconcile(serverCartData);
+    this.pendingOps = Math.max(0, this.pendingOps - count);
+    this._notify();
+  },
+
   rollback(rollbackFn) {
     rollbackFn();
     this.pendingOps--;
     this._notify();
   },
 
-  // Updates a line's quantity in state without changing pendingOps.
-  // Used when debounce batches rapid clicks — the original optimistic call owns the op.
   patchQty(lineIndex, newQty) {
     if (!this.state) return;
     const item = this.state.items[lineIndex - 1];
@@ -65,9 +69,6 @@ const CartStore = {
     this.state.item_count = Math.max(0, this.state.item_count + delta);
     this._notify();
   },
-
-  // Add-to-cart lifecycle — separate from optimistic/confirm/rollback because
-  // add operations don't have a line index and the DOM is updated via morph, not reconcile.
   addPending() {
     if (this.state) this.state = { ...this.state, item_count: this.state.item_count + 1 };
     this.pendingOps++;
@@ -94,11 +95,6 @@ const CartStore = {
     };
   },
 
-  debounce(lineIndex, fn, delay = 250) {
-    clearTimeout(this._timers[lineIndex]);
-    this._timers[lineIndex] = setTimeout(fn, delay);
-  },
-
   formatMoney(cents) {
     if (!this._moneyFormat) {
       try {
@@ -111,15 +107,8 @@ const CartStore = {
     const fmt = this._moneyFormat;
     const value = cents / 100;
 
-    // Shopify defines fixed grouping rules per token — not locale-dependent.
-    // group() adds a separator every 3 digits from the right, works for all markets.
     const group = (str, sep) => str.replace(/\B(?=(\d{3})+(?!\d))/g, sep);
 
-    // Check longest names first to avoid partial substring matches.
-    // {{amount}}                                 → comma thousands, period decimal  e.g. 1,234.56
-    // {{amount_no_decimals}}                     → comma thousands, no decimal      e.g. 1,234
-    // {{amount_with_comma_separator}}            → period thousands, comma decimal  e.g. 1.234,56
-    // {{amount_no_decimals_with_comma_separator}} → period thousands, no decimal   e.g. 1.234
     if (fmt.includes('{{amount_no_decimals_with_comma_separator}}')) {
       return fmt.replace('{{amount_no_decimals_with_comma_separator}}', group(String(Math.round(value)), '.'));
     }
@@ -134,8 +123,6 @@ const CartStore = {
     return fmt.replace('{{amount}}', `${group(int, ',')}.${dec}`);
   },
 
-  // Reconcile handles only what morph cannot: global badges outside the morphed
-  // containers, and stale element removal as a no-sections fallback.
   reconcile(serverCartData) {
     const { item_count, total_price, items } = serverCartData;
 
