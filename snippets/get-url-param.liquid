@@ -23,9 +23,15 @@
     assign param_value = request.params[param_name] | default: ''
 
     if param_value == blank or param_value == ''
+      # theme-check-disable ContentForHeaderModification
+      # Deliberate workaround: the Section Rendering API (?sections=) only
+      # guarantees built-in params like `q`/`page` reach request.params — custom
+      # params (handles, queries) used by recently-viewed / recent-searches are
+      # not exposed, so we read the request URL from content_for_header.
       capture page_url_raw
         echo content_for_header | split: '"pageurl":"' | last | split: '"' | first
       endcapture
+      # theme-check-enable ContentForHeaderModification
 
       if page_url_raw contains '?'
         assign query_string = page_url_raw | split: '?' | last

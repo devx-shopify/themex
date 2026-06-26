@@ -3,10 +3,10 @@
   id="main-header"
 >
   {%- comment -%} Desktop header {%- endcomment -%}
-  {% render 'header-desktop' %}
+  {% render 'header-desktop', section: section %}
 
   {%- comment -%} Mobile header {%- endcomment -%}
-  {% render 'header-mobile' %}
+  {% render 'header-mobile', section: section %}
 </header>
 
 {% render 'search-modal' %}

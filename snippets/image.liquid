@@ -119,6 +119,12 @@
         assign img_src = desktop_img | image_url: width: rendered_width, format: 'webp', quality: img_quality
       endif
     -%}
+    {%- comment -%}
+      theme-check-disable RemoteAsset
+      img_src is built with the image_url filter above (CDN URL); the linter
+      cannot see through the variable.
+    {%- endcomment -%}
+    {% # theme-check-disable RemoteAsset %}
     <img
       src="{{ img_src }}"
       alt="{{ alt }}"
@@ -128,5 +134,6 @@
       fetchpriority="{{ fetchpriority }}"
       class="{{ classes }}"
     >
+    {% # theme-check-enable RemoteAsset %}
   </picture>
 {%- endif -%}

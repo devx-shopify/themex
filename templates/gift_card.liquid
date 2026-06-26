@@ -24,6 +24,7 @@
             alt="{{ 'gift_card.card' | t }}"
             class="mx-auto mb-4 rounded"
             width="400"
+            height="{{ 400 | divided_by: gift_card.image.aspect_ratio | round }}"
             loading="eager"
           >
         {%- endif -%}
