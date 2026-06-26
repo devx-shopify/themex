@@ -23,16 +23,27 @@ module.exports = {
         secondary: 'var(--font-secondary--family)',
       },
       colors: {
+        /* Primary brand */
         primary: 'rgb(var(--color-primary) / <alpha-value>)',
         'primary-foreground': 'rgb(var(--color-primary-foreground) / <alpha-value>)',
         secondary: 'rgb(var(--color-secondary) / <alpha-value>)',
         accent: 'rgb(var(--color-accent) / <alpha-value>)',
+        'primary-light': 'rgb(var(--color-primary-light) / <alpha-value>)',
+        'primary-wash': 'rgb(var(--color-primary-wash) / <alpha-value>)',
+        /* Neutrals */
         foreground: 'rgb(var(--color-foreground) / <alpha-value>)',
-        background: 'rgb(var(--color-background) / <alpha-value>)',
+        body: 'rgb(var(--color-body) / <alpha-value>)',
+        mid: 'rgb(var(--color-mid) / <alpha-value>)',
         muted: 'rgb(var(--color-muted) / <alpha-value>)',
         border: 'rgb(var(--color-border) / <alpha-value>)',
+        'background-alt': 'rgb(var(--color-background-alt) / <alpha-value>)',
+        background: 'rgb(var(--color-background) / <alpha-value>)',
+        /* Status */
         error: 'rgb(var(--color-error) / <alpha-value>)',
+        'error-wash': 'rgb(var(--color-error-wash) / <alpha-value>)',
         success: 'rgb(var(--color-success) / <alpha-value>)',
+        warning: 'rgb(var(--color-warning) / <alpha-value>)',
+        info: 'rgb(var(--color-info) / <alpha-value>)',
       },
     },
   },

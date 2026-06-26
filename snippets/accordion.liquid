@@ -1,14 +1,14 @@
 {% doc %}
   Reusable Accordion Component
 
-  @param {String} title - The clickable title/header text
-  @param {String} content - The HTML content to show/hide
-  @param {String} [unique_id] - Unique identifier to prevent duplicate IDs
-  @param {String} [class_name] - Additional CSS classes for the wrapper
-  @param {String} [title_class] - Additional CSS classes for the trigger button
-  @param {String} [content_class] - Additional CSS classes for the content inner
-  @param {Boolean} [default_open] - Whether accordion starts open (default: false)
-  @param {String} [icon_type] - Icon style: 'plus-minus' (default) or 'chevron'
+  @param {string} title - The clickable title/header text
+  @param {string} content - The HTML content to show/hide
+  @param {string} [unique_id] - Unique identifier to prevent duplicate IDs
+  @param {string} [class_name] - Additional CSS classes for the wrapper
+  @param {string} [title_class] - Additional CSS classes for the trigger button
+  @param {string} [content_class] - Additional CSS classes for the content inner
+  @param {boolean} [default_open] - Whether accordion starts open (default: false)
+  @param {string} [icon_type] - Icon style: 'plus-minus' (default) or 'chevron'
 {% enddoc %}
 
 {%- liquid
@@ -16,12 +16,6 @@
 
   if unique_id != blank
     assign accordion_suffix = unique_id
-  elsif forloop.index
-    if forloop.parentloop.index
-      assign accordion_suffix = forloop.parentloop.index | append: '-' | append: forloop.index
-    else
-      assign accordion_suffix = forloop.index
-    endif
   else
     assign accordion_suffix = 'now' | date: '%s%N'
   endif

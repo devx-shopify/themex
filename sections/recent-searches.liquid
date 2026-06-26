@@ -19,7 +19,7 @@
           {%- assign encoded_query = search_query | url_encode -%}
           <li>
             <a
-              href="/search?q={{ encoded_query }}"
+              href="{{ routes.search_url }}?q={{ encoded_query }}"
               class="flex items-center gap-2 rounded px-2 py-1.5 text-sm transition-colors hover:bg-muted/10 hover:text-primary"
               data-query="{{ search_query | escape }}"
             >

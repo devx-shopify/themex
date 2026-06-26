@@ -15,15 +15,28 @@
     --font-primary--family: {{ settings.type_primary_font.family }}, {{ settings.type_primary_font.fallback_families }};
     --font-secondary--family: {{ settings.type_secondary_font.family }}, {{ settings.type_secondary_font.fallback_families }};
 
+    /* Primary brand */
     --color-primary: {{ settings.color_primary | color_extract: 'red' }} {{ settings.color_primary | color_extract: 'green' }} {{ settings.color_primary | color_extract: 'blue' }};
     --color-secondary: {{ settings.color_secondary | color_extract: 'red' }} {{ settings.color_secondary | color_extract: 'green' }} {{ settings.color_secondary | color_extract: 'blue' }};
     --color-accent: {{ settings.color_accent | color_extract: 'red' }} {{ settings.color_accent | color_extract: 'green' }} {{ settings.color_accent | color_extract: 'blue' }};
+    --color-primary-light: {{ settings.color_primary_light | color_extract: 'red' }} {{ settings.color_primary_light | color_extract: 'green' }} {{ settings.color_primary_light | color_extract: 'blue' }};
+    --color-primary-wash: {{ settings.color_primary_wash | color_extract: 'red' }} {{ settings.color_primary_wash | color_extract: 'green' }} {{ settings.color_primary_wash | color_extract: 'blue' }};
+
+    /* Neutrals */
     --color-foreground: {{ settings.color_foreground | color_extract: 'red' }} {{ settings.color_foreground | color_extract: 'green' }} {{ settings.color_foreground | color_extract: 'blue' }};
-    --color-background: {{ settings.color_background | color_extract: 'red' }} {{ settings.color_background | color_extract: 'green' }} {{ settings.color_background | color_extract: 'blue' }};
-    --color-border: {{ settings.color_border | color_extract: 'red' }} {{ settings.color_border | color_extract: 'green' }} {{ settings.color_border | color_extract: 'blue' }};
+    --color-body: {{ settings.color_body | color_extract: 'red' }} {{ settings.color_body | color_extract: 'green' }} {{ settings.color_body | color_extract: 'blue' }};
+    --color-mid: {{ settings.color_mid | color_extract: 'red' }} {{ settings.color_mid | color_extract: 'green' }} {{ settings.color_mid | color_extract: 'blue' }};
     --color-muted: {{ settings.color_muted | color_extract: 'red' }} {{ settings.color_muted | color_extract: 'green' }} {{ settings.color_muted | color_extract: 'blue' }};
-    --color-error: {{ settings.color_error | color_extract: 'red' }} {{ settings.color_error | color_extract: 'green' }} {{ settings.color_error | color_extract: 'blue' }};
-    --color-success: {{ settings.color_success | color_extract: 'red' }} {{ settings.color_success | color_extract: 'green' }} {{ settings.color_success | color_extract: 'blue' }};
+    --color-border: {{ settings.color_border | color_extract: 'red' }} {{ settings.color_border | color_extract: 'green' }} {{ settings.color_border | color_extract: 'blue' }};
+    --color-background-alt: {{ settings.color_background_alt | color_extract: 'red' }} {{ settings.color_background_alt | color_extract: 'green' }} {{ settings.color_background_alt | color_extract: 'blue' }};
+    --color-background: {{ settings.color_background | color_extract: 'red' }} {{ settings.color_background | color_extract: 'green' }} {{ settings.color_background | color_extract: 'blue' }};
     --color-primary-foreground: {{ settings.color_primary_foreground | color_extract: 'red' }} {{ settings.color_primary_foreground | color_extract: 'green' }} {{ settings.color_primary_foreground | color_extract: 'blue' }};
+
+    /* Status */
+    --color-error: {{ settings.color_error | color_extract: 'red' }} {{ settings.color_error | color_extract: 'green' }} {{ settings.color_error | color_extract: 'blue' }};
+    --color-error-wash: {{ settings.color_error_wash | color_extract: 'red' }} {{ settings.color_error_wash | color_extract: 'green' }} {{ settings.color_error_wash | color_extract: 'blue' }};
+    --color-success: {{ settings.color_success | color_extract: 'red' }} {{ settings.color_success | color_extract: 'green' }} {{ settings.color_success | color_extract: 'blue' }};
+    --color-warning: {{ settings.color_warning | color_extract: 'red' }} {{ settings.color_warning | color_extract: 'green' }} {{ settings.color_warning | color_extract: 'blue' }};
+    --color-info: {{ settings.color_info | color_extract: 'red' }} {{ settings.color_info | color_extract: 'green' }} {{ settings.color_info | color_extract: 'blue' }};
   }
 {% endstyle %}

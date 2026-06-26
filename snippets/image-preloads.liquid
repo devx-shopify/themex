@@ -20,6 +20,13 @@
   -%}
 
   {%- if preload_media -%}
+    {%- comment -%}
+      theme-check-disable AssetPreload
+      Deliberate <head> <link rel="preload">. The image_tag preload arg emits an
+      <img>, not a head link, which is the wrong semantics for an early preload.
+    {%- endcomment -%}
+    {% # theme-check-disable AssetPreload %}
     <link rel="preload" as="image" href="{{ preload_media | image_url: width: 800 }}" fetchpriority="high">
+    {% # theme-check-enable AssetPreload %}
   {%- endif -%}
 {%- endif -%}

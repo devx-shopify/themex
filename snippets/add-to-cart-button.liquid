@@ -41,6 +41,9 @@
 <product-form
   class="block"
   data-product-id="{{ product.id }}"
+  data-product-title="{{ product.title | escape }}"
+  data-product-url="{{ product.url }}"
+  data-product-featured-image="{{ product.featured_image | image_url: width: 500 }}"
 >
   <form
     action="{{ routes.cart_add_url }}"

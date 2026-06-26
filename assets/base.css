@@ -1,3 +1,19 @@
+/* Ensure [hidden] always wins over Tailwind utility display classes (flex, grid, block, etc.)
+   Tailwind preflight sets [hidden] { display: none } without !important, so utility classes
+   defined later in the cascade override it. */
+[hidden] {
+  display: none !important;
+}
+
+/* Cart loading state — applied to [data-cart-panel] while a remove is in-flight.
+   Panel is never morphed so this class survives the DOM update. */
+.cart-loading [data-cart-items],
+.cart-loading [data-cart-footer] {
+  pointer-events: none;
+  opacity: 0.4;
+  transition: opacity 200ms;
+}
+
 /* Reset — https://www.joshwcomeau.com/css/custom-css-reset/ */
 *,
 *::before,

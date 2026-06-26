@@ -128,6 +128,22 @@
               if value == selected_options[option_index]
                 assign is_selected = true
               endif
+
+              assign value_available = false
+              for v in product.variants
+                case option_index
+                  when 0
+                    assign v_opt = v.option1
+                  when 1
+                    assign v_opt = v.option2
+                  when 2
+                    assign v_opt = v.option3
+                endcase
+                if v_opt == value and v.available
+                  assign value_available = true
+                  break
+                endif
+              endfor
             -%}
 
             {%- if is_color -%}
@@ -150,13 +166,14 @@
               -%}
               <button
                 type="button"
-                class="variant-option variant-option--color relative {{ swatch_class }} overflow-hidden rounded-lg border-2 transition-all{% if is_selected %} border-foreground ring-2 ring-foreground/20{% else %} border-border hover:border-foreground{% endif %}"
+                class="variant-option variant-option--color relative {{ swatch_class }} overflow-hidden rounded-lg border-2 transition-all{% if is_selected %} border-foreground ring-2 ring-foreground/20{% else %} border-border hover:border-foreground{% endif %}{% unless value_available %} opacity-40{% endunless %}"
                 data-option-value="{{ value }}"
                 data-option-index="{{ option_index }}"
                 data-is-color="true"
                 aria-label="{{ value }}"
                 aria-pressed="{% if is_selected %}true{% else %}false{% endif %}"
                 title="{{ value }}"
+                {% unless value_available %}disabled{% endunless %}
               >
                 {%- if color_display == 'image' and color_variant.featured_image -%}
                   <img
@@ -178,11 +195,12 @@
             {%- else -%}
               <button
                 type="button"
-                class="variant-option rounded border px-4 py-2 text-sm transition-colors{% if is_selected %} border-foreground bg-foreground text-background{% elsif pill_style == 'filled' %} border-foreground/20 bg-foreground/5 hover:border-foreground{% else %} border-border hover:border-foreground{% endif %}"
+                class="variant-option rounded border px-4 py-2 text-sm transition-colors{% if is_selected %} border-foreground bg-foreground text-background{% elsif pill_style == 'filled' %} border-foreground/20 bg-foreground/5 hover:border-foreground{% else %} border-border hover:border-foreground{% endif %}{% unless value_available %} opacity-40{% endunless %}"
                 data-option-value="{{ value }}"
                 data-option-index="{{ option_index }}"
                 data-pill-style="{{ pill_style }}"
                 aria-pressed="{% if is_selected %}true{% else %}false{% endif %}"
+                {% unless value_available %}disabled{% endunless %}
               >
                 {{ value }}
               </button>
