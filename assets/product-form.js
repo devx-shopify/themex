@@ -91,19 +91,27 @@ class ProductForm extends HTMLElement {
     if (emptyEl) emptyEl.hidden = true;
 
     let shimmerEl = null;
+    let optimisticEl = null;
 
-    if (wasEmpty) {
-      if (itemsEl) itemsEl.hidden = false;
-      if (skeletonEl) skeletonEl.hidden = false;
+    const existingItem = wasEmpty
+      ? null
+      : CartStore.state?.items?.find((item) => item.variant_id === variantId);
+
+    if (existingItem) {
+      const row = cartDrawer?.querySelector(`[data-item-key="${existingItem.key}"]`);
+      const parent = row?.parentElement;
+      shimmerEl = (parent?.children.length === 1 ? parent : row) ?? null;
+      shimmerEl?.classList.add('animate-pulse');
     } else {
-      const existingItem = CartStore.state?.items?.find((item) => item.variant_id === variantId);
-      if (existingItem) {
-        const row = cartDrawer?.querySelector(`[data-item-key="${existingItem.key}"]`);
-        const parent = row?.parentElement;
-        shimmerEl = (parent?.children.length === 1 ? parent : row) ?? null;
-        shimmerEl?.classList.add('animate-pulse');
-      } else {
-        if (skeletonEl) skeletonEl.hidden = false;
+      if (wasEmpty && itemsEl) itemsEl.hidden = false;
+
+      optimisticEl = this.buildOptimisticLineItem(cartDrawer, variantId);
+      if (optimisticEl && itemsEl) {
+        if (skeletonEl) skeletonEl.hidden = true;
+        optimisticEl.classList.add('animate-pulse');
+        itemsEl.prepend(optimisticEl);
+      } else if (skeletonEl) {
+        skeletonEl.hidden = false;
       }
     }
 
@@ -111,6 +119,8 @@ class ProductForm extends HTMLElement {
 
     try {
       const data = await CartAPI.add(formData, sections);
+
+      optimisticEl?.remove();
 
       if (sectionId && data.sections?.[sectionId] && cartDrawer) {
         const doc = new DOMParser().parseFromString(data.sections[sectionId], 'text/html');
@@ -143,7 +153,61 @@ class ProductForm extends HTMLElement {
       const finalSkeletonEl = cartDrawer?.querySelector('[data-cart-skeleton]');
       if (finalSkeletonEl) finalSkeletonEl.hidden = true;
       shimmerEl?.classList.remove('animate-pulse');
+      optimisticEl?.remove();
     }
+  }
+
+  getVariantData(variantId) {
+    const selector = document.querySelector(
+      `variant-selector[data-product-id="${this.dataset.productId}"]`
+    );
+    const variants = selector?.variants;
+    if (!Array.isArray(variants)) return null;
+    return variants.find((variant) => variant.id === variantId) ?? null;
+  }
+
+  buildOptimisticLineItem(cartDrawer, variantId) {
+    const template = cartDrawer?.querySelector('[data-cart-line-optimistic]');
+    const root = template?.content?.firstElementChild;
+    if (!root) return null;
+
+    const variant = this.getVariantData(variantId);
+    if (!variant) return null;
+
+    const { productTitle, productUrl, productFeaturedImage } = this.dataset;
+    const node = root.cloneNode(true);
+
+    const imageEl = node.querySelector('[data-optimistic-image]');
+    if (imageEl) {
+      const imageSrc = variant.image || productFeaturedImage || '';
+      if (imageSrc) {
+        imageEl.src = imageSrc;
+        imageEl.alt = productTitle ?? '';
+      } else {
+        imageEl.closest('[data-optimistic-link]')?.remove();
+      }
+    }
+
+    const titleEl = node.querySelector('[data-optimistic-title]');
+    if (titleEl) titleEl.textContent = productTitle ?? '';
+
+    const variantEl = node.querySelector('[data-optimistic-variant]');
+    if (variantEl) {
+      if (variant.title && variant.title !== 'Default Title') {
+        variantEl.textContent = variant.title;
+      } else {
+        variantEl.remove();
+      }
+    }
+
+    const priceEl = node.querySelector('[data-optimistic-price]');
+    if (priceEl) priceEl.textContent = variant.price_formatted ?? '';
+
+    for (const link of node.querySelectorAll('[data-optimistic-link]')) {
+      if (productUrl) link.href = productUrl;
+    }
+
+    return node;
   }
 
   setLoading(isLoading) {

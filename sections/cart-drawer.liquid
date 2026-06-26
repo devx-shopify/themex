@@ -72,6 +72,37 @@
       {%- endfor -%}
     </div>
 
+    {%- comment -%}
+      Optimistic line item — product-form.js clones this and fills in the real
+      image/title/price (with a shimmer) the instant Add to Cart is clicked,
+      before the server responds. Lives outside [data-cart-items] so the cart
+      morph never reconciles it away. Falls back to [data-cart-skeleton] above
+      when variant data is unavailable (e.g. quick-add without a variant selector).
+    {%- endcomment -%}
+    <template data-cart-line-optimistic>
+      <div class="py-4 border-b border-border">
+        <div class="cart-line-item relative flex gap-4">
+          <a href="#" class="flex-shrink-0" data-optimistic-link>
+            <img
+              alt=""
+              width="80"
+              height="80"
+              loading="lazy"
+              class="h-20 w-20 rounded border border-border object-cover"
+              data-optimistic-image
+            >
+          </a>
+          <div class="flex flex-1 flex-col gap-1">
+            <a href="#" class="text-sm font-medium leading-tight" data-optimistic-link data-optimistic-title></a>
+            <p class="text-xs text-muted" data-optimistic-variant></p>
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-medium" data-optimistic-price></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
+
     <div
       class="border-t border-border px-5 py-4"
       data-cart-footer

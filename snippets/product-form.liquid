@@ -24,7 +24,9 @@
 <product-form
   class="product-form block"
   data-product-id="{{ product.id }}"
-  data-section-id="{{ section.id }}"
+  data-product-title="{{ product.title | escape }}"
+  data-product-url="{{ product.url }}"
+  data-product-featured-image="{{ product.featured_image | image_url: width: 500 }}"
 >
   <form
     id="product-form-{{ product.id }}"
