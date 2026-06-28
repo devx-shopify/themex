@@ -87,8 +87,11 @@ class ProductForm extends HTMLElement {
 
     const emptyEl = cartDrawer?.querySelector('[data-cart-empty]');
     const itemsEl = cartDrawer?.querySelector('[data-cart-items]');
+    const footerEl = cartDrawer?.querySelector('[data-cart-footer]');
     const skeletonEl = cartDrawer?.querySelector('[data-cart-skeleton]');
     if (emptyEl) emptyEl.hidden = true;
+
+    if (footerEl) footerEl.hidden = false;
 
     let shimmerEl = null;
     let optimisticEl = null;
