@@ -78,13 +78,13 @@ Cross-component communication uses `CustomEvent` (e.g., `cart:refresh`). DOM sel
 
 ## Project Standards — MANDATORY
 
-Coding standards are provided as **plugin skills** from the `shopify-theme-standards` plugin listed in the system prompt. They are NOT files on disk — they must be invoked using the **Skill tool** before writing any code.
+Coding standards are provided as **plugin skills** from the `shopify-theme-toolkit` plugin listed in the system prompt. They are NOT files on disk — they must be invoked using the **Skill tool** before writing any code.
 
 **Before writing or modifying any file, invoke the relevant skill(s):**
-- **`.liquid` files** → invoke `shopify-theme-standards:liquid-standards`
-- **`.js` files** → invoke `shopify-theme-standards:js-standards`
-- **CSS / Tailwind / styling** → invoke `shopify-theme-standards:css-standards`
-- **Section files** → invoke `shopify-theme-standards:section-standards` and `shopify-theme-standards:section-schema-standards`
-- **New files / architecture decisions** → invoke `shopify-theme-standards:theme-architecture`
+- **`.liquid` files** → invoke `shopify-theme-toolkit:liquid-standards`
+- **`.js` files** → invoke `shopify-theme-toolkit:js-standards`
+- **CSS / Tailwind / styling** → invoke `shopify-theme-toolkit:css-standards`
+- **Section files** → invoke `shopify-theme-toolkit:section-standards` and `shopify-theme-toolkit:section-schema-standards`
+- **New files / architecture decisions** → invoke `shopify-theme-toolkit:theme-architecture`
 
 **This is non-negotiable.** Do not skip this step. Do not assume CLAUDE.md alone contains all standards. The plugin skills have detailed rules and checklists that must be followed.
