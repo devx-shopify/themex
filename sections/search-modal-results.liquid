@@ -1,0 +1,162 @@
+{%- comment -%}
+  Search Modal Results Section
+
+  Rendered server-side via the Section Rendering API when fetched from the
+  /search route with a section_id parameter. Uses the search Liquid object
+  (semantic-capable on eligible plans) to display product, article, and page
+  results grouped by type. Injected into the search modal by predictive-search.js.
+{%- endcomment -%}
+
+<div id="search-modal-section-results" class="search-modal-results">
+  {%- if search.performed -%}
+    {%- if search.results_count == 0 -%}
+      <p class="py-6 text-center text-sm text-muted">
+        {{ 'search.no_results_html' | t: terms: search.terms }}
+      </p>
+    {%- else -%}
+      {%- liquid
+        comment
+          search.results is a single mixed array; count each type first so we
+          only render group headers for types that actually have results.
+        endcomment
+        assign product_count = 0
+        assign article_count = 0
+        assign page_count = 0
+        for result in search.results
+          case result.object_type
+            when 'product'
+              assign product_count = product_count | plus: 1
+            when 'article'
+              assign article_count = article_count | plus: 1
+            when 'page'
+              assign page_count = page_count | plus: 1
+          endcase
+        endfor
+      -%}
+
+      {%- comment -%} Product results (no cap) {%- endcomment -%}
+      {%- if product_count > 0 -%}
+        <div class="mb-4">
+          <h3 class="mb-2 text-xs font-semibold uppercase tracking-wider text-muted">
+            {{ 'search.products' | t }}
+          </h3>
+          <div class="space-y-1">
+            {%- for result in search.results -%}
+              {%- if result.object_type == 'product' -%}
+                <a
+                  href="{{ result.url }}"
+                  class="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-muted/10"
+                >
+                  {%- if result.featured_image -%}
+                    <div class="h-14 w-14 flex-shrink-0 overflow-hidden rounded border border-border bg-muted/5">
+                      <img
+                        src="{{ result.featured_image | image_url: width: 112 }}"
+                        alt="{{ result.title | escape }}"
+                        width="56"
+                        height="56"
+                        loading="lazy"
+                        class="h-full w-full object-cover"
+                      >
+                    </div>
+                  {%- else -%}
+                    <div class="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded border border-border bg-muted/5 text-muted">
+                      {% render 'icon-cart', size: 20 %}
+                    </div>
+                  {%- endif -%}
+                  <div class="min-w-0 flex-1">
+                    <p class="truncate text-sm font-medium">{{ result.title }}</p>
+                    <div class="flex items-center gap-2">
+                      <span class="text-sm text-muted">{{ result.price | money }}</span>
+                      {%- if result.compare_at_price > result.price -%}
+                        <s class="text-xs text-muted/60">{{ result.compare_at_price | money }}</s>
+                      {%- endif -%}
+                    </div>
+                  </div>
+                </a>
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+        </div>
+      {%- endif -%}
+
+      {%- comment -%} Article results (cap 10) {%- endcomment -%}
+      {%- if article_count > 0 -%}
+        <div class="mb-4">
+          <h3 class="mb-2 text-xs font-semibold uppercase tracking-wider text-muted">
+            {{ 'search.articles' | t }}
+          </h3>
+          <div class="space-y-1">
+            {%- assign articles_shown = 0 -%}
+            {%- for result in search.results -%}
+              {%- if result.object_type == 'article' and articles_shown < 10 -%}
+                <a
+                  href="{{ result.url }}"
+                  class="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-muted/10"
+                >
+                  {%- if result.image -%}
+                    <div class="h-14 w-14 flex-shrink-0 overflow-hidden rounded border border-border bg-muted/5">
+                      <img
+                        src="{{ result.image | image_url: width: 112 }}"
+                        alt="{{ result.title | escape }}"
+                        width="56"
+                        height="56"
+                        loading="lazy"
+                        class="h-full w-full object-cover"
+                      >
+                    </div>
+                  {%- endif -%}
+                  <div class="min-w-0 flex-1">
+                    <p class="truncate text-sm font-medium">{{ result.title }}</p>
+                    <p class="text-xs text-muted">{{ 'search.article' | t }}</p>
+                  </div>
+                </a>
+                {%- assign articles_shown = articles_shown | plus: 1 -%}
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+        </div>
+      {%- endif -%}
+
+      {%- comment -%} Page results (cap 10) {%- endcomment -%}
+      {%- if page_count > 0 -%}
+        <div>
+          <h3 class="mb-2 text-xs font-semibold uppercase tracking-wider text-muted">
+            {{ 'search.pages' | t }}
+          </h3>
+          <div class="space-y-1">
+            {%- assign pages_shown = 0 -%}
+            {%- for result in search.results -%}
+              {%- if result.object_type == 'page' and pages_shown < 10 -%}
+                <a
+                  href="{{ result.url }}"
+                  class="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-muted/10"
+                >
+                  <div class="min-w-0 flex-1">
+                    <p class="truncate text-sm font-medium">{{ result.title }}</p>
+                    <p class="text-xs text-muted">{{ 'search.page' | t }}</p>
+                  </div>
+                </a>
+                {%- assign pages_shown = pages_shown | plus: 1 -%}
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+        </div>
+      {%- endif -%}
+
+      {%- comment -%} View all results link {%- endcomment -%}
+      <a
+        href="{{ routes.search_url }}?q={{ search.terms | url_encode }}"
+        class="mt-3 block rounded-lg border border-border p-3 text-center text-sm font-medium transition-colors hover:border-foreground hover:bg-muted/10"
+      >
+        {{ 'search.view_all_results' | t: terms: search.terms }}
+      </a>
+    {%- endif -%}
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "Search Modal Results",
+  "settings": []
+}
+{% endschema %}
