@@ -67,7 +67,7 @@
             "compare_at_price": {{ variant.compare_at_price | default: 0 | json }},
             "price_formatted": {{ variant.price | money | strip_html | json }},
             "compare_at_price_formatted": {% if variant.compare_at_price %}{{ variant.compare_at_price | money | strip_html | json }}{% else %}null{% endif %},
-            "image": {{ variant.featured_image | image_url: width: 500 | default: '' | json }},
+            "image": {% if variant.featured_image %}{{ variant.featured_image | image_url: width: 500 | json }}{% else %}""{% endif %},
             "featured_media_id": {% if variant.featured_media %}{{ variant.featured_media.id | json }}{% else %}null{% endif %},
             "title": {{ variant.title | json }}
           }{%- unless forloop.last -%},{%- endunless -%}

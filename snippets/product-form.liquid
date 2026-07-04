@@ -26,7 +26,7 @@
   data-product-id="{{ product.id }}"
   data-product-title="{{ product.title | escape }}"
   data-product-url="{{ product.url }}"
-  data-product-featured-image="{{ product.featured_image | image_url: width: 500 }}"
+  data-product-featured-image="{% if product.featured_image %}{{ product.featured_image | image_url: width: 500 }}{% endif %}"
   data-product-price="{{ selected_variant.price | money | strip_html | escape }}"
 >
   <form
