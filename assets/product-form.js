@@ -174,15 +174,21 @@ class ProductForm extends HTMLElement {
     const root = template?.content?.firstElementChild;
     if (!root) return null;
 
-    const variant = this.getVariantData(variantId);
-    if (!variant) return null;
+    const { productTitle, productUrl, productFeaturedImage, productPrice } = this.dataset;
 
-    const { productTitle, productUrl, productFeaturedImage } = this.dataset;
+
+    const variant = this.getVariantData(variantId);
+    const imageSrc = variant?.image || productFeaturedImage || '';
+    const variantTitle =
+      variant?.title && variant.title !== 'Default Title' ? variant.title : '';
+    const priceText = variant?.price_formatted || productPrice || '';
+
+    if (!productTitle && !imageSrc && !priceText) return null;
+
     const node = root.cloneNode(true);
 
     const imageEl = node.querySelector('[data-optimistic-image]');
     if (imageEl) {
-      const imageSrc = variant.image || productFeaturedImage || '';
       if (imageSrc) {
         imageEl.src = imageSrc;
         imageEl.alt = productTitle ?? '';
@@ -196,15 +202,15 @@ class ProductForm extends HTMLElement {
 
     const variantEl = node.querySelector('[data-optimistic-variant]');
     if (variantEl) {
-      if (variant.title && variant.title !== 'Default Title') {
-        variantEl.textContent = variant.title;
+      if (variantTitle) {
+        variantEl.textContent = variantTitle;
       } else {
         variantEl.remove();
       }
     }
 
     const priceEl = node.querySelector('[data-optimistic-price]');
-    if (priceEl) priceEl.textContent = variant.price_formatted ?? '';
+    if (priceEl) priceEl.textContent = priceText;
 
     for (const link of node.querySelectorAll('[data-optimistic-link]')) {
       if (productUrl) link.href = productUrl;

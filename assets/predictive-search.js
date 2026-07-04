@@ -41,34 +41,27 @@ document.addEventListener("DOMContentLoaded", () => {
     showLoading();
 
     const root = window.Shopify?.routes?.root || "/";
-    const params = new URLSearchParams({
-      q: query,
-      "resources[type]": "product,article,page",
-      "resources[limit]": "6",
-      section_id: "predictive-search",
-    });
+    const sectionId = input.dataset.sectionId;
+    const url = `${root}search?q=${encodeURIComponent(query)}&type=product,article,page&options[prefix]=last&section_id=${sectionId}`;
 
     try {
-      const response = await fetch(
-        `${root}search/suggest?${params.toString()}`,
-        { signal: abortController.signal },
-      );
+      const response = await fetch(url, { signal: abortController.signal });
 
       if (!response.ok) throw new Error("Search failed");
 
       const text = await response.text();
       const parser = new DOMParser();
       const doc = parser.parseFromString(text, "text/html");
-      const sectionContent = doc.getElementById(
-        "predictive-search-section-results",
-      );
+      const sectionContent = doc.getElementById("search-modal-section-results");
 
       if (sectionContent) {
         resultsContainer.innerHTML = sectionContent.innerHTML;
         window.searchRecentSearches?.trackSearch(query);
+        showResults();
+      } else {
+        resultsContainer.innerHTML = "";
+        hideAll();
       }
-
-      showResults();
     } catch (error) {
       if (error.name !== "AbortError") {
         resultsContainer.innerHTML = "";

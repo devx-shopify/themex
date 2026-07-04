@@ -65,8 +65,8 @@
             "options": {{ variant.options | json }},
             "price": {{ variant.price | json }},
             "compare_at_price": {{ variant.compare_at_price | default: 0 | json }},
-            "price_formatted": {{ variant.price | money | json }},
-            "compare_at_price_formatted": {% if variant.compare_at_price %}{{ variant.compare_at_price | money | json }}{% else %}null{% endif %},
+            "price_formatted": {{ variant.price | money | strip_html | json }},
+            "compare_at_price_formatted": {% if variant.compare_at_price %}{{ variant.compare_at_price | money | strip_html | json }}{% else %}null{% endif %},
             "image": {{ variant.featured_image | image_url: width: 500 | default: '' | json }},
             "featured_media_id": {% if variant.featured_media %}{{ variant.featured_media.id | json }}{% else %}null{% endif %},
             "title": {{ variant.title | json }}
@@ -148,21 +148,33 @@
 
             {%- if is_color -%}
               {%- liquid
-                assign color_variant = null
-                for v in product.variants
-                  case option_index
-                    when 0
-                      assign v_opt = v.option1
-                    when 1
-                      assign v_opt = v.option2
-                    when 2
-                      assign v_opt = v.option3
-                  endcase
-                  if v_opt == value
-                    assign color_variant = v
-                    break
-                  endif
-                endfor
+                assign swatch_image = null
+                assign swatch_color = null
+
+                if value.swatch.image != blank
+                  assign swatch_image = value.swatch.image
+                endif
+
+                if value.swatch.color != blank
+                  assign swatch_color = value.swatch.color
+                endif
+
+                if color_display == 'image' and swatch_image == null
+                  for variant in product.variants
+                    case option_index
+                      when 0
+                        assign variant_option_value = variant.option1
+                      when 1
+                        assign variant_option_value = variant.option2
+                      when 2
+                        assign variant_option_value = variant.option3
+                    endcase
+                    if variant_option_value == value and variant.featured_image != blank
+                      assign swatch_image = variant.featured_image
+                      break
+                    endif
+                  endfor
+                endif
               -%}
               <button
                 type="button"
@@ -173,22 +185,28 @@
                 aria-label="{{ value }}"
                 aria-pressed="{% if is_selected %}true{% else %}false{% endif %}"
                 title="{{ value }}"
-                {% unless value_available %}disabled{% endunless %}
+                {% unless value_available %}
+                  disabled
+                {% endunless %}
               >
-                {%- if color_display == 'image' and color_variant.featured_image -%}
+                {%- if swatch_image != blank -%}
                   <img
-                    src="{{ color_variant.featured_image | image_url: width: 96 }}"
+                    src="{{ swatch_image | image_url: width: 96 }}"
                     alt="{{ value | escape }}"
                     width="48"
                     height="48"
                     loading="lazy"
                     class="h-full w-full object-cover"
                   >
-                {%- else -%}
+                {%- elsif swatch_color != blank -%}
                   <span
                     class="absolute inset-0"
-                    style="background-color: rgb(var(--color-muted) / 0.3); background-color: {{ value | handleize | replace: '-', '' }};"
+                    style="background-color: {{ swatch_color }};"
                   ></span>
+                {%- else -%}
+                  <span class="absolute inset-0 flex items-center justify-center bg-muted/30 text-xs font-medium uppercase leading-none text-muted">
+                    {{- value | slice: 0 | escape -}}
+                  </span>
                 {%- endif -%}
               </button>
 
@@ -200,7 +218,9 @@
                 data-option-index="{{ option_index }}"
                 data-pill-style="{{ pill_style }}"
                 aria-pressed="{% if is_selected %}true{% else %}false{% endif %}"
-                {% unless value_available %}disabled{% endunless %}
+                {% unless value_available %}
+                  disabled
+                {% endunless %}
               >
                 {{ value }}
               </button>
