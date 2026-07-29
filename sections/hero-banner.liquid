@@ -9,15 +9,15 @@
 >
   {%- comment -%} Background image {%- endcomment -%}
   {%- if section.settings.image != blank -%}
+    {%- assign hero_image_alt = section.settings.image.alt | default: 'Hero banner image' -%}
     <div class="absolute inset-0">
-      {%
-        render 'image',
+      {%- render 'image',
         image: section.settings.image,
         mobile_image: section.settings.mobile_image,
         class_name: 'h-full w-full object-cover',
         lazy: false,
-        alt: section.settings.image.alt | default: 'Hero banner image'
-      %}
+        alt: hero_image_alt
+      -%}
       {%- if section.settings.overlay_opacity > 0 -%}
         <div
           class="absolute inset-0"
