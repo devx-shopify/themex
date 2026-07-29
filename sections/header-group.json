@@ -1,6 +1,6 @@
 {
   "type": "header",
-  "name": "t:general.header",
+  "name": "Header",
   "sections": {
     "announcement_bar": {
       "type": "announcement-bar",
